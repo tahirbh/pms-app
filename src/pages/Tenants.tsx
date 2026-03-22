@@ -165,13 +165,13 @@ const Tenants: React.FC = () => {
       {showForm && (
         <form onSubmit={handleSaveTenant} className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(255, 255, 255, 0.4)' }}>
           <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>
-            {editingId ? 'Edit Tenant Contract' : 'New Tenant Contract'}
+            {editingId ? t('edit_tenant') : t('new_tenant')}
           </h3>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <input className="input-field" placeholder="Tenant Name" value={tenantName} onChange={e => setTenantName(e.target.value)} required />
+            <input className="input-field" placeholder={t('tenant_name')} value={tenantName} onChange={e => setTenantName(e.target.value)} required />
             <select className="input-field" value={propertyId} onChange={e => setPropertyId(e.target.value)} required>
-              <option value="">Select Property...</option>
+              <option value="">{t('select_property')}</option>
               {properties.map(p => <option key={p.id} value={p.id}>{p.name} ({p.annualRent} {currency}/yr)</option>)}
             </select>
             
@@ -212,30 +212,28 @@ const Tenants: React.FC = () => {
             </div>
             <div>
               <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>
-                Payment Plan
+                {t('payment_plan')}
               </label>
               <select className="input-field" value={paymentPlan} onChange={e => setPaymentPlan(e.target.value as any)} required>
-                <option value="Monthly">Monthly</option>
-                <option value="3 Month">Every 3 Months</option>
-                <option value="6 Month">Every 6 Months</option>
-                <option value="Yearly">Yearly</option>
+                <option value="Monthly">{t('monthly')}</option>
+                <option value="3 Month">{t('quarterly')}</option>
+                <option value="6 Month">{t('semi_annual')}</option>
+                <option value="Yearly">{t('yearly')}</option>
               </select>
             </div>
           </div>
           
           <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
             <button type="submit" className="btn btn-primary" style={{ background: 'var(--success)' }}>
-              {editingId ? 'Update Contract' : 'Save Contract'}
+              {editingId ? t('update_tenant') : t('save_tenant')}
             </button>
-            <button type="button" className="btn" onClick={() => setShowForm(false)}>
-              Cancel
-            </button>
+            <button type="button" className="btn" onClick={() => setShowForm(false)}>{t('cancel')}</button>
           </div>
         </form>
       )}
 
       {tenants.length === 0 ? (
-        <p style={{ color: 'var(--text-muted)' }}>No tenants registered yet.</p>
+        <p style={{ color: 'var(--text-muted)' }}>{t('no_tenants')}</p>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
           {tenants.map(tnt => {

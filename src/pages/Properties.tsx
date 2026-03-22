@@ -118,10 +118,10 @@ const Properties: React.FC = () => {
         </h2>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <button className="btn" onClick={handleExport} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Download size={16} /> Export CSV
+            <Download size={16} /> {t('export_csv')}
           </button>
           <button className="btn" onClick={() => importRef.current?.click()} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Upload size={16} /> Import CSV
+            <Upload size={16} /> {t('import_csv')}
           </button>
           <input ref={importRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={handleImport} />
           <button className="btn btn-primary" onClick={() => handleOpenForm()}>
@@ -134,26 +134,14 @@ const Properties: React.FC = () => {
       {showForm && (
         <form onSubmit={handleSaveProperty} className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(255, 255, 255, 0.4)' }}>
           <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>
-            {editingId ? 'Edit Property Details' : 'New Property Details'}
+            {editingId ? t('edit_property_details') : t('new_property')}
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <input 
-              className="input-field" 
-              placeholder="Property Name" 
-              value={name} onChange={e => setName(e.target.value)} required 
-            />
-            <input 
-              className="input-field" type="number" 
-              placeholder={`Annual Rent (${currency})`} 
-              value={annualRent} onChange={e => setAnnualRent(e.target.value)} required 
-            />
-            <input 
-              className="input-field" 
-              placeholder="Address" 
-              value={address} onChange={e => setAddress(e.target.value)} 
-            />
+            <input className="input-field" placeholder={t('property_name')} value={name} onChange={e => setName(e.target.value)} required />
+            <input className="input-field" type="number" placeholder={`${t('annual_rent')} (${currency})`} value={annualRent} onChange={e => setAnnualRent(e.target.value)} required />
+            <input className="input-field" placeholder={t('property_address')} value={address} onChange={e => setAddress(e.target.value)} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Property Image (Optional)</label>
+              <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{t('property_image')}</label>
               <input 
                 type="file" 
                 accept="image/*" 
@@ -167,17 +155,15 @@ const Properties: React.FC = () => {
           
           <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
             <button type="submit" className="btn btn-primary" style={{ background: 'var(--success)' }}>
-              <CheckCircle2 size={20} /> {editingId ? 'Update Property' : 'Save Property'}
+              <CheckCircle2 size={20} /> {editingId ? t('update_property') : t('save_property')}
             </button>
-            <button type="button" className="btn" onClick={() => setShowForm(false)}>
-              Cancel
-            </button>
+            <button type="button" className="btn" onClick={() => setShowForm(false)}>{t('cancel')}</button>
           </div>
         </form>
       )}
 
       {properties.length === 0 ? (
-        <p style={{ color: 'var(--text-muted)' }}>No properties created yet. Add one to get started.</p>
+        <p style={{ color: 'var(--text-muted)' }}>{t('no_properties')}</p>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
           {properties.map(p => (

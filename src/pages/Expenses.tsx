@@ -137,29 +137,25 @@ const Expenses: React.FC = () => {
       {showForm && (
         <form onSubmit={handleSaveExpense} className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(255, 255, 255, 0.4)' }}>
           <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>
-            {editingId ? 'Edit Expense details' : 'Log New Expense'}
+            {editingId ? t('edit_expense') : t('log_expense')}
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <select className="input-field" value={category} onChange={e => setCategory(e.target.value)} required>
-              <option value="">Select Category...</option>
-              <option value="Security Man Salary">Security Man Salary</option>
-              <option value="Maintenance">Maintenance</option>
-              <option value="Utilities">Utilities (Water/Elec)</option>
-              <option value="Taxes">Taxes</option>
-              <option value="Other">Other</option>
+              <option value="">{t('select_category')}</option>
+              <option value="Security Man Salary">{t('cat_salary')}</option>
+              <option value="Maintenance">{t('cat_maintenance')}</option>
+              <option value="Utilities">{t('cat_utilities')}</option>
+              <option value="Taxes">{t('cat_taxes')}</option>
+              <option value="Other">{t('cat_other')}</option>
             </select>
-            <input 
-              className="input-field" type="number" 
-              placeholder={`Amount (${currency})`} 
-              value={amount} onChange={e => setAmount(e.target.value)} required 
-            />
+            <input className="input-field" type="number" placeholder={`${t('amount_sar')} (${currency})`} value={amount} onChange={e => setAmount(e.target.value)} required />
             <select className="input-field" value={paymentMode} onChange={e => setPaymentMode(e.target.value as any)} required>
-              <option value="Cash">Cash</option>
-              <option value="Bank">Bank Transfer</option>
-              <option value="Online">Online / Card</option>
+              <option value="Cash">{t('mode_cash')}</option>
+              <option value="Bank">{t('mode_bank')}</option>
+              <option value="Online">{t('mode_online')}</option>
             </select>
             <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>Date ({calendarMode})</label>
+              <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>{t('date_label')} ({calendarMode})</label>
               <DatePicker
                 value={date}
                 onChange={(dateObject: any) => setDate(dateObject ? dateObject.format('YYYY/MM/DD') : '')}
@@ -174,24 +170,18 @@ const Expenses: React.FC = () => {
               />
             </div>
           </div>
-          <input 
-            className="input-field" 
-            placeholder="Description (Optional)" 
-            value={description} onChange={e => setDescription(e.target.value)} 
-          />
+          <input className="input-field" placeholder={t('description_optional')} value={description} onChange={e => setDescription(e.target.value)} />
           <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
             <button type="submit" className="btn btn-primary" style={{ background: 'var(--success)' }}>
-              <CheckCircle2 size={20} /> {editingId ? 'Update Expense' : 'Save Expense'}
+              <CheckCircle2 size={20} /> {editingId ? t('update_expense') : t('save_expense')}
             </button>
-            <button type="button" className="btn" onClick={() => setShowForm(false)}>
-              Cancel
-            </button>
+            <button type="button" className="btn" onClick={() => setShowForm(false)}>{t('cancel')}</button>
           </div>
         </form>
       )}
 
       {expenses.length === 0 ? (
-        <p style={{ color: 'var(--text-muted)' }}>No expenses logged yet.</p>
+        <p style={{ color: 'var(--text-muted)' }}>{t('no_expenses')}</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {expenses.map(exp => (
@@ -213,8 +203,8 @@ const Expenses: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <p style={{ color: 'var(--text-muted)' }}>{exp.description || 'No description'}</p>
                 <div style={{ fontSize: '0.875rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                  <span><strong style={{ opacity: 0.8 }}>Mode:</strong> {exp.paymentMode}</span>
-                  <span><strong style={{ opacity: 0.8 }}>Date:</strong> {exp.date}</span>
+                  <span><strong style={{ opacity: 0.8 }}>{t('payment_mode')}:</strong> {exp.paymentMode}</span>
+                  <span><strong style={{ opacity: 0.8 }}>{t('date_label')}:</strong> {exp.date}</span>
                 </div>
                 <div style={{ fontWeight: 600, fontSize: '1.25rem', color: 'var(--danger)', marginTop: '0.5rem' }}>
                   - {exp.amount.toLocaleString()} {currency}

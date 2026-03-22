@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getTenants, getProperties, getLedgersByTenant, updateLedgerPaymentStatus, deleteLedger } from '../utils/store';
 import type { TenantContract, Property, ContractLedger } from '../utils/store';
 import { ArrowLeft, CheckCircle2, Clock, CalendarDays, KeyRound, Building2, Trash2 } from 'lucide-react';
@@ -18,6 +19,7 @@ const TenantLedger: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { currency, calendarMode, language } = useAppContext();
+  const { t } = useTranslation();
 
   const [tenant, setTenant] = useState<TenantContract | null>(null);
   const [property, setProperty] = useState<Property | null>(null);
@@ -57,15 +59,15 @@ const TenantLedger: React.FC = () => {
     }
   };
 
-  if (!tenant || !property) return <div className="p-8 text-center" style={{ color: 'var(--text-muted)' }}>Loading Ledger Account...</div>;
+  if (!tenant || !property) return <div className="p-8 text-center" style={{ color: 'var(--text-muted)' }}>{t('loading_ledger')}</div>;
 
   return (
     <div className="glass-panel p-8 animate-slide-in">
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', alignItems: 'center' }}>
         <button className="btn" onClick={() => navigate(-1)} style={{ background: 'var(--glass-border)', padding: '0.5rem 1rem' }}>
-          <ArrowLeft size={20}/> Back
+          <ArrowLeft size={20}/> {t('back')}
         </button>
-        <h2 style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--primary)', margin: 0 }}>Contract Ledger Account</h2>
+        <h2 style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--primary)', margin: 0 }}>{t('payment_ledger')}</h2>
       </div>
 
       <div style={{ display: 'flex', gap: '3rem', background: 'rgba(255,255,255,0.4)', padding: '2rem', borderRadius: '12px', marginBottom: '3rem' }}>
@@ -74,15 +76,15 @@ const TenantLedger: React.FC = () => {
             <KeyRound size={20} color="var(--primary)"/> {tenant.tenantName}
           </h3>
           <p style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Building2 size={16} /> Property: {property.name}
+            <Building2 size={16} /> {t('property_label')}: {property.name}
           </p>
         </div>
         <div style={{ borderLeft: '2px solid rgba(0,0,0,0.1)', paddingLeft: '3rem' }}>
           <p style={{ margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.125rem' }}>
-            <CalendarDays size={18} /> Plan: <strong>{tenant.paymentPlan}</strong>
+            <CalendarDays size={18} /> {t('payment_plan_label')}: <strong>{tenant.paymentPlan}</strong>
           </p>
           <p style={{ color: 'var(--text-muted)', margin: 0 }}>
-            Contract Terms: {tenant.startDate} to {tenant.endDate}
+            {t('contract_start')}: {tenant.startDate} — {t('contract_end')}: {tenant.endDate}
           </p>
         </div>
       </div>
@@ -116,8 +118,8 @@ const TenantLedger: React.FC = () => {
                     </div>
                     <div>
                       <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>INSTALLMENT {idx + 1}</p>
-                      <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Due: {ledger.dueDate}</p>
-                      {isPaid && <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--success)' }}>Paid on: {ledger.paidDate} via {ledger.paymentMode}</p>}
+                      <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>{t('due_date')}: {ledger.dueDate}</p>
+                      {isPaid && <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--success)' }}>{t('paid')}: {ledger.paidDate} — {ledger.paymentMode}</p>}
                     </div>
                   </div>
                   
@@ -132,7 +134,7 @@ const TenantLedger: React.FC = () => {
                         style={{ padding: '0.5rem 1.5rem', background: 'var(--text-main)', borderRadius: '50px' }}
                         onClick={() => setPayingLedger(ledger.id)}
                       >
-                        Mark Payment
+                        {t('mark_as_paid')}
                       </button>
                     )}
                     
@@ -150,15 +152,15 @@ const TenantLedger: React.FC = () => {
                 {isPaying && (
                   <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #eee', display: 'flex', gap: '1rem', alignItems: 'flex-end', animation: 'slideInUp 0.3s ease-out' }}>
                     <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>Payment Mode</label>
+                      <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>{t('payment_mode')}</label>
                       <select className="input-field" value={paymentMode} onChange={e => setPaymentMode(e.target.value as any)}>
-                        <option value="Cash">Cash Transaction</option>
-                        <option value="Bank">Bank Transfer</option>
-                        <option value="Online">Online / Credit Card</option>
+                        <option value="Cash">{t('mode_cash')}</option>
+                        <option value="Bank">{t('mode_bank')}</option>
+                        <option value="Online">{t('mode_online')}</option>
                       </select>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>Receiving Date</label>
+                      <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>{t('payment_date')}</label>
                       <DatePicker
                         value={paidDate}
                         onChange={(dateObject: any) => setPaidDate(dateObject ? dateObject.format('YYYY/MM/DD') : '')}
@@ -174,10 +176,10 @@ const TenantLedger: React.FC = () => {
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <button className="btn" style={{ background: 'var(--success)', color: 'white', padding: '0.85rem 2rem' }} onClick={() => executePayment(ledger.id)}>
-                        Confirm Transfer
+                        {t('confirm_payment')}
                       </button>
                       <button className="btn" style={{ background: '#eee', padding: '0.85rem 1rem' }} onClick={() => setPayingLedger(null)}>
-                        Cancel
+                        {t('cancel')}
                       </button>
                     </div>
                   </div>

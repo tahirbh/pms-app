@@ -3,7 +3,7 @@ import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Home, Users, Settings as SettingsIcon, LogOut, Menu, Receipt, Bell, AlertCircle, FileText } from 'lucide-react';
+import { LayoutDashboard, Home, Users, Settings as SettingsIcon, LogOut, Receipt, Bell, AlertCircle, FileText } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import moment from 'moment-hijri';
 
@@ -138,12 +138,12 @@ const DashboardHome = () => {
   }, []);
 
   const barData = [
-    { name: 'Rent Comparison', expected: metrics.expectedRent, actual: metrics.actualRent }
+    { name: t('rent_comparison'), expected: metrics.expectedRent, actual: metrics.actualRent }
   ];
 
   const pieData = [
-    { name: 'Income (Actual Rent)', value: metrics.actualRent },
-    { name: 'Expenses', value: metrics.totalExpenses },
+    { name: t('income_actual_rent'), value: metrics.actualRent },
+    { name: t('expense_label'), value: metrics.totalExpenses },
   ];
   const COLORS = ['#10b981', '#ef4444'];
   const ledgerPieData = [
@@ -171,9 +171,9 @@ const DashboardHome = () => {
 
         {showNotifications && (
           <div className="glass-panel animate-fade-in" style={{ position: 'absolute', top: '3rem', right: 0, width: '350px', zIndex: 50, padding: 0, maxHeight: '400px', overflowY: 'auto' }}>
-            <h4 style={{ padding: '1rem', borderBottom: '1px solid var(--glass-border)', margin: 0, fontWeight: 600 }}>{t('notifications') || 'Notifications'}</h4>
+            <h4 style={{ padding: '1rem', borderBottom: '1px solid var(--glass-border)', margin: 0, fontWeight: 600 }}>{t('notifications')}</h4>
             {notifications.length === 0 ? (
-              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No alerts at this time.</div>
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>{t('no_notifications')}</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {notifications.map((n: any) => (
@@ -184,10 +184,10 @@ const DashboardHome = () => {
                         {n.name}
                       </p>
                       <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: n.type === 'overdue' ? 'var(--danger)' : 'var(--accent)' }}>
-                        {n.type === 'overdue' ? 'OVERDUE' : 'DUE SOON'}: {n.amount.toLocaleString()} {currency}
+                        {n.type === 'overdue' ? t('overdue_alert') : t('upcoming_alert')}: {n.amount.toLocaleString()} {currency}
                       </p>
                       <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        Date: {n.date}
+                        {t('due_date')}: {n.date}
                       </p>
                     </div>
                   </div>
@@ -198,16 +198,16 @@ const DashboardHome = () => {
         )}
       </div>
 
-      <h2 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '0.4rem', paddingRight: '3rem' }}>{t('dashboard')}</h2>
-      <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '1rem' }}>Welcome back! Here's an overview of your portfolio.</p>
+      <h2 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '0.4rem', paddingRight: '3rem' }}>{t('welcome_title')}</h2>
+      <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '1rem' }}>{t('welcome_subtitle')}</p>
 
       {/* Summary Stat Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '1.25rem', marginBottom: '3rem' }}>
         {[
-          { label: t('expected_rent') || 'Annual Expected', value: metrics.expectedRent, color: 'var(--secondary)', icon: '📋' },
-          { label: t('actual_rent') || 'Total Contracted', value: metrics.actualRent, color: 'var(--primary)', icon: '✅' },
-          { label: t('expenses') || 'Total Expenses', value: metrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
-          { label: 'Net Revenue', value: metrics.actualRent - metrics.totalExpenses, color: 'var(--success)', icon: '📈' },
+          { label: t('expected_rent'), value: metrics.expectedRent, color: 'var(--secondary)', icon: '📋' },
+          { label: t('actual_rent'), value: metrics.actualRent, color: 'var(--primary)', icon: '✅' },
+          { label: t('total_expenses'), value: metrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
+          { label: t('net_revenue'), value: metrics.actualRent - metrics.totalExpenses, color: 'var(--success)', icon: '📈' },
         ].map((card) => (
           <div key={card.label} className="glass-panel" style={{ padding: '1.25rem 1.5rem', borderLeft: `4px solid ${card.color}`, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
             <div style={{ fontSize: '1.4rem' }}>{card.icon}</div>
@@ -221,24 +221,24 @@ const DashboardHome = () => {
 
       {/* Chart Section Header */}
       <div style={{ marginBottom: '1.5rem', paddingBottom: '0.75rem', borderBottom: '2px solid var(--glass-border)' }}>
-        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>📊 Financial Analytics</h3>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Live charts from your properties, tenants, and ledger data.</p>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>📊 {t('financial_analytics')}</h3>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>{t('financial_analytics_subtitle')}</p>
       </div>
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
         
         {/* Expected vs Actual Rent Bar Chart */}
         <div className="glass-panel" style={{ padding: '1.5rem' }}>
-          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 0.3rem 0' }}>Annual Expected vs Actual Rent</h4>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Full year expected vs. total contracted value</p>
+          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 0.3rem 0' }}>{t('expected_vs_actual')}</h4>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{t('expected_vs_actual_sub')}</p>
           <div style={{ width: '100%', height: 280 }}>
             <ResponsiveContainer>
               <BarChart data={barData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip formatter={(value) => `${Number(value).toLocaleString()} ${currency}`} />
-                <Bar dataKey="expected" name="Expected (Annual)" fill="var(--secondary)" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="actual" name="Actual (Contracted)" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="expected" name={t('expected_annual')} fill="var(--secondary)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="actual" name={t('actual_contracted')} fill="var(--primary)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -246,11 +246,11 @@ const DashboardHome = () => {
 
         {/* Income vs Expense Donut Chart */}
         <div className="glass-panel" style={{ padding: '1.5rem' }}>
-          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 0.3rem 0' }}>Income vs Expenses</h4>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Total contracted income vs. all recorded expenses</p>
+          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 0.3rem 0' }}>{t('income_vs_expenses')}</h4>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{t('income_vs_expenses_sub')}</p>
           <div style={{ width: '100%', height: 260 }}>
             {metrics.actualRent === 0 && metrics.totalExpenses === 0 ? (
-              <div style={{ display:'flex', height:'100%', alignItems:'center', justifyContent:'center', color: 'var(--text-muted)' }}>No Financial Data</div>
+              <div style={{ display:'flex', height:'100%', alignItems:'center', justifyContent:'center', color: 'var(--text-muted)' }}>{t('no_data')}</div>
             ) : (
               <ResponsiveContainer>
                 <PieChart>
@@ -273,19 +273,19 @@ const DashboardHome = () => {
               </ResponsiveContainer>
             )}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginTop: '1rem' }}>
-              <span style={{ display:'flex', alignItems: 'center', gap: '0.5rem' }}><span style={{width: 12, height:12, borderRadius:'50%', background: COLORS[0]}}></span> Income</span>
-              <span style={{ display:'flex', alignItems: 'center', gap: '0.5rem' }}><span style={{width: 12, height:12, borderRadius:'50%', background: COLORS[1]}}></span> Expense</span>
+              <span style={{ display:'flex', alignItems: 'center', gap: '0.5rem' }}><span style={{width: 12, height:12, borderRadius:'50%', background: COLORS[0]}}></span> {t('income')}</span>
+              <span style={{ display:'flex', alignItems: 'center', gap: '0.5rem' }}><span style={{width: 12, height:12, borderRadius:'50%', background: COLORS[1]}}></span> {t('expense_label')}</span>
             </div>
           </div>
         </div>
 
         {/* Ledger Collection 30-Day Donut Chart */}
         <div className="glass-panel" style={{ padding: '1.5rem' }}>
-          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 0.3rem 0' }}>30-Day Ledger Revenue</h4>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Current period rent split: paid, overdue, and upcoming</p>
+          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 0.3rem 0' }}>{t('ledger_revenue')}</h4>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{t('ledger_revenue_sub')}</p>
           <div style={{ width: '100%', height: 260 }}>
             {ledgerStats.paid === 0 && ledgerStats.overdue === 0 && ledgerStats.upcoming === 0 ? (
-              <div style={{ display:'flex', height:'100%', alignItems:'center', justifyContent:'center', color: 'var(--text-muted)' }}>No Ledger Data</div>
+              <div style={{ display:'flex', height:'100%', alignItems:'center', justifyContent:'center', color: 'var(--text-muted)' }}>{t('no_data')}</div>
             ) : (
               <ResponsiveContainer>
                 <PieChart>
@@ -308,28 +308,28 @@ const DashboardHome = () => {
               </ResponsiveContainer>
             )}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
-              <span style={{ display:'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}><span style={{width: 12, height:12, borderRadius:'50%', background: LEDGER_COLORS[0]}}></span> Paid</span>
-              <span style={{ display:'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}><span style={{width: 12, height:12, borderRadius:'50%', background: LEDGER_COLORS[1]}}></span> Overdue</span>
-              <span style={{ display:'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}><span style={{width: 12, height:12, borderRadius:'50%', background: LEDGER_COLORS[2]}}></span> Upcoming</span>
+              <span style={{ display:'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}><span style={{width: 12, height:12, borderRadius:'50%', background: LEDGER_COLORS[0]}}></span> {t('paid_rent')}</span>
+              <span style={{ display:'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}><span style={{width: 12, height:12, borderRadius:'50%', background: LEDGER_COLORS[1]}}></span> {t('overdue_rent')}</span>
+              <span style={{ display:'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}><span style={{width: 12, height:12, borderRadius:'50%', background: LEDGER_COLORS[2]}}></span> {t('upcoming_rent')}</span>
             </div>
           </div>
         </div>
 
         {/* Building Utilization Bar Chart */}
         <div className="glass-panel" style={{ padding: '1.5rem', gridColumn: '1 / -1' }}>
-          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 0.3rem 0' }}>Building Utilization</h4>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Potential annual rent vs. actual contracted rent per building</p>
+          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 0.3rem 0' }}>{t('building_utilization')}</h4>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{t('building_utilization_sub')}</p>
           <div style={{ width: '100%', height: 320 }}>
             {utilizationData.length === 0 ? (
-              <div style={{ display:'flex', height:'100%', alignItems:'center', justifyContent:'center', color: 'var(--text-muted)' }}>No Property Data</div>
+              <div style={{ display:'flex', height:'100%', alignItems:'center', justifyContent:'center', color: 'var(--text-muted)' }}>{t('no_data')}</div>
             ) : (
               <ResponsiveContainer>
                 <BarChart data={utilizationData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip formatter={(value) => `${Number(value).toLocaleString()} ${currency}`} />
-                  <Bar dataKey="potential" name="Potential Rent (Annual)" fill="var(--text-muted)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="contracted" name="Actual Contracted Rent" fill="var(--secondary)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="potential" name={t('potential_rent_annual')} fill="var(--text-muted)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="contracted" name={t('actual_contracted_rent')} fill="var(--secondary)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -344,10 +344,7 @@ const DashboardHome = () => {
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { language } = useAppContext();
   const { user, signOut } = useAuth();
-  const isRtl = language === 'ar' || language === 'ur';
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -359,66 +356,36 @@ const Dashboard: React.FC = () => {
     { path: '/dashboard/properties', label: t('properties'), icon: Home },
     { path: '/dashboard/tenants', label: t('tenants'), icon: Users },
     { path: '/dashboard/expenses', label: t('expenses'), icon: Receipt },
-    { path: '/dashboard/report', label: t('reports') || 'Reports', icon: FileText },
+    { path: '/dashboard/report', label: t('reports'), icon: FileText },
     { path: '/dashboard/settings', label: t('settings'), icon: SettingsIcon },
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="dashboard-layout" style={{ display: 'flex', minHeight: '100vh' }}>
       
-      {/* Mobile Toggle Button */}
-      <button 
-        className="btn" 
-        style={{ position: 'fixed', top: '1rem', [isRtl ? 'right' : 'left']: '1rem', zIndex: 1000, display: 'none' }}
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-      >
-        <Menu />
-      </button>
-
       {/* Sidebar Navigation */}
-      <aside 
-        className="glass-panel" 
-        style={{ 
-          width: 'var(--nav-width)', 
-          margin: '1rem', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          height: 'calc(100vh - 2rem)',
-          position: 'sticky',
-          top: '1rem'
-        }}
-      >
-        <div style={{ padding: '2rem 1.5rem', fontWeight: 700, fontSize: '1.5rem', color: 'var(--primary)' }}>
-          PMS {isRtl ? 'نظام' : 'System'}
+      <aside className="glass-panel sidebar">
+        <div className="app-title" style={{ padding: '2rem 1.5rem', fontWeight: 700, fontSize: '1.5rem', color: 'var(--primary)' }}>
+          {t('app_title')}
         </div>
         
-        <nav style={{ flex: 1, padding: '0 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <nav className="sidebar-nav">
           {navItems.map((item) => (
             <NavLink 
               key={item.path} 
               to={item.path}
               end={item.exact}
-              style={({ isActive }) => ({
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                color: isActive ? 'white' : 'var(--text-main)',
-                backgroundColor: isActive ? 'var(--primary)' : 'transparent',
-                textDecoration: 'none',
-                transition: 'var(--transition)'
-              })}
+              className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
             >
               <item.icon size={20} />
-              {item.label}
+              <span className="sidebar-label">{item.label}</span>
             </NavLink>
           ))}
         </nav>
 
-        <div style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div className="sidebar-footer">
           {user && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem', borderRadius: '8px' }}>
+            <div className="user-info" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem', borderRadius: '8px' }}>
               {user.user_metadata?.avatar_url ? (
                 <img src={user.user_metadata.avatar_url} alt="avatar" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
               ) : (
@@ -438,13 +405,13 @@ const Dashboard: React.FC = () => {
             onClick={handleSignOut}
           >
             <LogOut size={20} />
-            Sign Out
+            <span className="sidebar-label">{t('sign_out')}</span>
           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, padding: '2rem', height: 'calc(100vh - 80px)', overflowY: 'auto' }}>
+      <div className="main-content" style={{ overflowY: 'auto' }}>
         <ErrorBoundary>
           <Routes>
             <Route path="/" element={<DashboardHome />} />
