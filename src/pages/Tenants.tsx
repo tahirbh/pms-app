@@ -152,12 +152,12 @@ const Tenants: React.FC = () => {
           <UserCircle /> {t('tenants')}
         </h2>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <button className="btn" onClick={() => exportCSV(tenants, 'tenants.csv')} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Download size={16} /> {t('export_csv_btn')}
+          <button className="btn action-btn" onClick={() => exportCSV(tenants, 'tenants.csv')} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }} title={t('export_csv_btn')}>
+            <Download size={16} /> <span className="btn-text">{t('export_csv_btn')}</span>
           </button>
-          <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+          <button className="btn btn-primary action-btn" onClick={() => handleOpenForm()} title={t('register_tenant')}>
             <UserPlus size={20} />
-            {t('register_tenant')}
+            <span className="btn-text">{t('register_tenant')}</span>
           </button>
         </div>
       </div>

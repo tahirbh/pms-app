@@ -120,16 +120,16 @@ const Expenses: React.FC = () => {
           <Receipt /> {t('expenses_management')}
         </h2>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <button className="btn" onClick={() => exportCSV(expenses, 'expenses.csv')} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Download size={16} /> Export CSV
+          <button className="btn action-btn" onClick={() => exportCSV(expenses, 'expenses.csv')} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }} title="Export CSV">
+            <Download size={16} /> <span className="btn-text">Export CSV</span>
           </button>
-          <button className="btn" onClick={() => importRef.current?.click()} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Upload size={16} /> Import CSV
+          <button className="btn action-btn" onClick={() => importRef.current?.click()} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }} title="Import CSV">
+            <Upload size={16} /> <span className="btn-text">Import CSV</span>
           </button>
           <input ref={importRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={handleImport} />
-          <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+          <button className="btn btn-primary action-btn" onClick={() => handleOpenForm()} title={t('add_expense')}>
             <Plus size={20} />
-            {t('add_expense')}
+            <span className="btn-text">{t('add_expense')}</span>
           </button>
         </div>
       </div>

@@ -117,16 +117,16 @@ const Properties: React.FC = () => {
           <Building2 /> {t('properties')}
         </h2>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <button className="btn" onClick={handleExport} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Download size={16} /> {t('export_csv')}
+          <button className="btn action-btn" onClick={handleExport} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }} title={t('export_csv')}>
+            <Download size={16} /> <span className="btn-text">{t('export_csv')}</span>
           </button>
-          <button className="btn" onClick={() => importRef.current?.click()} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Upload size={16} /> {t('import_csv')}
+          <button className="btn action-btn" onClick={() => importRef.current?.click()} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }} title={t('import_csv')}>
+            <Upload size={16} /> <span className="btn-text">{t('import_csv')}</span>
           </button>
           <input ref={importRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={handleImport} />
-          <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+          <button className="btn btn-primary action-btn" onClick={() => handleOpenForm()} title={t('add_property')}>
             <Plus size={20} />
-            {t('add_property')}
+            <span className="btn-text">{t('add_property')}</span>
           </button>
         </div>
       </div>

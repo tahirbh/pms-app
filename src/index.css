@@ -284,6 +284,18 @@ body {
     box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
   }
 
+  .action-btn {
+    padding: 0.5rem !important;
+    border-radius: 50% !important;
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+  }
+  
+  .btn-text {
+    display: none;
+  }
+
   .sidebar-nav {
     flex-direction: row;
     width: 100%;

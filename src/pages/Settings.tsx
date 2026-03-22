@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../context/AppContext';
-import { Users, Mail, Trash2, Loader2, CheckCircle2, Clock, XCircle, Languages, Calendar } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Users, Mail, Trash2, Loader2, CheckCircle2, Clock, XCircle, Languages, Calendar, LogOut } from 'lucide-react';
 import { getMyInvitations, sendInvitation, revokeInvitation } from '../utils/store';
 import type { Invitation } from '../utils/store';
 
 const Settings: React.FC = () => {
   const { t } = useTranslation();
+  const { signOut } = useAuth();
   const { language, setLanguage, currency, setCurrency, calendarMode, setCalendarMode } = useAppContext();
 
   const [invitations, setInvitations] = useState<Invitation[]>([]);
@@ -168,9 +170,17 @@ const Settings: React.FC = () => {
             </div>
           )}
 
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '2rem', display: 'flex', gap: '0.5rem' }}>
-              {t('invite_tip')}
-            </p>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '2rem', display: 'flex', gap: '0.5rem' }}>
+            {t('invite_tip')}
+          </p>
+        </div>
+
+        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1rem', marginBottom: '4rem' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Account</h2>
+          <button className="btn" style={{ background: 'var(--danger)', color: 'white', display: 'flex', gap: '0.5rem', alignItems: 'center', padding: '0.75rem 2rem' }} onClick={signOut}>
+            <LogOut size={20} />
+            Sign Out
+          </button>
         </div>
 
       </div>
