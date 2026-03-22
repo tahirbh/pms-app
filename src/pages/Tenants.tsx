@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, Edit, Trash2, Printer, Receipt, UserCircle, Calculator } from 'lucide-react';
+import { UserPlus, Edit, Trash2, Printer, Receipt, UserCircle, Calculator, Download } from 'lucide-react';
 import { getTenants, getProperties, saveTenant, updateTenant, deleteTenant, endTenantContract, saveLedgers } from '../utils/store';
 import type { TenantContract, Property } from '../utils/store';
 import { calculateRent } from '../utils/rentCalculator';
@@ -16,6 +16,7 @@ import gregorian_ar from "react-date-object/locales/gregorian_ar";
 import { generateLedgerSchedules } from '../utils/ledgerGenerator';
 import type { RentCalculationResult } from '../utils/rentCalculator';
 import { useAppContext } from '../context/AppContext';
+import { exportCSV } from '../utils/exportUtils';
 
 const Tenants: React.FC = () => {
   const { t } = useTranslation();
@@ -150,10 +151,15 @@ const Tenants: React.FC = () => {
         <h2 style={{ fontSize: '2rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <UserCircle /> {t('tenants')}
         </h2>
-        <button className="btn btn-primary" onClick={() => handleOpenForm()}>
-          <UserPlus size={20} />
-          {t('register_tenant')}
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <button className="btn" onClick={() => exportCSV(tenants, 'tenants.csv')} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Download size={16} /> Export CSV
+          </button>
+          <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+            <UserPlus size={20} />
+            {t('register_tenant')}
+          </button>
+        </div>
       </div>
 
       {showForm && (

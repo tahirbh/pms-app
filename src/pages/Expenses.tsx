@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Receipt, Edit, Trash2, CheckCircle2 } from 'lucide-react';
-import { getExpenses, saveExpense, updateExpense, deleteExpense } from '../utils/store';
+import { Plus, Receipt, Edit, Trash2, CheckCircle2, Download, Upload } from 'lucide-react';
+import { getExpenses, saveExpense, updateExpense, deleteExpense, importExpenses } from '../utils/store';
 import type { Expense } from '../utils/store';
 import { useAppContext } from '../context/AppContext';
+import { exportCSV, parseCSV, readFileAsText } from '../utils/exportUtils';
 import DatePickerModule from "react-multi-date-picker";
 const DatePicker = (DatePickerModule as any).default || DatePickerModule;
 import arabic from "react-date-object/calendars/arabic";
@@ -93,16 +94,44 @@ const Expenses: React.FC = () => {
     }
   };
 
+  const importRef = useRef<HTMLInputElement>(null);
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const text = await readFileAsText(file);
+    const rows = parseCSV(text).map(r => ({
+      category: r.category || 'Other',
+      amount: parseFloat(r.amount) || 0,
+      paymentMode: (r.paymentMode as any) || 'Cash',
+      date: r.date || '',
+      description: r.description || '',
+    }));
+    const count = await importExpenses(rows);
+    alert(`✅ Imported ${count} expenses!`);
+    await loadData();
+    e.target.value = '';
+  };
+
   return (
     <div className="glass-panel p-8 animate-slide-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '2rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <Receipt /> {t('expenses_management')}
         </h2>
-        <button className="btn btn-primary" onClick={() => handleOpenForm()}>
-          <Plus size={20} />
-          {t('add_expense')}
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <button className="btn" onClick={() => exportCSV(expenses, 'expenses.csv')} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Download size={16} /> Export CSV
+          </button>
+          <button className="btn" onClick={() => importRef.current?.click()} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Upload size={16} /> Import CSV
+          </button>
+          <input ref={importRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={handleImport} />
+          <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+            <Plus size={20} />
+            {t('add_expense')}
+          </button>
+        </div>
       </div>
 
       {showForm && (

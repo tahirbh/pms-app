@@ -179,3 +179,95 @@ export const deleteExpense = async (id: string): Promise<boolean> => {
   if (error) { console.error('Error deleting expense', error); return false; }
   return true;
 };
+
+// --- IMPORT (bulk insert with user_id override) ---
+export const importProperties = async (rows: Omit<Property, 'id' | 'created_at' | 'user_id'>[]): Promise<number> => {
+  const userId = await getCurrentUserId();
+  const withUser = rows.map(r => ({ ...r, user_id: userId }));
+  const { data, error } = await supabase.from('properties').insert(withUser).select();
+  if (error) { console.error('Error importing properties', error); return 0; }
+  return data?.length ?? 0;
+};
+
+export const importTenants = async (rows: Omit<TenantContract, 'id' | 'created_at' | 'user_id'>[]): Promise<number> => {
+  const userId = await getCurrentUserId();
+  const withUser = rows.map(r => ({ ...r, user_id: userId }));
+  const { data, error } = await supabase.from('tenants').insert(withUser).select();
+  if (error) { console.error('Error importing tenants', error); return 0; }
+  return data?.length ?? 0;
+};
+
+export const importExpenses = async (rows: Omit<Expense, 'id' | 'created_at' | 'user_id'>[]): Promise<number> => {
+  const userId = await getCurrentUserId();
+  const withUser = rows.map(r => ({ ...r, user_id: userId }));
+  const { data, error } = await supabase.from('expenses').insert(withUser).select();
+  if (error) { console.error('Error importing expenses', error); return 0; }
+  return data?.length ?? 0;
+};
+
+// --- INVITATIONS ---
+export type Invitation = {
+  id: string;
+  inviter_id: string;
+  invitee_email: string;
+  invitee_id: string | null;
+  status: 'pending' | 'accepted' | 'revoked';
+  created_at?: string;
+};
+
+export const sendInvitation = async (inviteeEmail: string): Promise<{ ok: boolean; error?: string }> => {
+  const userId = await getCurrentUserId();
+  if (!userId) return { ok: false, error: 'Not logged in' };
+
+  // Check if already invited
+  const { data: existing } = await supabase
+    .from('invitations')
+    .select('id, status')
+    .eq('inviter_id', userId)
+    .eq('invitee_email', inviteeEmail)
+    .single();
+
+  if (existing && existing.status !== 'revoked') {
+    return { ok: false, error: 'This email is already invited.' };
+  }
+
+  // Insert invitation record
+  const { error } = await supabase.from('invitations').insert([{
+    inviter_id: userId,
+    invitee_email: inviteeEmail,
+    status: 'pending',
+  }]);
+  if (error) return { ok: false, error: error.message };
+
+  return { ok: true };
+};
+
+export const getMyInvitations = async (): Promise<Invitation[]> => {
+  const userId = await getCurrentUserId();
+  if (!userId) return [];
+  const { data, error } = await supabase
+    .from('invitations')
+    .select('*')
+    .eq('inviter_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) { console.error('Error fetching invitations', error); return []; }
+  return data as Invitation[];
+};
+
+export const revokeInvitation = async (id: string): Promise<boolean> => {
+  const { error } = await supabase.from('invitations').update({ status: 'revoked' }).eq('id', id);
+  if (error) { console.error('Error revoking invitation', error); return false; }
+  return true;
+};
+
+/** Call this after a user logs in — links any pending invitations for their email to their user ID */
+export const acceptPendingInvitations = async (): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.email) return;
+  await supabase
+    .from('invitations')
+    .update({ invitee_id: user.id, status: 'accepted' })
+    .eq('invitee_email', user.email)
+    .eq('status', 'pending');
+};
+

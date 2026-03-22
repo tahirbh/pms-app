@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Building2, CheckCircle2, Edit, Trash2, Home } from 'lucide-react';
-import { getProperties, saveProperty, updateProperty, deleteProperty } from '../utils/store';
+import { Plus, Building2, CheckCircle2, Edit, Trash2, Home, Download, Upload } from 'lucide-react';
+import { getProperties, saveProperty, updateProperty, deleteProperty, importProperties } from '../utils/store';
 import type { Property } from '../utils/store';
 import { useAppContext } from '../context/AppContext';
+import { exportCSV, parseCSV, readFileAsText } from '../utils/exportUtils';
 
 const Properties: React.FC = () => {
   const { t } = useTranslation();
@@ -89,16 +90,45 @@ const Properties: React.FC = () => {
     }
   };
 
+  const importRef = useRef<HTMLInputElement>(null);
+
+  const handleExport = () => exportCSV(properties, 'properties.csv');
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const text = await readFileAsText(file);
+    const rows = parseCSV(text).map(r => ({
+      name: r.name || '',
+      address: r.address || '',
+      annualRent: parseFloat(r.annualRent) || 0,
+      imageUrl: r.imageUrl || '',
+    }));
+    const count = await importProperties(rows);
+    alert(`✅ Imported ${count} properties!`);
+    await loadData();
+    e.target.value = '';
+  };
+
   return (
     <div className="glass-panel p-8 animate-slide-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '2rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <Building2 /> {t('properties')}
         </h2>
-        <button className="btn btn-primary" onClick={() => handleOpenForm()}>
-          <Plus size={20} />
-          {t('add_property')}
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <button className="btn" onClick={handleExport} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Download size={16} /> Export CSV
+          </button>
+          <button className="btn" onClick={() => importRef.current?.click()} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Upload size={16} /> Import CSV
+          </button>
+          <input ref={importRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={handleImport} />
+          <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+            <Plus size={20} />
+            {t('add_property')}
+          </button>
+        </div>
       </div>
 
       {showForm && (
