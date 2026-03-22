@@ -1,0 +1,202 @@
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Plus, Receipt, Edit, Trash2, CheckCircle2 } from 'lucide-react';
+import { getExpenses, saveExpense, updateExpense, deleteExpense } from '../utils/store';
+import type { Expense } from '../utils/store';
+import { useAppContext } from '../context/AppContext';
+import DatePickerModule from "react-multi-date-picker";
+const DatePicker = (DatePickerModule as any).default || DatePickerModule;
+import arabic from "react-date-object/calendars/arabic";
+import arabic_ar from "react-date-object/locales/arabic_ar";
+import arabic_en from "react-date-object/locales/arabic_en";
+import gregorian from "react-date-object/calendars/gregorian";
+import gregorian_en from "react-date-object/locales/gregorian_en";
+import gregorian_ar from "react-date-object/locales/gregorian_ar";
+
+const Expenses: React.FC = () => {
+  const { t } = useTranslation();
+  const { currency, calendarMode, language } = useAppContext();
+  
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  
+  const [category, setCategory] = useState('');
+  const [amount, setAmount] = useState('');
+  const [paymentMode, setPaymentMode] = useState<'Cash' | 'Bank' | 'Online'>('Cash');
+  const [description, setDescription] = useState('');
+  const [date, setDate] = useState('');
+
+  const loadData = async () => {
+    setExpenses(await getExpenses());
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleOpenForm = (exp?: Expense) => {
+    if(exp) {
+      setEditingId(exp.id);
+      setCategory(exp.category);
+      setAmount(exp.amount.toString());
+      setPaymentMode(exp.paymentMode);
+      setDescription(exp.description);
+      setDate(exp.date);
+    } else {
+      setEditingId(null);
+      setCategory('');
+      setAmount('');
+      setPaymentMode('Cash');
+      setDescription('');
+      setDate('');
+    }
+    setShowForm(true);
+  };
+
+  const handleSaveExpense = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!category || !amount || !date) return;
+    
+    if (editingId) {
+      const existing = expenses.find(exp => exp.id === editingId);
+      if(existing) {
+        const updated: Expense = {
+          ...existing,
+          category,
+          amount: parseFloat(amount),
+          paymentMode,
+          description,
+          date
+        };
+        await updateExpense(updated);
+      }
+    } else {
+      await saveExpense({
+        category,
+        amount: parseFloat(amount),
+        paymentMode,
+        description,
+        date
+      });
+    }
+    
+    await loadData();
+    setShowForm(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm(t('confirm_delete') || 'Are you sure?')) {
+      const ok = await deleteExpense(id);
+      if (!ok) alert('Failed to delete expense entry.');
+      await loadData();
+    }
+  };
+
+  return (
+    <div className="glass-panel p-8 animate-slide-in">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: '2rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <Receipt /> {t('expenses_management')}
+        </h2>
+        <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+          <Plus size={20} />
+          {t('add_expense')}
+        </button>
+      </div>
+
+      {showForm && (
+        <form onSubmit={handleSaveExpense} className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(255, 255, 255, 0.4)' }}>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+            {editingId ? 'Edit Expense details' : 'Log New Expense'}
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <select className="input-field" value={category} onChange={e => setCategory(e.target.value)} required>
+              <option value="">Select Category...</option>
+              <option value="Security Man Salary">Security Man Salary</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Utilities">Utilities (Water/Elec)</option>
+              <option value="Taxes">Taxes</option>
+              <option value="Other">Other</option>
+            </select>
+            <input 
+              className="input-field" type="number" 
+              placeholder={`Amount (${currency})`} 
+              value={amount} onChange={e => setAmount(e.target.value)} required 
+            />
+            <select className="input-field" value={paymentMode} onChange={e => setPaymentMode(e.target.value as any)} required>
+              <option value="Cash">Cash</option>
+              <option value="Bank">Bank Transfer</option>
+              <option value="Online">Online / Card</option>
+            </select>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>Date ({calendarMode})</label>
+              <DatePicker
+                value={date}
+                onChange={(dateObject: any) => setDate(dateObject ? dateObject.format('YYYY/MM/DD') : '')}
+                calendar={calendarMode === 'hijri' ? arabic : gregorian}
+                locale={calendarMode === 'hijri' ? (language === 'ar' ? arabic_ar : arabic_en) : (language === 'ar' ? gregorian_ar : gregorian_en)}
+                calendarPosition="bottom-right"
+                inputClass="input-field"
+                containerStyle={{ width: '100%' }}
+                format="YYYY/MM/DD"
+                zIndex={9999}
+                portal
+              />
+            </div>
+          </div>
+          <input 
+            className="input-field" 
+            placeholder="Description (Optional)" 
+            value={description} onChange={e => setDescription(e.target.value)} 
+          />
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+            <button type="submit" className="btn btn-primary" style={{ background: 'var(--success)' }}>
+              <CheckCircle2 size={20} /> {editingId ? 'Update Expense' : 'Save Expense'}
+            </button>
+            <button type="button" className="btn" onClick={() => setShowForm(false)}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
+      {expenses.length === 0 ? (
+        <p style={{ color: 'var(--text-muted)' }}>No expenses logged yet.</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {expenses.map(exp => (
+            <div key={exp.id} className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(255, 255, 255, 0.3)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0' }}>
+                  <Receipt size={20} color="var(--primary)"/> {exp.category}
+                </h3>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <button type="button" onClick={() => handleOpenForm(exp)} className="btn" style={{ padding: '0.5rem', background: 'var(--primary)', color: 'white' }}>
+                    <Edit size={16} />
+                  </button>
+                  <button type="button" onClick={() => handleDelete(exp.id)} className="btn" style={{ padding: '0.5rem', background: 'var(--danger)', color: 'white' }}>
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <p style={{ color: 'var(--text-muted)' }}>{exp.description || 'No description'}</p>
+                <div style={{ fontSize: '0.875rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <span><strong style={{ opacity: 0.8 }}>Mode:</strong> {exp.paymentMode}</span>
+                  <span><strong style={{ opacity: 0.8 }}>Date:</strong> {exp.date}</span>
+                </div>
+                <div style={{ fontWeight: 600, fontSize: '1.25rem', color: 'var(--danger)', marginTop: '0.5rem' }}>
+                  - {exp.amount.toLocaleString()} {currency}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Expenses;
