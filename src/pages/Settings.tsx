@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../context/AppContext';
-import { Users, Mail, Trash2, Loader2, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { Users, Mail, Trash2, Loader2, CheckCircle2, Clock, XCircle, Languages, Calendar } from 'lucide-react';
 import { getMyInvitations, sendInvitation, revokeInvitation } from '../utils/store';
 import type { Invitation } from '../utils/store';
 
@@ -63,17 +63,17 @@ const Settings: React.FC = () => {
 
         {/* Language */}
         <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: 'var(--text-muted)' }}>
-            {t('language')}
-          </label>
-          <select value={language} onChange={(e) => setLanguage(e.target.value)} className="input-field">
-            <option value="en">English</option>
-            <option value="ar">العربية (Arabic)</option>
-            <option value="ur">اردو (Urdu)</option>
-          </select>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-            Selecting Arabic or Urdu will automatically shift the layout to RTL (Right-to-Left).
-          </p>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Languages size={20} color="var(--primary)"/> {t('language')}
+            </h3>
+            <select className="input-field" value={language} onChange={(e) => setLanguage(e.target.value)}>
+              <option value="en">English</option>
+              <option value="ar">العربية (Arabic)</option>
+              <option value="ur">اردو (Urdu)</option>
+            </select>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+               💡 {t('rtl_note')}
+            </p>
         </div>
 
         {/* Currency */}
@@ -93,22 +93,23 @@ const Settings: React.FC = () => {
 
         {/* Calendar Mode */}
         <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: 'var(--text-muted)' }}>
-            Default Calendar Mode
-          </label>
-          <select value={calendarMode} onChange={(e) => setCalendarMode(e.target.value as 'gregorian' | 'hijri')} className="input-field">
-            <option value="gregorian">Gregorian Calendar</option>
-            <option value="hijri">Hijri (Islamic) Calendar</option>
-          </select>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Calendar size={20} color="var(--primary)"/> {t('default_calendar')}
+            </h3>
+            <select className="input-field" value={calendarMode} onChange={(e) => setCalendarMode(e.target.value as any)}>
+              <option value="gregorian">{t('gregorian_calendar')}</option>
+              <option value="hijri">{t('hijri_calendar')}</option>
+            </select>
         </div>
 
         {/* ── Team Access ── */}
-        <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '1.5rem' }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-            <Users size={20} /> Team Access
-          </h3>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
-            Invite others by email. Once they sign up, they can view and manage your properties, tenants, and expenses.
+        <div className="glass-panel" style={{ padding: '2rem' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+            <Users size={24} color="var(--secondary)" /> {t('team_access')}
+          </h2>
+
+          <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+             {t('team_access_desc')}
           </p>
 
           {/* Invite form */}
@@ -152,22 +153,24 @@ const Settings: React.FC = () => {
                     {statusIcon(inv.status)}
                     <span style={{ fontWeight: 500 }}>{inv.invitee_email}</span>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>— {statusLabel(inv.status)}</span>
-                  </div>
-                  <button
-                    onClick={() => handleRevoke(inv.id, inv.invitee_email)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', padding: '0.2rem' }}
-                    title="Revoke access"
-                  >
-                    <Trash2 size={15} />
-                  </button>
+                    {(inv.status === 'accepted' || inv.status === 'pending') && (
+                      <button 
+                        className="btn" 
+                        title={t('revoke_access')} 
+                        style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--danger)', padding: '0.5rem', borderRadius: '8px' }}
+                        onClick={() => handleRevoke(inv.id, inv.invitee_email)}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}</div>
                 </div>
               ))}
             </div>
           )}
 
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
-            💡 Invites are accepted automatically when the person signs up with the same email address.
-          </p>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '2rem', display: 'flex', gap: '0.5rem' }}>
+              {t('invite_tip')}
+            </p>
         </div>
 
       </div>

@@ -85,7 +85,7 @@ const Properties: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (confirm(t('confirm_delete') || 'Are you sure?')) {
       const ok = await deleteProperty(id);
-      if (!ok) alert('Failed to delete Property. Check dependencies.');
+      if (!ok) alert(t('failed_delete_property'));
       await loadData();
     }
   };
@@ -105,7 +105,7 @@ const Properties: React.FC = () => {
       imageUrl: r.imageUrl || '',
     }));
     const count = await importProperties(rows);
-    alert(`✅ Imported ${count} properties!`);
+    alert(`✅ ${count} ${t('imported_msg')}`);
     await loadData();
     e.target.value = '';
   };
@@ -149,7 +149,7 @@ const Properties: React.FC = () => {
                 className="input-field"
                 style={{ padding: '0.4rem' }}
               />
-              {imageUrl && <img src={imageUrl} alt="Preview" style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px' }} />}
+              {imageUrl && <img src={imageUrl} alt={t('preview_image')} style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px' }} />}
             </div>
           </div>
           
@@ -190,7 +190,7 @@ const Properties: React.FC = () => {
                   </div>
                 )}
                 
-                <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>{p.address || 'No address provided'}</p>
+                <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>{p.address || t('no_address_provided')}</p>
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem', marginTop: 'auto' }}>
                   <span style={{ fontSize: '0.875rem' }}>{t('annual_rent')}:</span>

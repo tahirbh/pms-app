@@ -89,7 +89,7 @@ const Expenses: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (confirm(t('confirm_delete') || 'Are you sure?')) {
       const ok = await deleteExpense(id);
-      if (!ok) alert('Failed to delete expense entry.');
+      if (!ok) alert(t('failed_delete_expense'));
       await loadData();
     }
   };
@@ -108,7 +108,7 @@ const Expenses: React.FC = () => {
       description: r.description || '',
     }));
     const count = await importExpenses(rows);
-    alert(`✅ Imported ${count} expenses!`);
+    alert(`✅ ${count} ${t('imported_msg')}`);
     await loadData();
     e.target.value = '';
   };
@@ -201,7 +201,7 @@ const Expenses: React.FC = () => {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <p style={{ color: 'var(--text-muted)' }}>{exp.description || 'No description'}</p>
+                <p style={{ color: 'var(--text-muted)' }}>{exp.description || t('no_description')}</p>
                 <div style={{ fontSize: '0.875rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                   <span><strong style={{ opacity: 0.8 }}>{t('payment_mode')}:</strong> {exp.paymentMode}</span>
                   <span><strong style={{ opacity: 0.8 }}>{t('date_label')}:</strong> {exp.date}</span>

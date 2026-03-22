@@ -89,8 +89,8 @@ const Reports: React.FC = () => {
   const netRevenue = totalIncome - totalExpense;
 
   const barData = [
-    { name: 'Income', amount: totalIncome, fill: '#10b981' },
-    { name: 'Expenses', amount: totalExpense, fill: '#ef4444' }
+    { name: t('income'), amount: totalIncome, fill: '#10b981' },
+    { name: t('expense_label'), amount: totalExpense, fill: '#ef4444' }
   ];
 
   return (
@@ -185,12 +185,12 @@ const Reports: React.FC = () => {
 
         <div className="glass-panel p-4" style={{ maxHeight: 350, overflowY: 'auto' }}>
           <h4 style={{ fontSize: '1.125rem', marginBottom: '1rem', color: 'var(--text-main)', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem' }}>
-            Recent Transactions
+            {t('recent_transactions_title')}
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {incomes.map(inc => (
               <div key={inc.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '4px' }}>
-                <span>Income (Ledger)</span>
+                <span>{t('income_ledger_title')}</span>
                 <span style={{ color: 'var(--success)', fontWeight: 600 }}>+{(inc.amount || 0).toLocaleString()}</span>
               </div>
             ))}

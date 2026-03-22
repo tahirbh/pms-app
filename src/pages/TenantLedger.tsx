@@ -53,7 +53,7 @@ const TenantLedger: React.FC = () => {
   };
 
   const executeDelete = async (ledgerId: string) => {
-    if (confirm('Are you absolutely sure you want to delete this specific ledger artifact?')) {
+    if (confirm(t('confirm_delete_ledger'))) {
       await deleteLedger(ledgerId);
       await loadData();
     }
@@ -89,11 +89,11 @@ const TenantLedger: React.FC = () => {
         </div>
       </div>
 
-      <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1.5rem' }}>Automated Installments</h3>
+      <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1.5rem' }}>{t('automated_installments')}</h3>
 
       {ledgers.length === 0 ? (
         <div style={{ padding: '2rem', textAlign: 'center', background: 'rgba(255,255,255,0.2)', borderRadius: '8px' }}>
-          <p style={{ color: 'var(--text-muted)' }}>No auto-generated ledger exists for this contract sequence. (Ledgers execute upon saving new contracts).</p>
+          <p style={{ color: 'var(--text-muted)' }}>{t('no_ledgers_msg')}</p>
         </div>
       ) : (
         <div style={{ display: 'grid', gap: '1rem' }}>
@@ -117,7 +117,7 @@ const TenantLedger: React.FC = () => {
                       {isPaid ? <CheckCircle2 size={24} color="var(--success)"/> : <Clock size={24} color="orange"/>}
                     </div>
                     <div>
-                      <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>INSTALLMENT {idx + 1}</p>
+                      <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>{t('installment_label')} {idx + 1}</p>
                       <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>{t('due_date')}: {ledger.dueDate}</p>
                       {isPaid && <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: 'var(--success)' }}>{t('paid')}: {ledger.paidDate} — {ledger.paymentMode}</p>}
                     </div>
@@ -142,7 +142,7 @@ const TenantLedger: React.FC = () => {
                       className="btn" 
                       style={{ padding: '0.5rem', background: 'var(--danger)', color: 'white', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
                       onClick={() => executeDelete(ledger.id)}
-                      title="Delete Invoice"
+                      title={t('delete_invoice')}
                     >
                       <Trash2 size={16} />
                     </button>

@@ -7,7 +7,7 @@ const resources = {
       // Nav
       "login": "Log In", "dashboard": "Dashboard", "properties": "Properties",
       "tenants": "Tenants", "settings": "Settings", "expenses": "Expenses",
-      "reports": "Reports", "sign_out": "Sign Out", "app_title": "PMS System",
+      "reports": "Reports", "sign_out": "Sign Out", "app_title": "Global PMS",
       "welcome": "Manage your properties efficiently",
 
       // Auth
@@ -27,7 +27,7 @@ const resources = {
       "password_short": "Password must be at least 6 characters.",
       "incorrect_credentials": "Incorrect email or password. Did you create an account first?",
       "google_unavailable": "Google login unavailable. Use email instead.",
-      "email_not_confirmed": "⚠️ Your email is not confirmed yet. Disable 'Confirm email' in Supabase Dashboard → Authentication → Providers → Email.",
+      "email_not_confirmed": "⚠️ Your email is not confirmed yet.",
 
       // Dashboard
       "welcome_title": "Welcome back!",
@@ -49,6 +49,7 @@ const resources = {
       "view_ledger": "View Ledger",
       "notifications": "Notifications", "no_notifications": "No pending notifications",
       "overdue_alert": "Overdue", "upcoming_alert": "Due in 10 days",
+      
       "income": "Income", "expense_label": "Expense",
       "potential": "Potential", "contracted": "Contracted",
       "rent_overdue_msg": "Rent overdue since", "rent_due_msg": "Rent due on",
@@ -65,7 +66,11 @@ const resources = {
       "update_property": "Update Property", "no_properties": "No properties added yet.",
       "confirm_delete": "Are you sure you want to delete this?",
       "export_csv": "Export CSV", "import_csv": "Import CSV",
+      "export_csv_btn": "Export CSV", "import_csv_btn": "Import CSV",
       "imported_msg": "imported successfully!",
+      "failed_delete_property": "Failed to delete Property. Check dependencies.",
+      "preview_image": "Preview", "no_address_provided": "No address provided",
+      "annual_rent_label": "Annual Rent:",
 
       // Tenants
       "register_tenant": "Register Tenant", "new_tenant": "New Tenant Contract",
@@ -80,6 +85,12 @@ const resources = {
       "view_payments": "View Payments", "print_contract": "Print Contract",
       "pro_rata_rent": "Pro-rata Rent", "calculate": "Calculate",
       "calendar_mode": "Calendar Mode", "gregorian": "Gregorian", "hijri": "Hijri",
+      "failed_delete_tenant": "Failed to delete tenant. Please review active ledger dependencies.",
+      "invalid_date_format": "Invalid date format.",
+      "property_label_inline": "Property:", "unknown_property": "Unknown",
+      "contract_prefix": "Contract:", "to_date": "to", "ended_status": "Ended",
+      "active_days_leaving": "Active Days in leaving month:", "daily_rate": "Daily Rate:",
+      "end_contract_now": "End Contract Now",
 
       // Expenses
       "expenses_management": "Expenses Management", "add_expense": "Add Expense",
@@ -93,6 +104,7 @@ const resources = {
       "cat_insurance": "Insurance", "cat_taxes": "Taxes",
       "cat_salary": "Staff Salary", "cat_other": "Other",
       "cancel": "Cancel",
+      "failed_delete_expense": "Failed to delete expense entry.", "no_description": "No description",
 
       // TenantLedger
       "payment_ledger": "Payment Ledger", "back": "Back",
@@ -103,6 +115,19 @@ const resources = {
       "paid": "Paid", "pending": "Pending", "mark_as_paid": "Mark as Paid",
       "payment_date": "Payment Date", "payment_mode": "Payment Mode",
       "confirm_payment": "Confirm Payment", "loading_ledger": "Loading Ledger Account...",
+      "back_btn": "Back", "confirm_delete_ledger": "Are you absolutely sure you want to delete this specific ledger artifact?",
+      "automated_installments": "Automated Installments", "no_ledgers_msg": "No auto-generated ledger exists for this contract sequence.",
+      "installment_label": "INSTALLMENT", "delete_invoice": "Delete Invoice",
+
+      // Contract
+      "loading_contract": "Loading Contract Details...", "print_contract_action": "Print Contract",
+      "tenancy_agreement": "TENANCY AGREEMENT", "tenancy_desc_full": "This Tenancy Agreement is legally binding and is made between the Property Management System (Landlord) and the Tenant detailed below on <strong>{{date}}</strong>.",
+      "the_parties": "1. THE PARTIES", "tenant_name_col": "Tenant Name:", "landlord_name_col": "Landlord / Property Name:",
+      "the_property_section": "2. THE PROPERTY", "address_col": "Address:", "na_label": "N/A",
+      "term_and_rent": "3. TERM AND RENT", "lease_term_col": "Lease Term:", "from_to_dates": "From {{start}} to {{end}}",
+      "actual_utilized_days": "Actual Utilized Days:", "net_rent_settlement": "Net Rent / Settlement:",
+      "tenancy_footer": "By signing below, standard tenancy terms and conditions apply. The tenant agrees to maintain the property appropriately.",
+      "landlord_signature": "Landlord Signature", "tenant_signature": "Tenant Signature",
 
       // Reports
       "income_expense_report": "Income & Expense Report",
@@ -110,6 +135,7 @@ const resources = {
       "recent_transactions": "Recent Transactions",
       "income_ledger": "Income (Ledger)", "no_transactions": "No transactions in this period.",
       "filter_by_date": "Filter by date range",
+      "recent_transactions_title": "Recent Transactions", "income_ledger_title": "Income (Ledger)",
 
       // Settings
       "language": "Language", "currency": "Currency",
@@ -122,17 +148,29 @@ const resources = {
       "send_invite": "Send Invite", "revoke_access": "Revoke access",
       "invite_accepted": "Accepted", "invite_pending": "Pending sign-up", "invite_revoked": "Revoked",
       "invite_tip": "💡 Invites are accepted automatically when the person signs up with the same email address.",
+      "team_access_title": "Team Access", "team_invite_desc": "Invite others by email. Once they sign up, they can view and manage your properties, tenants, and expenses.",
+      "revoke_access_title": "Revoke access", "invite_tip_text": "💡 Invites are accepted automatically when the person signs up with the same email address.",
+      "rtl_note_text": "Selecting Arabic or Urdu will automatically shift the layout to RTL (Right-to-Left).",
+
+      // Landing
+      "nav_features": "Features", "nav_impact": "Impact", "hero_badge": "✨ The Next Generation of Property Management", "hero_title": "Elevate Your Real Estate Portfolio",
+      "hero_subtitle": "A powerful, all-in-one Property Management System supporting global users, dynamic rent calculation, and comprehensive expense tracking. Start scaling today.",
+      "btn_get_started": "Get Started Free", "btn_learn_more": "Learn More",
+      "stat_1_val": "10k+", "stat_1_label": "Active Monthly Visitors", "stat_2_val": "5,000+", "stat_2_label": "Properties Managed",
+      "stat_3_val": "12,000+", "stat_3_label": "Happy Tenants", "features_title": "Everything you need to succeed",
+      "features_subtitle": "Manage your entire real estate portfolio securely from a single, intuitive dashboard securely powered by the cloud.",
+      "feat_1_title": "Multi-Calendar Support", "feat_1_desc": "Natively supports both Gregorian and Hijri calendars with precise pro-rata rent calculations engineered for global usability.",
+      "feat_2_title": "Cloud Security", "feat_2_desc": "Your data is securely synchronized and backed up instantly to the robust Supabase cloud infrastructure.",
+      "feat_3_desc": "Track dynamic rent collection and organizational expenses seamlessly using beautiful automated visualizations.",
+      "cta_title": "Ready to transform your properties?", "register_account": "Register Account", "footer_copyright": "Global PMS. All rights reserved. Built for the modern landowner."
     }
   },
   ar: {
     translation: {
-      // Nav
       "login": "تسجيل الدخول", "dashboard": "لوحة القيادة", "properties": "العقارات",
       "tenants": "المستأجرين", "settings": "الإعدادات", "expenses": "المصروفات",
       "reports": "التقارير", "sign_out": "تسجيل الخروج", "app_title": "نظام إدارة العقارات",
       "welcome": "إدارة عقاراتك بكفاءة",
-
-      // Auth
       "sign_in": "تسجيل الدخول", "create_account": "إنشاء حساب",
       "full_name": "الاسم الكامل", "email_address": "البريد الإلكتروني",
       "password": "كلمة المرور", "password_hint": "(٦ أحرف على الأقل)",
@@ -150,8 +188,6 @@ const resources = {
       "incorrect_credentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة. هل أنشأت حساباً؟",
       "google_unavailable": "تسجيل الدخول عبر Google غير متاح. استخدم البريد الإلكتروني.",
       "email_not_confirmed": "⚠️ لم يتم تأكيد بريدك الإلكتروني بعد.",
-
-      // Dashboard
       "welcome_title": "مرحباً بك!",
       "welcome_subtitle": "إليك نظرة عامة على محفظة عقاراتك",
       "expected_rent": "الإيجار المتوقع", "actual_rent": "الإيجار المتعاقد",
@@ -177,8 +213,6 @@ const resources = {
       "rent_comparison": "مقارنة الإيجار", "expected_annual": "المتوقع (سنوياً)",
       "actual_contracted": "الفعلي (المتعاقد)", "income_actual_rent": "الدخل (الإيجار الفعلي)",
       "potential_rent_annual": "الإيجار المحتمل (سنوياً)", "actual_contracted_rent": "الإيجار الفعلي المتعاقد",
-
-      // Properties
       "add_property": "إضافة عقار", "edit_property": "تعديل العقار",
       "new_property": "تفاصيل العقار الجديد", "edit_property_details": "تعديل تفاصيل العقار",
       "property_name": "اسم العقار", "property_address": "العنوان",
@@ -187,9 +221,10 @@ const resources = {
       "update_property": "تحديث العقار", "no_properties": "لم يتم إضافة أي عقارات بعد.",
       "confirm_delete": "هل أنت متأكد أنك تريد الحذف؟",
       "export_csv": "تصدير CSV", "import_csv": "استيراد CSV",
+      "export_csv_btn": "تصدير CSV", "import_csv_btn": "استيراد CSV",
       "imported_msg": "تم الاستيراد بنجاح!",
-
-      // Tenants
+      "failed_delete_property": "فشل في حذف العقار. تحقق من التبعيات.",
+      "preview_image": "معاينة", "no_address_provided": "لم يتم توفير عنوان", "annual_rent_label": "الإيجار السنوي:",
       "register_tenant": "تسجيل مستأجر", "new_tenant": "عقد مستأجر جديد",
       "edit_tenant": "تعديل عقد المستأجر", "tenant_name": "اسم المستأجر",
       "select_property": "اختر العقار...", "start_date": "تاريخ البدء",
@@ -202,8 +237,11 @@ const resources = {
       "view_payments": "عرض المدفوعات", "print_contract": "طباعة العقد",
       "pro_rata_rent": "الإيجار النسبي", "calculate": "احسب",
       "calendar_mode": "نمط التقويم", "gregorian": "ميلادي", "hijri": "هجري",
-
-      // Expenses
+      "failed_delete_tenant": "فشل في حذف المستأجر. يرجى مراجعة تبعيات الدفتر النشطة.",
+      "invalid_date_format": "تنسيق التاريخ غير صالح.",
+      "property_label_inline": "العقار:", "unknown_property": "غير معروف",
+      "contract_prefix": "العقد:", "to_date": "إلى", "ended_status": "منتهي",
+      "active_days_leaving": "الأيام النشطة في شهر المغادرة:", "daily_rate": "المعدل اليومي:", "end_contract_now": "إنهاء العقد الآن",
       "expenses_management": "إدارة المصروفات", "add_expense": "إضافة مصروف",
       "log_expense": "تسجيل مصروف جديد", "edit_expense": "تعديل تفاصيل المصروف",
       "select_category": "اختر الفئة...", "amount_sar": "المبلغ",
@@ -215,8 +253,7 @@ const resources = {
       "cat_insurance": "تأمين", "cat_taxes": "ضرائب",
       "cat_salary": "رواتب الموظفين", "cat_other": "أخرى",
       "cancel": "إلغاء",
-
-      // TenantLedger
+      "failed_delete_expense": "فشل في حذف المصروف.", "no_description": "لا يوجد وصف",
       "payment_ledger": "دفتر المدفوعات", "back": "رجوع",
       "property_label": "العقار", "tenant_label": "المستأجر",
       "contract_start": "بداية العقد", "contract_end": "نهاية العقد",
@@ -225,42 +262,58 @@ const resources = {
       "paid": "مدفوع", "pending": "معلق", "mark_as_paid": "تحديد كمدفوع",
       "payment_date": "تاريخ الدفع", "payment_mode": "طريقة الدفع",
       "confirm_payment": "تأكيد الدفع", "loading_ledger": "جاري تحميل حساب الدفتر...",
-
-      // Reports
+      "confirm_delete_ledger": "هل أنت متأكد تماماً أنك تريد حذف عنصر الدفتر المحدد هذا؟",
+      "back_btn": "رجوع", "automated_installments": "الأقساط التلقائية", "no_ledgers_msg": "لا يوجد دفتر تلقائي لتسلسل العقد هذا.",
+      "installment_label": "قسط", "delete_invoice": "حذف الفاتورة",
+      "loading_contract": "جاري تحميل تفاصيل العقد...", "print_contract_action": "طباعة العقد",
+      "tenancy_agreement": "عقد إيجار", "tenancy_desc_full": "هذا العقد ملزم قانونياً ومُبرم بين المالك والمستأجر الموضح أدناه في <strong>{{date}}</strong>.",
+      "the_parties": "١. الأطراف", "tenant_name_col": "اسم المستأجر:", "landlord_name_col": "المالك / اسم العقار:",
+      "the_property_section": "٢. العقار", "address_col": "العنوان:", "na_label": "غير متوفر",
+      "term_and_rent": "٣. المدة والإيجار", "lease_term_col": "مدة الإيجار:", "from_to_dates": "من {{start}} إلى {{end}}",
+      "actual_utilized_days": "الأيام الفعلية المستخدمة:", "net_rent_settlement": "صافي الإيجار / التسوية:",
+      "tenancy_footer": "بالتوقيع أدناه، تُطبق شروط وأحكام الإيجار القياسية. يوافق المستأجر على صيانة العقار بشكل مناسب.",
+      "landlord_signature": "توقيع المالك", "tenant_signature": "توقيع المستأجر",
       "income_expense_report": "تقرير الدخل والمصروفات",
       "total_income": "الإيجار المدفوع", "total_expense": "المصروفات",
       "recent_transactions": "المعاملات الأخيرة",
       "income_ledger": "الدخل (دفتر)", "no_transactions": "لا توجد معاملات في هذه الفترة.",
       "filter_by_date": "تصفية حسب النطاق الزمني",
-
-      // Settings
+      "recent_transactions_title": "المعاملات الأخيرة", "income_ledger_title": "الدخل (الدفتر)",
       "language": "اللغة", "currency": "العملة",
       "default_calendar": "نمط التقويم الافتراضي",
       "gregorian_calendar": "التقويم الميلادي", "hijri_calendar": "التقويم الهجري (الإسلامي)",
-      "rtl_note": "اختيار العربية أو الأردية سيحوّل التخطيط تلقائياً إلى RTL.",
       "team_access": "الوصول للفريق",
       "team_access_desc": "ادعُ الآخرين عبر البريد الإلكتروني للوصول إلى بياناتك.",
       "colleague_email": "زميل@مثال.com",
       "send_invite": "إرسال دعوة", "revoke_access": "إلغاء الوصول",
       "invite_accepted": "مقبول", "invite_pending": "في انتظار التسجيل", "invite_revoked": "ملغى",
       "invite_tip": "💡 تُقبل الدعوات تلقائياً عند تسجيل الشخص بنفس البريد الإلكتروني.",
+      "team_access_title": "الوصول للفريق", "team_invite_desc": "ادعُ الآخرين للوصول إلى بياناتك.", "revoke_access_title": "إلغاء الوصول",
+      "invite_tip_text": "💡 تُقبل الدعوات تلقائياً.", "rtl_note_text": "اختيار العربية سيحوّل التخطيط إلى اليمين لليسار.",
+      "nav_features": "الميزات", "nav_impact": "التأثير", "hero_badge": "✨ الجيل القادم من إدارة العقارات",
+      "hero_title": "ارتقِ بمحفظتك العقارية", "hero_subtitle": "نظام متكامل يدعم كل شيء. ابدأ التوسع اليوم.",
+      "btn_get_started": "ابدأ مجاناً", "btn_learn_more": "اعرف المزيد",
+      "stat_1_val": "١٠ آلاف+", "stat_1_label": "زائر نشط شهرياً", "stat_2_val": "٥,٠٠٠+", "stat_2_label": "عقار مُدار",
+      "stat_3_val": "١٢,٠٠٠+", "stat_3_label": "مستأجر سعيد", "features_title": "كل ما تحتاجه للنجاح",
+      "features_subtitle": "أدِر محفظتك بأمان من لوحة قيادة واحدة مدعومة سحابياً.",
+      "feat_1_title": "دعم التقاويم المتعددة", "feat_1_desc": "يدعم التقويمين الميلادي والهجري مع حساب دقيق.",
+      "feat_2_title": "الأمان السحابي", "feat_2_desc": "تُزامن بياناتك بأمان ويُحتفظ بها في السحابة.",
+      "feat_3_desc": "تتبع تحصيل الإيجار والمصروفات بسهولة.",
+      "cta_title": "هل أنت مستعد لتحويل عقاراتك؟", "register_account": "تسجيل حساب", "footer_copyright": "جميع الحقوق محفوظة. نظام إدارة العقارات العالمي."
     }
   },
   ur: {
     translation: {
-      // Nav
       "login": "لاگ ان", "dashboard": "ڈیش بورڈ", "properties": "جائیدادیں",
       "tenants": "کرایہ دار", "settings": "ترتیبات", "expenses": "اخراجات",
-      "reports": "رپورٹس", "sign_out": "سائن آؤٹ", "app_title": "پراپرٹی مینجمنٹ",
+      "reports": "رپورٹس", "sign_out": "سائن آؤٹ", "app_title": "عالمی پی ایم ایس",
       "welcome": "اپنی جائیدادوں کا مؤثر طریقے سے انتظام کریں",
-
-      // Auth
       "sign_in": "سائن ان", "create_account": "اکاؤنٹ بنائیں",
       "full_name": "پورا نام", "email_address": "ای میل پتہ",
       "password": "پاس ورڈ", "password_hint": "(کم از کم ۶ حروف)",
       "signing_in": "سائن ان ہو رہا ہے...", "creating_account": "اکاؤنٹ بنایا جا رہا ہے...",
       "or_continue_with": "یا اس کے ساتھ جاری رکھیں", "continue_with_google": "Google کے ساتھ جاری رکھیں",
-      "secured_by": "Supabase کی طرف سے محفوظ · ڈیٹا منتقلی میں خفیہ",
+      "secured_by": "Supabase کی طرف سے محفوظ",
       "welcome_back": "واپسی پر خوش آمدید! جاری رکھنے کے لیے سائن ان کریں۔",
       "create_account_subtitle": "شروعات کے لیے اکاؤنٹ بنائیں۔",
       "account_created": "اکاؤنٹ بن گیا!",
@@ -272,8 +325,6 @@ const resources = {
       "incorrect_credentials": "ای میل یا پاس ورڈ غلط ہے۔ کیا آپ نے اکاؤنٹ بنایا ہے؟",
       "google_unavailable": "Google سائن ان دستیاب نہیں۔ ای میل استعمال کریں۔",
       "email_not_confirmed": "⚠️ آپ کا ای میل ابھی تصدیق شدہ نہیں ہے۔",
-
-      // Dashboard
       "welcome_title": "خوش آمدید!",
       "welcome_subtitle": "آپ کی جائیداد پورٹ فولیو کا خلاصہ",
       "expected_rent": "متوقع کرایہ", "actual_rent": "معاہدہ شدہ کرایہ",
@@ -299,8 +350,6 @@ const resources = {
       "rent_comparison": "کرایے کا موازنہ", "expected_annual": "متوقع (سالانہ)",
       "actual_contracted": "اصل (معاہدہ شدہ)", "income_actual_rent": "آمدنی (اصل کرایہ)",
       "potential_rent_annual": "ممکنہ کرایہ (سالانہ)", "actual_contracted_rent": "اصل معاہدہ شدہ کرایہ",
-
-      // Properties
       "add_property": "جائیداد شامل کریں", "edit_property": "جائیداد ترمیم کریں",
       "new_property": "نئی جائیداد کی تفصیلات", "edit_property_details": "جائیداد کی تفصیلات ترمیم کریں",
       "property_name": "جائیداد کا نام", "property_address": "پتہ",
@@ -309,9 +358,10 @@ const resources = {
       "update_property": "جائیداد اپڈیٹ کریں", "no_properties": "ابھی کوئی جائیداد شامل نہیں۔",
       "confirm_delete": "کیا آپ واقعی حذف کرنا چاہتے ہیں؟",
       "export_csv": "CSV ایکسپورٹ", "import_csv": "CSV امپورٹ",
+      "export_csv_btn": "CSV ایکسپورٹ", "import_csv_btn": "CSV امپورٹ",
       "imported_msg": "کامیابی سے امپورٹ ہو گیا!",
-
-      // Tenants
+      "failed_delete_property": "جائیداد کو حذف کرنے میں ناکام۔ متعلقہ ڈیٹا چیک کریں۔",
+      "preview_image": "پیش نظارہ", "no_address_provided": "کوئی پتہ فراہم نہیں کیا گیا", "annual_rent_label": "سالانہ کرایہ:",
       "register_tenant": "کرایہ دار رجسٹر کریں", "new_tenant": "نیا کرایہ دار معاہدہ",
       "edit_tenant": "کرایہ دار معاہدہ ترمیم کریں", "tenant_name": "کرایہ دار کا نام",
       "select_property": "جائیداد منتخب کریں...", "start_date": "تاریخ آغاز",
@@ -324,8 +374,11 @@ const resources = {
       "view_payments": "ادائیگیاں دیکھیں", "print_contract": "معاہدہ پرنٹ کریں",
       "pro_rata_rent": "متناسب کرایہ", "calculate": "حساب کریں",
       "calendar_mode": "تقویم موڈ", "gregorian": "عیسوی", "hijri": "ہجری",
-
-      // Expenses
+      "failed_delete_tenant": "کرایہ دار کو حذف کرنے میں ناکام۔",
+      "invalid_date_format": "تاریخ کا فارمیٹ غلط ہے۔",
+      "property_label_inline": "جائیداد:", "unknown_property": "نامعلوم",
+      "contract_prefix": "معاہدہ:", "to_date": "سے", "ended_status": "ختم ہو گیا",
+      "active_days_leaving": "روانگی کے مہینے میں فعال دن:", "daily_rate": "یومیہ شرح:", "end_contract_now": "اب معاہدہ ختم کریں",
       "expenses_management": "اخراجات کا انتظام", "add_expense": "خرچہ شامل کریں",
       "log_expense": "نیا خرچہ درج کریں", "edit_expense": "خرچے کی تفصیل ترمیم کریں",
       "select_category": "زمرہ منتخب کریں...", "amount_sar": "رقم",
@@ -337,8 +390,7 @@ const resources = {
       "cat_insurance": "انشورنس", "cat_taxes": "ٹیکس",
       "cat_salary": "عملے کی تنخواہ", "cat_other": "دیگر",
       "cancel": "منسوخ کریں",
-
-      // TenantLedger
+      "failed_delete_expense": "خرچہ حذف کرنے میں ناکام۔", "no_description": "کوئی تفصیل نہیں",
       "payment_ledger": "ادائیگی کھاتہ", "back": "واپس",
       "property_label": "جائیداد", "tenant_label": "کرایہ دار",
       "contract_start": "معاہدہ آغاز", "contract_end": "معاہدہ اختتام",
@@ -347,25 +399,44 @@ const resources = {
       "paid": "ادا شدہ", "pending": "زیر التواء", "mark_as_paid": "ادا شدہ نشان زد کریں",
       "payment_date": "ادائیگی کی تاریخ", "payment_mode": "ادائیگی کا طریقہ",
       "confirm_payment": "ادائیگی کی تصدیق کریں", "loading_ledger": "کھاتہ لوڈ ہو رہا ہے...",
-
-      // Reports
+      "confirm_delete_ledger": "کیا آپ واقعی اس کھاتے کی قسط کو حذف کرنا چاہتے ہیں؟",
+      "back_btn": "واپس", "automated_installments": "خودکار اقساط", "no_ledgers_msg": "اس معاہدے کے لیے کوئی خودکار کھاتہ موجود نہیں۔",
+      "installment_label": "قسط", "delete_invoice": "انوائس حذف کریں",
+      "loading_contract": "معاہدے کی تفصیلات لوڈ ہو رہی ہیں...", "print_contract_action": "معاہدہ پرنٹ کریں",
+      "tenancy_agreement": "کرایہ داری کا معاہدہ", "tenancy_desc_full": "یہ کرایہ داری معاہدہ قانونی طور پر پابند ہے اور نظام اور کرایہ دار کے درمیان <strong>{{date}}</strong> کو طے پایا ہے۔",
+      "the_parties": "۱. فریقین", "tenant_name_col": "کرایہ دار کا نام:", "landlord_name_col": "مالک / جائیداد کا نام:",
+      "the_property_section": "۲. جائیداد", "address_col": "پتہ:", "na_label": "نیست",
+      "term_and_rent": "۳. مدت اور کرایہ", "lease_term_col": "لیز کی مدت:", "from_to_dates": "از {{start}} تا {{end}}",
+      "actual_utilized_days": "اصل استعمال شدہ دن:", "net_rent_settlement": "خالص کرایہ / تصفیہ:",
+      "tenancy_footer": "نیچے دستخط کرنے سے کرایہ داری کے معیاری ضوابط عائد ہوتے ہیں۔",
+      "landlord_signature": "مالک کے دستخط", "tenant_signature": "کرایہ دار کے دستخط",
       "income_expense_report": "آمدنی اور اخراجات کی رپورٹ",
       "total_income": "ادا شدہ کرایہ", "total_expense": "اخراجات",
       "recent_transactions": "حالیہ لین دین",
       "income_ledger": "آمدنی (کھاتہ)", "no_transactions": "اس مدت میں کوئی لین دین نہیں۔",
       "filter_by_date": "تاریخ کی حد کے مطابق فلٹر کریں",
-
-      // Settings
+      "recent_transactions_title": "حالیہ لین دین", "income_ledger_title": "آمدنی (کھاتہ)",
       "language": "زبان", "currency": "کرنسی",
       "default_calendar": "پیش فرض تقویم موڈ",
       "gregorian_calendar": "عیسوی تقویم", "hijri_calendar": "ہجری (اسلامی) تقویم",
-      "rtl_note": "عربی یا اردو منتخب کرنے سے لے آؤٹ خودبخود RTL ہو جائے گا۔",
       "team_access": "ٹیم تک رسائی",
-      "team_access_desc": "دوسروں کو ای میل کے ذریعے مدعو کریں تاکہ وہ آپ کا ڈیٹا دیکھ سکیں۔",
+      "team_access_desc": "دوسروں کو ای میل کے ذریعے مدعو کریں۔",
       "colleague_email": "ساتھی@مثال.com",
       "send_invite": "دعوت بھیجیں", "revoke_access": "رسائی منسوخ کریں",
       "invite_accepted": "قبول شدہ", "invite_pending": "رجسٹریشن کا انتظار", "invite_revoked": "منسوخ",
-      "invite_tip": "💡 دعوتیں خودبخود قبول ہو جاتی ہیں جب شخص اسی ای میل سے رجسٹر کرے۔",
+      "invite_tip": "💡 دعوتیں خودبخود قبول ہو جاتی ہیں۔",
+      "team_access_title": "ٹیم تک رسائی", "team_invite_desc": "دعوتیں خودبخود قبول ہو جاتی ہیں۔", "revoke_access_title": "رسائی منسوخ کریں",
+      "invite_tip_text": "💡 دعوتیں خودبخود قبول ہو جاتی ہیں۔", "rtl_note_text": "اردو منتخب کرنے سے لے آؤٹ دائیں سے بائیں ہو جائے گا۔",
+      "nav_features": "خصوصیات", "nav_impact": "اثر", "hero_badge": "✨ پراپرٹی مینجمنٹ کی اگلی نسل",
+      "hero_title": "اپنے رئیل اسٹیٹ پورٹ فولیو کو بلند کریں", "hero_subtitle": "عالمی صارفین کی مدد کرنے والا ایک طاقتور سسٹم۔ آج ہی سے شروع کریں۔",
+      "btn_get_started": "مفت شروع کریں", "btn_learn_more": "مزید جانیں",
+      "stat_1_val": "+۱۰ ہزار", "stat_1_label": "ماہانہ فعال زائرین", "stat_2_val": "+۵,۰۰۰", "stat_2_label": "منظم جائیدادیں",
+      "stat_3_val": "+۱۲,۰۰۰", "stat_3_label": "خوش کرایہ دار", "features_title": "کامیابی کے لیے تمام ضروریات",
+      "features_subtitle": "اپنے پورٹ فولیو کو محفوظ طریقے سے کلاؤڈ پر منظم کریں۔",
+      "feat_1_title": "متعدد کیلنڈر کی معاونت", "feat_1_desc": "عیسوی اور ہجری دونوں کو سپورٹ کرتا ہے۔",
+      "feat_2_title": "کلاؤڈ سیکیورٹی", "feat_2_desc": "آپ کا ڈیٹا محفوظ ہے۔",
+      "feat_3_desc": "کرایے اور اخراجات کو آسانی سے ٹریک کریں۔",
+      "cta_title": "کیا آپ جائیدادوں کو تبدیل کرنے کے لیے تیار ہیں؟", "register_account": "اکاؤنٹ رجسٹر کریں", "footer_copyright": "عالمی پی ایم ایس۔ تمام حقوق محفوظ ہیں۔"
     }
   }
 };

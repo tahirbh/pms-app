@@ -117,7 +117,7 @@ const Tenants: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (confirm(t('confirm_delete') || 'Are you sure?')) {
       const success = await deleteTenant(id);
-      if (!success) alert('Failed to delete tenant. Please review active ledger dependencies.');
+      if (!success) alert(t('failed_delete_tenant'));
       await loadData();
     }
   };
@@ -133,7 +133,7 @@ const Tenants: React.FC = () => {
       const result = calculateRent(prop.annualRent, tnt.startDate, leaveStr, tnt.calendarMode);
       setCalcResults({ ...calcResults, [tnt.id]: result });
     } catch (e) {
-      alert("Invalid date format.");
+      alert(t('invalid_date_format'));
     }
   };
 
@@ -153,7 +153,7 @@ const Tenants: React.FC = () => {
         </h2>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <button className="btn" onClick={() => exportCSV(tenants, 'tenants.csv')} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Download size={16} /> Export CSV
+            <Download size={16} /> {t('export_csv_btn')}
           </button>
           <button className="btn btn-primary" onClick={() => handleOpenForm()}>
             <UserPlus size={20} />
@@ -268,9 +268,9 @@ const Tenants: React.FC = () => {
                     <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--primary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }}>
                       <UserCircle size={20} style={{ marginRight: '0.5rem' }}/> {tnt.tenantName}
                     </h3>
-                    <p style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Property: {prop?.name || 'Unknown'}</p>
-                    <p style={{ fontSize: '0.875rem' }}>Contract: {tnt.startDate} to {tnt.endDate} ({tnt.calendarMode})</p>
-                    {!tnt.isActive && <span style={{ display: 'inline-block', marginTop: '0.5rem', padding: '0.25rem 0.5rem', background: 'var(--text-muted)', color: 'white', borderRadius: '4px', fontSize: '0.75rem' }}>Ended</span>}
+                    <p style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{t('property_label_inline')} {prop?.name || t('unknown_property')}</p>
+                    <p style={{ fontSize: '0.875rem' }}>{t('contract_prefix')} {tnt.startDate} {t('to_date')} {tnt.endDate} ({tnt.calendarMode})</p>
+                    {!tnt.isActive && <span style={{ display: 'inline-block', marginTop: '0.5rem', padding: '0.25rem 0.5rem', background: 'var(--text-muted)', color: 'white', borderRadius: '4px', fontSize: '0.75rem' }}>{t('ended_status')}</span>}
                   </div>
                   
                   {tnt.isActive && prop && (
@@ -297,15 +297,15 @@ const Tenants: React.FC = () => {
                       {res && (
                         <div style={{ background: 'rgba(255,255,255,0.6)', padding: '1rem', borderRadius: '8px', fontSize: '0.875rem' }}>
                           <p><strong>{t('pro_rata_rent')}:</strong> {(res?.currentMonthRentDue || 0).toFixed(2)} {currency}</p>
-                          <p>Active Days in leaving month: {res?.activeDays || 0}</p>
-                          <p>Daily Rate: {(res?.dailyRate || 0).toFixed(2)} {currency}</p>
+                          <p>{t('active_days_leaving')} {res?.activeDays || 0}</p>
+                          <p>{t('daily_rate')} {(res?.dailyRate || 0).toFixed(2)} {currency}</p>
                           <button 
                             type="button" 
                             className="btn" 
                             style={{ background: 'var(--danger)', color: 'white', marginTop: '0.5rem', width: '100%', fontSize: '0.875rem', padding: '0.5rem' }}
                             onClick={() => handleEndContract(tnt)}
                           >
-                            End Contract Now
+                            {t('end_contract_now')}
                           </button>
                         </div>
                       )}
