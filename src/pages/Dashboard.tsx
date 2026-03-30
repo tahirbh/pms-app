@@ -45,7 +45,7 @@ const DashboardHome = () => {
   const { currency } = useAppContext();
   const navigate = useNavigate();
   
-  const [metrics, setMetrics] = useState({ expectedRent: 0, actualRent: 0, totalExpenses: 0 });
+  const [metrics, setMetrics] = useState({ expectedRent: 0, actualRent: 0, totalExpenses: 0, transferredAmount: 0, collectedRent: 0, cashInHand: 0 });
   const [utilizationData, setUtilizationData] = useState<{name: string, potential: number, contracted: number}[]>([]);
   const [ledgerStats, setLedgerStats] = useState({ paid: 0, overdue: 0, upcoming: 0 });
   const [notifications, setNotifications] = useState<{id: string, tenantId: string, name: string, type: 'overdue'|'upcoming', amount: number, date: string}[]>([]);
@@ -71,8 +71,15 @@ const DashboardHome = () => {
         actual += pActual;
       });
 
-      const totalExp = expenses.reduce((acc, exp) => acc + exp.amount, 0);
-      setMetrics({ expectedRent: expected, actualRent: actual, totalExpenses: totalExp });
+      let transferred = 0;
+      let regularExp = 0;
+      expenses.forEach(exp => {
+        if (exp.category === 'Transferred to Owner') {
+          transferred += exp.amount;
+        } else {
+          regularExp += exp.amount;
+        }
+      });
       
       const allLedgers = await getAllLedgers();
       
@@ -83,6 +90,7 @@ const DashboardHome = () => {
       thirtyDaysAgo.setDate(today.getDate() - 30);
       
       let currentMonthPaid = 0;
+      let totalCollected = 0;
       let totalOverdue = 0;
       let upcomingRent = 0;
       const notifs: typeof notifications = [];
@@ -99,6 +107,7 @@ const DashboardHome = () => {
         }
         
         if (L.status === 'Paid') {
+          totalCollected += L.amount;
           // Count recent payments (last 30 days) towards "Current Month Paid" logic
           if (ledgerDate >= thirtyDaysAgo && ledgerDate <= thirtyDaysFromNow) {
             currentMonthPaid += L.amount;
@@ -114,6 +123,17 @@ const DashboardHome = () => {
             }
           }
         }
+      });
+      
+      let cashInHand = totalCollected - regularExp - transferred;
+
+      setMetrics({ 
+        expectedRent: expected, 
+        actualRent: actual, 
+        totalExpenses: regularExp, 
+        transferredAmount: transferred,
+        collectedRent: totalCollected,
+        cashInHand: cashInHand
       });
       
       setLedgerStats({ paid: currentMonthPaid, overdue: totalOverdue, upcoming: upcomingRent });
@@ -142,8 +162,8 @@ const DashboardHome = () => {
   ];
 
   const pieData = [
-    { name: t('income_actual_rent'), value: metrics.actualRent },
-    { name: t('expense_label'), value: metrics.totalExpenses },
+    { name: t('collected_rent'), value: metrics.collectedRent },
+    { name: t('expense_label'), value: metrics.totalExpenses + metrics.transferredAmount },
   ];
   const COLORS = ['#10b981', '#ef4444'];
   const ledgerPieData = [
@@ -204,10 +224,11 @@ const DashboardHome = () => {
       {/* Summary Stat Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '1.25rem', marginBottom: '3rem' }}>
         {[
-          { label: t('expected_rent'), value: metrics.expectedRent, color: 'var(--secondary)', icon: '📋' },
-          { label: t('actual_rent'), value: metrics.actualRent, color: 'var(--primary)', icon: '✅' },
+          { label: t('projected_rent'), value: metrics.expectedRent, color: 'var(--secondary)', icon: '📋' },
+          { label: t('collected_rent'), value: metrics.collectedRent, color: 'var(--primary)', icon: '✅' },
+          { label: t('transferred_amount'), value: metrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
           { label: t('total_expenses'), value: metrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
-          { label: t('net_revenue'), value: metrics.actualRent - metrics.totalExpenses, color: 'var(--success)', icon: '📈' },
+          { label: t('cash_in_hand'), value: metrics.cashInHand, color: 'var(--success)', icon: '💵' },
         ].map((card) => (
           <div key={card.label} className="glass-panel" style={{ padding: '1.25rem 1.5rem', borderLeft: `4px solid ${card.color}`, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
             <div style={{ fontSize: '1.4rem' }}>{card.icon}</div>

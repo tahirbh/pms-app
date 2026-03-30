@@ -144,8 +144,12 @@ const Expenses: React.FC = () => {
               <option value="">{t('select_category')}</option>
               <option value="Security Man Salary">{t('cat_salary')}</option>
               <option value="Maintenance">{t('cat_maintenance')}</option>
-              <option value="Utilities">{t('cat_utilities')}</option>
+              <option value="Utility Bill - Water">{t('cat_util_water')}</option>
+              <option value="Utility Bill - Electricity">{t('cat_util_elec')}</option>
+              <option value="Utility Bill - Internet">{t('cat_util_net')}</option>
+              <option value="Utility Bill - Others">{t('cat_util_other')}</option>
               <option value="Taxes">{t('cat_taxes')}</option>
+              <option value="Transferred to Owner">{t('cat_transferred')}</option>
               <option value="Other">{t('cat_other')}</option>
             </select>
             <input className="input-field" type="number" placeholder={`${t('amount_sar')} (${currency})`} value={amount} onChange={e => setAmount(e.target.value)} required />

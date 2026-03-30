@@ -18,8 +18,10 @@ export const generateLedgerSchedules = (
   const eDate = endDateStr.replace(/-/g, '/');
   
   let currentStr = sDate;
+  let loopCount = 0;
   
-  while(true) {
+  while(loopCount < 1000) {
+    loopCount++;
     let nextDateStr = '';
     
     // Advance the internal chronometer by the designated interval constraint
@@ -37,6 +39,10 @@ export const generateLedgerSchedules = (
       d.setMonth(d.getMonth() + intervalMonths);
       const eD = new Date(eDate);
       
+      if (isNaN(d.getTime())) {
+        break; // Stop completely if calculation yielded invalid JS native date object
+      }
+
       if (d >= eD) {
         nextDateStr = eDate;
       } else {
@@ -44,12 +50,14 @@ export const generateLedgerSchedules = (
         nextDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       }
     }
+
+    if (nextDateStr === currentStr || nextDateStr === 'Invalid date') break;
     
     // Explicitly compute mathematical pro-rata yield over this exact interval
     const chunkRent = calculateRent(annualRent, currentStr, nextDateStr, calendarMode).expectedContractRent;
     
-    // Filter $0 ghost chunks caused by exact date overlaps
-    if (chunkRent > 0) {
+    // Filter $0 ghost chunks caused by exact date overlaps or NaN calculations
+    if (chunkRent > 0 && !isNaN(chunkRent)) {
       ledgers.push({
         tenantId,
         dueDate: currentStr, // The invoice effectively generates at the start of this chunk period
