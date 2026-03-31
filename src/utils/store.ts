@@ -27,6 +27,7 @@ export type TenantContract = {
   isActive: boolean;
   iqamaNumber?: string;
   sponsorName?: string;
+  mobileNumber?: string;
   user_id?: string;
   created_at?: string;
 };

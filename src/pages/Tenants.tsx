@@ -35,6 +35,7 @@ const Tenants: React.FC = () => {
   const [paymentPlan, setPaymentPlan] = useState<'Monthly' | '3 Month' | '6 Month' | 'Yearly'>('Monthly');
   const [iqamaNumber, setIqamaNumber] = useState('');
   const [sponsorName, setSponsorName] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
 
   const [leaveDateInput, setLeaveDateInput] = useState<{ [id: string]: string }>({});
   const [calcResults, setCalcResults] = useState<{ [id: string]: RentCalculationResult }>({});
@@ -58,6 +59,7 @@ const Tenants: React.FC = () => {
       setPaymentPlan(tnt.paymentPlan || 'Monthly');
       setIqamaNumber(tnt.iqamaNumber || '');
       setSponsorName(tnt.sponsorName || '');
+      setMobileNumber(tnt.mobileNumber || '');
     } else {
       setEditingId(null);
       setTenantName('');
@@ -67,6 +69,7 @@ const Tenants: React.FC = () => {
       setPaymentPlan('Monthly');
       setIqamaNumber('');
       setSponsorName('');
+      setMobileNumber('');
     }
     setShowForm(true);
   };
@@ -87,7 +90,8 @@ const Tenants: React.FC = () => {
           calendarMode,
           paymentPlan,
           iqamaNumber,
-          sponsorName
+          sponsorName,
+          mobileNumber
         };
         await updateTenant(updated);
         
@@ -115,6 +119,7 @@ const Tenants: React.FC = () => {
         paymentPlan,
         iqamaNumber,
         sponsorName,
+        mobileNumber,
         isActive: true
       });
       
@@ -201,6 +206,7 @@ const Tenants: React.FC = () => {
             
             <input className="input-field" placeholder={t('iqama_number')} value={iqamaNumber} onChange={e => setIqamaNumber(e.target.value)} />
             <input className="input-field" placeholder={t('sponsor_name')} value={sponsorName} onChange={e => setSponsorName(e.target.value)} />
+            <input className="input-field" placeholder={t('mobile_number', 'Mobile Number')} value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} />
 
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>
