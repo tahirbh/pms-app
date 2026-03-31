@@ -74,7 +74,7 @@ const DashboardHome = () => {
       let transferred = 0;
       let regularExp = 0;
       expenses.forEach(exp => {
-        if (exp.category === 'Transferred to Owner') {
+        if (exp.category === 'Transfer to Owner' || exp.category === 'Transferred to Owner') {
           transferred += exp.amount;
         } else {
           regularExp += exp.amount;

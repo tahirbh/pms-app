@@ -13,7 +13,8 @@ import gregorian_en from "react-date-object/locales/gregorian_en";
 import gregorian_ar from "react-date-object/locales/gregorian_ar";
 import moment from 'moment-hijri';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { FileText, ArrowDownRight, ArrowUpRight } from 'lucide-react';
+import { FileText, ArrowDownRight, ArrowUpRight, Printer, Download } from 'lucide-react';
+import { exportCSV } from '../utils/exportUtils';
 
 const Reports: React.FC = () => {
   const { t } = useTranslation();
@@ -85,9 +86,50 @@ const Reports: React.FC = () => {
   }, [startDate, endDate, calendarMode]);
 
   const totalIncome = incomes.reduce((acc, curr) => acc + curr.amount, 0);
-  const totalExpense = expenses.filter(e => e.category !== 'Transfer to Owner').reduce((acc, curr) => acc + curr.amount, 0);
-  const amountTransferredToOwner = expenses.filter(e => e.category === 'Transfer to Owner').reduce((acc, curr) => acc + curr.amount, 0);
+  const totalExpense = expenses.filter(e => e.category !== 'Transfer to Owner' && e.category !== 'Transferred to Owner').reduce((acc, curr) => acc + curr.amount, 0);
+  const amountTransferredToOwner = expenses.filter(e => e.category === 'Transfer to Owner' || e.category === 'Transferred to Owner').reduce((acc, curr) => acc + curr.amount, 0);
   const netRevenue = totalIncome - totalExpense;
+
+  const transactions = [
+    ...incomes.map(inc => ({
+      id: inc.id,
+      date: inc.paidDate || inc.dueDate,
+      description: t('income_ledger_title'),
+      income: inc.amount,
+      expense: 0,
+      transferred: 0,
+      rawDate: inc.paidDate || inc.dueDate
+    })),
+    ...expenses.map(exp => {
+      const isTransfer = exp.category === 'Transfer to Owner' || exp.category === 'Transferred to Owner';
+      return {
+        id: exp.id,
+        date: exp.date,
+        description: isTransfer ? t('cat_transfer_owner') : exp.category,
+        income: 0,
+        expense: isTransfer ? 0 : exp.amount,
+        transferred: isTransfer ? exp.amount : 0,
+        rawDate: exp.date
+      };
+    })
+  ].sort((a, b) => new Date(a.rawDate || 0).getTime() - new Date(b.rawDate || 0).getTime());
+
+  let runningBalance = 0;
+  const ledgerData = transactions.map(txn => {
+    runningBalance += txn.income - txn.expense - txn.transferred;
+    return { ...txn, balance: runningBalance };
+  });
+
+  const handleExportLedger = () => {
+    exportCSV(ledgerData.map(l => ({
+      Date: l.date,
+      Description: l.description,
+      Income: l.income,
+      Expense: l.expense,
+      Transferred: l.transferred,
+      Balance: l.balance
+    })), 'Report_Ledger.csv');
+  };
 
   const barData = [
     { name: t('income'), amount: totalIncome, fill: '#10b981' },
@@ -178,7 +220,7 @@ const Reports: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: '2rem' }}>
         <div className="glass-panel p-4" style={{ height: 350 }}>
            <ResponsiveContainer>
              <BarChart data={barData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -194,23 +236,50 @@ const Reports: React.FC = () => {
            </ResponsiveContainer>
         </div>
 
-        <div className="glass-panel p-4" style={{ maxHeight: 350, overflowY: 'auto' }}>
-          <h4 style={{ fontSize: '1.125rem', marginBottom: '1rem', color: 'var(--text-main)', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem' }}>
-            {t('transaction_detail')} ( {t('recent_transactions_title')} )
-          </h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {incomes.map(inc => (
-              <div key={inc.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '4px' }}>
-                <span>{t('income_ledger_title')}</span>
-                <span style={{ color: 'var(--success)', fontWeight: 600 }}>+{(inc.amount || 0).toLocaleString()}</span>
-              </div>
-            ))}
-            {expenses.map(exp => (
-              <div key={exp.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: exp.category === 'Transfer to Owner' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)', borderRadius: '4px' }}>
-                <span>{exp.category === 'Transfer to Owner' ? t('cat_transfer_owner') : exp.category}</span>
-                <span style={{ color: exp.category === 'Transfer to Owner' ? 'var(--secondary)' : 'var(--danger)', fontWeight: 600 }}>-{(exp.amount || 0).toLocaleString()}</span>
-              </div>
-            ))}
+        <div className="glass-panel p-4" style={{ display: 'flex', flexDirection: 'column', maxHeight: 600 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem' }}>
+            <h4 style={{ fontSize: '1.125rem', color: 'var(--text-main)', margin: 0 }}>
+              {t('transaction_detail')} ( {t('recent_transactions_title')} )
+            </h4>
+            <div className="print-hide" style={{ display: 'flex', gap: '0.5rem' }}>
+              <button className="btn" style={{ padding: '0.4rem 0.8rem', background: 'var(--primary)', color: 'white', fontSize: '0.85rem' }} onClick={handleExportLedger}>
+                <Download size={14} /> {t('export_csv')}
+              </button>
+              <button className="btn" style={{ padding: '0.4rem 0.8rem', background: 'var(--secondary)', color: 'white', fontSize: '0.85rem' }} onClick={() => window.print()}>
+                <Printer size={14} /> Print
+              </button>
+            </div>
+          </div>
+          
+          <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>
+            {ledgerData.length === 0 ? (
+              <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem' }}>{t('no_transactions')}</div>
+            ) : (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid var(--glass-border)', color: 'var(--text-muted)', textAlign: 'left' }}>
+                    <th style={{ padding: '0.5rem' }}>{t('date_label')}</th>
+                    <th style={{ padding: '0.5rem' }}>Description</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'right' }}>{t('income')}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'right' }}>{t('expense_label')}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'right' }}>Transferred</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'right' }}>Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ledgerData.map((txn, idx) => (
+                    <tr key={txn.id + idx} className="print-break-inside-avoid" style={{ borderBottom: '1px solid var(--glass-border)', background: txn.transferred > 0 ? 'rgba(59, 130, 246, 0.05)' : txn.expense > 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)' }}>
+                      <td style={{ padding: '0.75rem 0.5rem' }}>{txn.date}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', fontWeight: 500 }}>{txn.description}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: txn.income > 0 ? 'var(--success)' : 'inherit' }}>{txn.income > 0 ? `+${txn.income.toLocaleString()}` : '-'}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: txn.expense > 0 ? 'var(--danger)' : 'inherit' }}>{txn.expense > 0 ? `-${txn.expense.toLocaleString()}` : '-'}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: txn.transferred > 0 ? 'var(--secondary)' : 'inherit' }}>{txn.transferred > 0 ? `-${txn.transferred.toLocaleString()}` : '-'}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', fontWeight: 700 }}>{txn.balance.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>
