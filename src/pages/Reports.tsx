@@ -35,7 +35,19 @@ const Reports: React.FC = () => {
   const [incomes, setIncomes] = useState<ContractLedger[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
-  const toEnglishDigits = (str: string) => str ? str.replace(/[٠-٩]/g, (d: string) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString()) : '';
+  const toEnglishDigits = (str: string) => {
+    if (!str) return '';
+    const arabic = '٠١٢٣٤٥٦٧٨٩';
+    const persian = '۰۱۲۳۴۵۶۷۸۹';
+    let en = str.replace(/[٠-٩۰-۹]/g, (d: string) => {
+      let i = arabic.indexOf(d);
+      if (i !== -1) return i.toString();
+      i = persian.indexOf(d);
+      if (i !== -1) return i.toString();
+      return d;
+    });
+    return en.replace(/-/g, '/');
+  };
   
   const parseGenericDate = (dateStr: string) => {
     if (!dateStr) return 0;
