@@ -90,7 +90,7 @@ const resources = {
       "property_label_inline": "Property:", "unknown_property": "Unknown",
       "contract_prefix": "Contract:", "to_date": "to", "ended_status": "Ended",
       "active_days_leaving": "Active Days in leaving month:", "daily_rate": "Daily Rate:",
-      "end_contract_now": "End Contract Now", "iqama_number": "Iqama Number", "sponsor_name": "Sponsor Name",
+      "end_contract_now": "End Contract Now", "iqama_number": "Iqama Number", "sponsor_name": "Sponsor Name", "mobile_number": "Mobile Number",
 
       // Expenses
       "expenses_management": "Expenses Management", "add_expense": "Add Expense",
@@ -248,7 +248,7 @@ const resources = {
       "property_label_inline": "العقار:", "unknown_property": "غير معروف",
       "contract_prefix": "العقد:", "to_date": "إلى", "ended_status": "منتهي",
       "active_days_leaving": "الأيام النشطة في شهر المغادرة:", "daily_rate": "المعدل اليومي:", "end_contract_now": "إنهاء العقد الآن",
-      "iqama_number": "رقم الإقامة", "sponsor_name": "اسم الكفيل",
+      "iqama_number": "رقم الإقامة", "sponsor_name": "اسم الكفيل", "mobile_number": "رقم الجوال",
       "expenses_management": "إدارة المصروفات", "add_expense": "إضافة مصروف",
       "log_expense": "تسجيل مصروف جديد", "edit_expense": "تعديل تفاصيل المصروف",
       "select_category": "اختر الفئة...", "amount_sar": "المبلغ",
@@ -392,7 +392,7 @@ const resources = {
       "property_label_inline": "جائیداد:", "unknown_property": "نامعلوم",
       "contract_prefix": "معاہدہ:", "to_date": "سے", "ended_status": "ختم ہو گیا",
       "active_days_leaving": "روانگی کے مہینے میں فعال دن:", "daily_rate": "یومیہ شرح:", "end_contract_now": "اب معاہدہ ختم کریں",
-      "iqama_number": "اقامہ نمبر", "sponsor_name": "سپانسر کا نام",
+      "iqama_number": "اقامہ نمبر", "sponsor_name": "سپانسر کا نام", "mobile_number": "موبائل نمبر",
       "expenses_management": "اخراجات کا انتظام", "add_expense": "خرچہ شامل کریں",
       "log_expense": "نیا خرچہ درج کریں", "edit_expense": "خرچے کی تفصیل ترمیم کریں",
       "select_category": "زمرہ منتخب کریں...", "amount_sar": "رقم",
