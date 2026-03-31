@@ -37,16 +37,17 @@ const Reports: React.FC = () => {
 
   const toEnglishDigits = (str: string) => {
     if (!str) return '';
-    const arabic = '٠١٢٣٤٥٦٧٨٩';
-    const persian = '۰۱۲۳۴۵۶۷۸۹';
+    const arabicNum = '٠١٢٣٤٥٦٧٨٩';
+    const persianNum = '۰۱۲۳۴۵۶۷۸۹';
     let en = str.replace(/[٠-٩۰-۹]/g, (d: string) => {
-      let i = arabic.indexOf(d);
+      let i = arabicNum.indexOf(d);
       if (i !== -1) return i.toString();
-      i = persian.indexOf(d);
+      i = persianNum.indexOf(d);
       if (i !== -1) return i.toString();
       return d;
     });
-    return en.replace(/-/g, '/');
+    en = en.replace(/-/g, '/');
+    return en.replace(/[^\d/]/g, '');
   };
   
   const parseGenericDate = (dateStr: string) => {
@@ -100,11 +101,6 @@ const Reports: React.FC = () => {
     fetchReport();
   }, [startDate, endDate, calendarMode]);
 
-  const totalIncome = incomes.reduce((acc, curr) => acc + curr.amount, 0);
-  const totalExpense = expenses.filter(e => e.category !== 'Transfer to Owner' && e.category !== 'Transferred to Owner').reduce((acc, curr) => acc + curr.amount, 0);
-  const amountTransferredToOwner = expenses.filter(e => e.category === 'Transfer to Owner' || e.category === 'Transferred to Owner').reduce((acc, curr) => acc + curr.amount, 0);
-  const netRevenue = totalIncome - totalExpense;
-
   const transactions = [
     ...incomes.map(inc => ({
       id: inc.id,
@@ -141,6 +137,11 @@ const Reports: React.FC = () => {
     );
   });
 
+  const totalIncome = filteredTransactions.reduce((acc, curr) => acc + curr.income, 0);
+  const totalExpense = filteredTransactions.reduce((acc, curr) => acc + curr.expense, 0);
+  const amountTransferredToOwner = filteredTransactions.reduce((acc, curr) => acc + curr.transferred, 0);
+  const netRevenue = totalIncome - totalExpense;
+
   let runningBalance = 0;
   const ledgerData = filteredTransactions.map(txn => {
     runningBalance += txn.income - txn.expense - txn.transferred;
@@ -149,7 +150,7 @@ const Reports: React.FC = () => {
 
   const handleExportLedger = () => {
     exportCSV(ledgerData.map(l => ({
-      Date: l.date,
+      Date: displayDate(l.date),
       Description: l.description,
       Income: l.income,
       Expense: l.expense,
@@ -164,6 +165,24 @@ const Reports: React.FC = () => {
       return str.replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[parseInt(d, 10)]);
     }
     return str;
+  };
+
+  const displayDate = (rawDate: string) => {
+    if (!rawDate) return '';
+    const ts = parseGenericDate(rawDate);
+    if (!ts) return formatDigits(rawDate); 
+    
+    let formatted = '';
+    if (calendarMode === 'hijri') {
+      formatted = moment(ts).format('iYYYY/iMM/iDD');
+    } else {
+      const d = new Date(ts);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      formatted = `${y}/${m}/${day}`;
+    }
+    return formatDigits(formatted);
   };
 
   return (
@@ -291,7 +310,7 @@ const Reports: React.FC = () => {
                 <tbody>
                   {ledgerData.map((txn, idx) => (
                     <tr key={txn.id + idx} className="print-break-inside-avoid" style={{ borderBottom: '1px solid var(--glass-border)', background: txn.transferred > 0 ? 'rgba(59, 130, 246, 0.05)' : txn.expense > 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)' }}>
-                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start' }}>{formatDigits(txn.date)}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start' }}>{displayDate(txn.date)}</td>
                       <td style={{ padding: '0.75rem 0.5rem', fontWeight: 500, textAlign: 'start' }}>{txn.description}</td>
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', color: txn.income > 0 ? 'var(--success)' : 'inherit' }}>{txn.income > 0 ? `+${txn.income.toLocaleString()}` : '-'}</td>
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', color: txn.expense > 0 ? 'var(--danger)' : 'inherit' }}>{txn.expense > 0 ? `-${txn.expense.toLocaleString()}` : '-'}</td>
