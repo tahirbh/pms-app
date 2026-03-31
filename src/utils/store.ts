@@ -156,6 +156,12 @@ export const deleteLedger = async (id: string): Promise<boolean> => {
   return true;
 };
 
+export const deleteLedgersByTenant = async (tenantId: string): Promise<boolean> => {
+  const { error } = await supabase.from('contract_ledger').delete().eq('tenantId', tenantId);
+  if (error) { console.error('Error deleting tenant ledgers', error); return false; }
+  return true;
+};
+
 // --- EXPENSES ---
 export const getExpenses = async (): Promise<Expense[]> => {
   const { data, error } = await supabase.from('expenses').select('*').order('created_at', { ascending: false });

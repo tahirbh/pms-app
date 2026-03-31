@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { UserPlus, Edit, Trash2, Printer, Receipt, UserCircle, Calculator, Download } from 'lucide-react';
-import { getTenants, getProperties, saveTenant, updateTenant, deleteTenant, endTenantContract, saveLedgers } from '../utils/store';
+import { getTenants, getProperties, saveTenant, updateTenant, deleteTenant, endTenantContract, saveLedgers, deleteLedgersByTenant } from '../utils/store';
 import type { TenantContract, Property } from '../utils/store';
 import { calculateRent } from '../utils/rentCalculator';
 import DatePickerModule from "react-multi-date-picker";
@@ -90,6 +90,20 @@ const Tenants: React.FC = () => {
           sponsorName
         };
         await updateTenant(updated);
+        
+        await deleteLedgersByTenant(editingId);
+        const prop = properties.find(p => p.id === propertyId);
+        if (prop) {
+           const ledgers = generateLedgerSchedules(
+             editingId, 
+             prop.annualRent, 
+             startDate, 
+             endDate, 
+             paymentPlan, 
+             calendarMode
+           );
+           await saveLedgers(ledgers);
+        }
       }
     } else {
       const newTenant = await saveTenant({
