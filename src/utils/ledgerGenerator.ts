@@ -1,5 +1,5 @@
 import moment from 'moment-hijri';
-import { calculateRent } from './rentCalculator';
+import { calculateRent, toEnglishDigits } from './rentCalculator';
 import type { ContractLedger } from './store';
 
 export const generateLedgerSchedules = (
@@ -17,7 +17,7 @@ export const generateLedgerSchedules = (
   const sDate = startDateStr.replace(/-/g, '/');
   const eDate = endDateStr.replace(/-/g, '/');
   
-  let currentStr = sDate;
+  let currentStr = toEnglishDigits(sDate);
   let loopCount = 0;
   
   while(loopCount < 1000) {
@@ -26,11 +26,11 @@ export const generateLedgerSchedules = (
     
     // Advance the internal chronometer by the designated interval constraint
     if (calendarMode === 'hijri') {
-      const m = moment(currentStr, 'iYYYY/iMM/iDD');
+      const m = moment(currentStr, 'iYYYY/iMM/iDD').locale('en');
       m.add(intervalMonths, 'iMonth');
       nextDateStr = m.format('iYYYY/iMM/iDD');
       
-      const mEnd = moment(eDate, 'iYYYY/iMM/iDD');
+      const mEnd = moment(toEnglishDigits(eDate), 'iYYYY/iMM/iDD').locale('en');
       if (m.isAfter(mEnd) || m.isSame(mEnd)) {
         nextDateStr = eDate;
       }

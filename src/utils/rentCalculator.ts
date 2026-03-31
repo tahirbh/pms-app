@@ -1,5 +1,10 @@
 import moment from 'moment-hijri';
 
+export const toEnglishDigits = (str: string) => {
+  if (!str) return str;
+  return str.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
+};
+
 export type RentCalculationResult = {
   activeDays: number;
   daysInBillingCycle: number;
@@ -37,8 +42,8 @@ export const calculateRent = (
   const daysInYear = isHijri ? 354.36 : 365.25;
 
   if (isHijri) {
-    const startM = moment(startDate.replace(/-/g, '/'), 'iYYYY/iMM/iDD');
-    const leaveM = moment(endDate.replace(/-/g, '/'), 'iYYYY/iMM/iDD');
+    const startM = moment(toEnglishDigits(startDate.replace(/-/g, '/')), 'iYYYY/iMM/iDD');
+    const leaveM = moment(toEnglishDigits(endDate.replace(/-/g, '/')), 'iYYYY/iMM/iDD');
 
     activeDays = leaveM.iDate();
     daysInBillingCycle = moment.iDaysInMonth(leaveM.iYear(), leaveM.iMonth());
