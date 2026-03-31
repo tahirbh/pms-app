@@ -44,12 +44,17 @@ const Reports: React.FC = () => {
       let startBound: Date;
       let endBound: Date;
       
+      // Safely parse English digits from Arabic locales for accurate native Gregorian date casting
+      const toEnglishDigits = (str: string) => str ? str.replace(/[٠-٩]/g, (d: string) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString()) : '';
+      const safeStartDate = toEnglishDigits(startDate);
+      const safeEndDate = toEnglishDigits(endDate);
+
       if (calendarMode === 'hijri') {
-        startBound = moment(startDate, 'iYYYY/iMM/iDD').toDate();
-        endBound = moment(endDate, 'iYYYY/iMM/iDD').toDate();
+        startBound = moment(safeStartDate, 'iYYYY/iMM/iDD').toDate();
+        endBound = moment(safeEndDate, 'iYYYY/iMM/iDD').toDate();
       } else {
-        startBound = new Date(startDate);
-        endBound = new Date(endDate);
+        startBound = new Date(safeStartDate);
+        endBound = new Date(safeEndDate);
       }
       
       endBound.setHours(23, 59, 59, 999);
@@ -142,6 +147,14 @@ const Reports: React.FC = () => {
       Transferred: l.transferred,
       Balance: l.balance
     })), 'Report_Ledger.csv');
+  };
+
+  const formatDigits = (str: string) => {
+    if (!str) return '';
+    if (language === 'ar') {
+      return str.replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[parseInt(d, 10)]);
+    }
+    return str;
   };
 
   return (
@@ -257,24 +270,24 @@ const Reports: React.FC = () => {
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid var(--glass-border)', color: 'var(--text-muted)', textAlign: 'left' }}>
-                    <th style={{ padding: '0.5rem' }}>{t('date_label')}</th>
-                    <th style={{ padding: '0.5rem' }}>Description</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'right' }}>{t('income')}</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'right' }}>{t('expense_label')}</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'right' }}>Transferred</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'right' }}>Balance</th>
+                  <tr style={{ borderBottom: '2px solid var(--glass-border)', color: 'var(--text-muted)' }}>
+                    <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('date_label')}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('description_col')}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('income')}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('expense_label')}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('transferred_col')}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('balance_col')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {ledgerData.map((txn, idx) => (
                     <tr key={txn.id + idx} className="print-break-inside-avoid" style={{ borderBottom: '1px solid var(--glass-border)', background: txn.transferred > 0 ? 'rgba(59, 130, 246, 0.05)' : txn.expense > 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)' }}>
-                      <td style={{ padding: '0.75rem 0.5rem' }}>{txn.date}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', fontWeight: 500 }}>{txn.description}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: txn.income > 0 ? 'var(--success)' : 'inherit' }}>{txn.income > 0 ? `+${txn.income.toLocaleString()}` : '-'}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: txn.expense > 0 ? 'var(--danger)' : 'inherit' }}>{txn.expense > 0 ? `-${txn.expense.toLocaleString()}` : '-'}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: txn.transferred > 0 ? 'var(--secondary)' : 'inherit' }}>{txn.transferred > 0 ? `-${txn.transferred.toLocaleString()}` : '-'}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', fontWeight: 700 }}>{txn.balance.toLocaleString()}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start' }}>{formatDigits(txn.date)}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', fontWeight: 500, textAlign: 'start' }}>{txn.description}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', color: txn.income > 0 ? 'var(--success)' : 'inherit' }}>{txn.income > 0 ? `+${txn.income.toLocaleString()}` : '-'}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', color: txn.expense > 0 ? 'var(--danger)' : 'inherit' }}>{txn.expense > 0 ? `-${txn.expense.toLocaleString()}` : '-'}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', color: txn.transferred > 0 ? 'var(--secondary)' : 'inherit' }}>{txn.transferred > 0 ? `-${txn.transferred.toLocaleString()}` : '-'}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', fontWeight: 700 }}>{txn.balance.toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
