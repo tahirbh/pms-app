@@ -43,8 +43,8 @@ const TenantContractPage: React.FC = () => {
         <button className="btn btn-primary" onClick={() => window.print()}><Printer size={20}/> {t('print_contract_action')}</button>
       </div>
 
-      <div style={{ padding: '3rem', border: '1px solid var(--glass-border)', background: 'white', color: 'black', borderRadius: '8px' }}>
-        <h1 style={{ textAlign: 'center', fontSize: '2.5rem', marginBottom: '2rem', borderBottom: '2px solid black', paddingBottom: '1rem', fontWeight: 800 }}>{t('tenancy_agreement')}</h1>
+      <div className="glass-panel" style={{ padding: '3rem', borderRadius: '8px' }}>
+        <h1 style={{ textAlign: 'center', fontSize: '2.5rem', marginBottom: '2rem', borderBottom: '2px solid var(--glass-border)', paddingBottom: '1rem', fontWeight: 800 }}>{t('tenancy_agreement')}</h1>
         
         <p style={{ marginBottom: '2rem', fontSize: '1.125rem', lineHeight: '1.6' }} dangerouslySetInnerHTML={{ __html: t('tenancy_desc_full', { date: printDate }) }}></p>
         
@@ -59,9 +59,9 @@ const TenantContractPage: React.FC = () => {
         <p style={{ margin: '0.5rem 0', fontSize: '1.125rem' }}><strong>{t('lease_term_col')}</strong> {t('from_to_dates', { start: tenant.startDate, end: tenant.endDate })} ({tenant.calendarMode.toUpperCase()})</p>
         <p style={{ margin: '0.5rem 0', fontSize: '1.125rem' }}><strong>{t('annual_rent')}:</strong> {property.annualRent.toLocaleString()} {currency}</p>
         
-        <div style={{ background: '#f8fafc', padding: '1rem', marginTop: '1.5rem', borderRadius: '8px', borderLeft: '4px solid var(--primary)' }}>
-          <p style={{ margin: '0.25rem 0', fontSize: '1.125rem', color: '#0f172a' }}><strong>{t('actual_utilized_days')}</strong> {rentResult.totalContractDays}</p>
-          <p style={{ margin: '0.25rem 0', fontSize: '1.125rem', color: '#0f172a' }}><strong>{t('net_rent_settlement')}</strong> {rentResult.expectedContractRent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {currency}</p>
+        <div style={{ background: 'rgba(128,128,128,0.1)', padding: '1rem', marginTop: '1.5rem', borderRadius: '8px', borderLeft: '4px solid var(--primary)' }}>
+          <p style={{ margin: '0.25rem 0', fontSize: '1.125rem' }}><strong>{t('actual_utilized_days')}</strong> {rentResult.totalContractDays}</p>
+          <p style={{ margin: '0.25rem 0', fontSize: '1.125rem' }}><strong>{t('net_rent_settlement')}</strong> {rentResult.expectedContractRent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {currency}</p>
         </div>
 
         <p style={{ marginTop: '2.5rem', fontSize: '1rem', color: '#555', fontStyle: 'italic' }}>
@@ -70,11 +70,11 @@ const TenantContractPage: React.FC = () => {
 
         <div style={{ marginTop: '6rem', display: 'flex', justifyContent: 'space-between' }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ borderBottom: '1px solid black', width: '250px', marginBottom: '0.5rem' }}></div>
+            <div style={{ borderBottom: '1px solid var(--text-main)', width: '250px', marginBottom: '0.5rem' }}></div>
             <p style={{ fontWeight: 600 }}>{t('landlord_signature')}</p>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ borderBottom: '1px solid black', width: '250px', marginBottom: '0.5rem' }}></div>
+            <div style={{ borderBottom: '1px solid var(--text-main)', width: '250px', marginBottom: '0.5rem' }}></div>
             <p style={{ fontWeight: 600 }}>{t('tenant_signature')}</p>
           </div>
         </div>

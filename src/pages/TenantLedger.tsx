@@ -70,7 +70,7 @@ const TenantLedger: React.FC = () => {
         <h2 style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--primary)', margin: 0 }}>{t('payment_ledger')}</h2>
       </div>
 
-      <div style={{ display: 'flex', gap: '3rem', background: 'rgba(255,255,255,0.4)', padding: '2rem', borderRadius: '12px', marginBottom: '3rem' }}>
+      <div className="glass-panel" style={{ display: 'flex', gap: '3rem', padding: '2rem', marginBottom: '3rem' }}>
         <div style={{ flex: 1 }}>
           <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <KeyRound size={20} color="var(--primary)"/> {tenant.tenantName}
@@ -102,10 +102,7 @@ const TenantLedger: React.FC = () => {
             const isPaying = payingLedger === ledger.id;
 
             return (
-              <div key={ledger.id} style={{ 
-                background: 'white', 
-                border: '1px solid var(--glass-border)', 
-                borderRadius: '8px', 
+              <div key={ledger.id} className="glass-panel" style={{ 
                 padding: '1.5rem',
                 borderLeft: isPaid ? '6px solid var(--success)' : '6px solid orange',
                 display: 'flex',

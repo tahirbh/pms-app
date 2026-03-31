@@ -197,7 +197,7 @@ const DashboardHome = () => {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {notifications.map((n: any) => (
-                  <div key={n.id} style={{ padding: '1rem', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'flex-start', gap: '1rem', cursor: 'pointer', background: 'rgba(255,255,255,0.4)', transition: 'background 0.2s' }} onClick={() => navigate(`/dashboard/ledger/${n.tenantId}`)}>
+                  <div key={n.id} style={{ padding: '1rem', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'flex-start', gap: '1rem', cursor: 'pointer', transition: 'background 0.2s', background: 'transparent' }} onClick={() => navigate(`/dashboard/ledger/${n.tenantId}`)}>
                     <AlertCircle size={20} color={n.type === 'overdue' ? 'var(--danger)' : 'var(--accent)'} style={{ flexShrink: 0, marginTop: '2px' }} />
                     <div style={{ flex: 1 }}>
                       <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)' }}>
