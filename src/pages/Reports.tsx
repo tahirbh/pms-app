@@ -12,8 +12,7 @@ import gregorian from "react-date-object/calendars/gregorian";
 import gregorian_en from "react-date-object/locales/gregorian_en";
 import gregorian_ar from "react-date-object/locales/gregorian_ar";
 import moment from 'moment-hijri';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { FileText, ArrowDownRight, ArrowUpRight, Printer, Download } from 'lucide-react';
+import { FileText, ArrowDownRight, ArrowUpRight, Download } from 'lucide-react';
 import { exportCSV } from '../utils/exportUtils';
 
 const Reports: React.FC = () => {
@@ -131,11 +130,6 @@ const Reports: React.FC = () => {
     })), 'Report_Ledger.csv');
   };
 
-  const barData = [
-    { name: t('income'), amount: totalIncome, fill: '#10b981' },
-    { name: t('expense_label'), amount: totalExpense, fill: '#ef4444' }
-  ];
-
   return (
     <div className="glass-panel p-6 animate-slide-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -220,33 +214,15 @@ const Reports: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: '2rem' }}>
-        <div className="glass-panel p-4" style={{ height: 350 }}>
-           <ResponsiveContainer>
-             <BarChart data={barData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-               <XAxis dataKey="name" />
-               <YAxis />
-               <Tooltip formatter={(value) => `${Number(value).toLocaleString()} ${currency}`} />
-               <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
-                 {barData.map((entry, index) => (
-                   <Cell key={`cell-${index}`} fill={entry.fill} />
-                 ))}
-               </Bar>
-             </BarChart>
-           </ResponsiveContainer>
-        </div>
-
-        <div className="glass-panel p-4" style={{ display: 'flex', flexDirection: 'column', maxHeight: 600 }}>
+      <div style={{ width: '100%' }}>
+        <div className="glass-panel p-4" style={{ display: 'flex', flexDirection: 'column', maxHeight: 800 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem' }}>
             <h4 style={{ fontSize: '1.125rem', color: 'var(--text-main)', margin: 0 }}>
               {t('transaction_detail')} ( {t('recent_transactions_title')} )
             </h4>
             <div className="print-hide" style={{ display: 'flex', gap: '0.5rem' }}>
-              <button className="btn" style={{ padding: '0.4rem 0.8rem', background: 'var(--primary)', color: 'white', fontSize: '0.85rem' }} onClick={handleExportLedger}>
-                <Download size={14} /> {t('export_csv')}
-              </button>
-              <button className="btn" style={{ padding: '0.4rem 0.8rem', background: 'var(--secondary)', color: 'white', fontSize: '0.85rem' }} onClick={() => window.print()}>
-                <Printer size={14} /> Print
+              <button className="btn" style={{ padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', fontSize: '0.9rem' }} onClick={handleExportLedger}>
+                <Download size={16} /> {t('export_csv')}
               </button>
             </div>
           </div>

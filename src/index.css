@@ -124,8 +124,8 @@ body {
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: 8px;
-  border: 1px solid var(--glass-border);
-  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.9);
   color: var(--text-main);
   font-family: inherit;
   transition: var(--transition);
@@ -134,7 +134,8 @@ body {
 }
 
 [data-theme='dark'] .input-field {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .input-field:focus {
