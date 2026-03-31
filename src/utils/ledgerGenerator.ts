@@ -53,8 +53,19 @@ export const generateLedgerSchedules = (
 
     if (nextDateStr === currentStr || nextDateStr === 'Invalid date') break;
     
-    // Explicitly compute mathematical pro-rata yield over this exact interval
-    const chunkRent = calculateRent(annualRent, currentStr, nextDateStr, calendarMode).expectedContractRent;
+    // Standardize rent to perfectly equal divisions (fixes variance confusion)
+    const standardChunk = annualRent / (12 / intervalMonths);
+    const actualProrated = calculateRent(annualRent, currentStr, nextDateStr, calendarMode).expectedContractRent;
+    
+    let chunkRent = standardChunk;
+    
+    // If the true pro-rated value is significantly smaller (e.g., a fractional period at the end),
+    // use the exact prorated amount instead of the full standard chunk.
+    if (actualProrated > 0 && actualProrated < standardChunk * 0.85) {
+      chunkRent = actualProrated;
+    } else if (isNaN(actualProrated) || actualProrated === 0) {
+      chunkRent = 0;
+    }
     
     // Filter $0 ghost chunks caused by exact date overlaps or NaN calculations
     if (chunkRent > 0 && !isNaN(chunkRent)) {

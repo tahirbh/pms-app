@@ -6,11 +6,16 @@
 export const exportCSV = (data: Record<string, any>[], filename: string): void => {
   if (!data || data.length === 0) { alert('No data to export.'); return; }
 
-  const keys = Object.keys(data[0]).filter(k => k !== 'user_id'); // exclude internal field
+  const originalKeys = Object.keys(data[0]).filter(k => k !== 'user_id' && k !== 'id');
+  const keys = ['SrNo', ...originalKeys];
   const header = keys.join(',');
-  const rows = data.map(row =>
+
+  const rows = data.map((row, index) =>
     keys.map(k => {
-      const val = row[k] ?? '';
+      let val;
+      if (k === 'SrNo') val = index + 1;
+      else val = row[k] ?? '';
+      
       // Wrap in quotes if contains comma, newline, or quote
       return String(val).includes(',') || String(val).includes('\n') || String(val).includes('"')
         ? `"${String(val).replace(/"/g, '""')}"`

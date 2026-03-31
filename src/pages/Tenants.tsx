@@ -303,7 +303,8 @@ const Tenants: React.FC = () => {
                     </h3>
                     <p style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{t('property_label_inline')} {prop?.name || t('unknown_property')}</p>
                     {tnt.iqamaNumber && <p style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}><strong>{t('iqama_number')}:</strong> {tnt.iqamaNumber}</p>}
-                    {tnt.sponsorName && <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}><strong>{t('sponsor_name')}:</strong> {tnt.sponsorName}</p>}
+                    {tnt.sponsorName && <p style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}><strong>{t('sponsor_name')}:</strong> {tnt.sponsorName}</p>}
+                    {tnt.mobileNumber && <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}><strong>{t('mobile_number', 'Mobile Number')}:</strong> {tnt.mobileNumber}</p>}
                     <p style={{ fontSize: '0.875rem' }}>{t('contract_prefix')} {tnt.startDate} {t('to_date')} {tnt.endDate} ({tnt.calendarMode})</p>
                     {!tnt.isActive && <span style={{ display: 'inline-block', marginTop: '0.5rem', padding: '0.25rem 0.5rem', background: 'var(--text-muted)', color: 'white', borderRadius: '4px', fontSize: '0.75rem' }}>{t('ended_status')}</span>}
                   </div>
