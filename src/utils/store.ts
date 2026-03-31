@@ -25,6 +25,8 @@ export type TenantContract = {
   calendarMode: 'gregorian' | 'hijri';
   paymentPlan: 'Monthly' | '3 Month' | '6 Month' | 'Yearly';
   isActive: boolean;
+  iqamaNumber?: string;
+  sponsorName?: string;
   user_id?: string;
   created_at?: string;
 };

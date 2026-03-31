@@ -33,6 +33,8 @@ const Tenants: React.FC = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [paymentPlan, setPaymentPlan] = useState<'Monthly' | '3 Month' | '6 Month' | 'Yearly'>('Monthly');
+  const [iqamaNumber, setIqamaNumber] = useState('');
+  const [sponsorName, setSponsorName] = useState('');
 
   const [leaveDateInput, setLeaveDateInput] = useState<{ [id: string]: string }>({});
   const [calcResults, setCalcResults] = useState<{ [id: string]: RentCalculationResult }>({});
@@ -54,6 +56,8 @@ const Tenants: React.FC = () => {
       setStartDate(tnt.startDate);
       setEndDate(tnt.endDate);
       setPaymentPlan(tnt.paymentPlan || 'Monthly');
+      setIqamaNumber(tnt.iqamaNumber || '');
+      setSponsorName(tnt.sponsorName || '');
     } else {
       setEditingId(null);
       setTenantName('');
@@ -61,6 +65,8 @@ const Tenants: React.FC = () => {
       setStartDate('');
       setEndDate('');
       setPaymentPlan('Monthly');
+      setIqamaNumber('');
+      setSponsorName('');
     }
     setShowForm(true);
   };
@@ -79,7 +85,9 @@ const Tenants: React.FC = () => {
           startDate,
           endDate,
           calendarMode,
-          paymentPlan
+          paymentPlan,
+          iqamaNumber,
+          sponsorName
         };
         await updateTenant(updated);
       }
@@ -91,6 +99,8 @@ const Tenants: React.FC = () => {
         endDate,
         calendarMode,
         paymentPlan,
+        iqamaNumber,
+        sponsorName,
         isActive: true
       });
       
@@ -175,6 +185,9 @@ const Tenants: React.FC = () => {
               {properties.map(p => <option key={p.id} value={p.id}>{p.name} ({p.annualRent} {currency}/yr)</option>)}
             </select>
             
+            <input className="input-field" placeholder={t('iqama_number')} value={iqamaNumber} onChange={e => setIqamaNumber(e.target.value)} />
+            <input className="input-field" placeholder={t('sponsor_name')} value={sponsorName} onChange={e => setSponsorName(e.target.value)} />
+
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>
                 {t('start_date')} ({calendarMode})
@@ -269,6 +282,8 @@ const Tenants: React.FC = () => {
                       <UserCircle size={20} style={{ marginRight: '0.5rem' }}/> {tnt.tenantName}
                     </h3>
                     <p style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{t('property_label_inline')} {prop?.name || t('unknown_property')}</p>
+                    {tnt.iqamaNumber && <p style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}><strong>{t('iqama_number')}:</strong> {tnt.iqamaNumber}</p>}
+                    {tnt.sponsorName && <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}><strong>{t('sponsor_name')}:</strong> {tnt.sponsorName}</p>}
                     <p style={{ fontSize: '0.875rem' }}>{t('contract_prefix')} {tnt.startDate} {t('to_date')} {tnt.endDate} ({tnt.calendarMode})</p>
                     {!tnt.isActive && <span style={{ display: 'inline-block', marginTop: '0.5rem', padding: '0.25rem 0.5rem', background: 'var(--text-muted)', color: 'white', borderRadius: '4px', fontSize: '0.75rem' }}>{t('ended_status')}</span>}
                   </div>

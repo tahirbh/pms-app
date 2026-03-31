@@ -85,7 +85,8 @@ const Reports: React.FC = () => {
   }, [startDate, endDate, calendarMode]);
 
   const totalIncome = incomes.reduce((acc, curr) => acc + curr.amount, 0);
-  const totalExpense = expenses.reduce((acc, curr) => acc + curr.amount, 0);
+  const totalExpense = expenses.filter(e => e.category !== 'Transfer to Owner').reduce((acc, curr) => acc + curr.amount, 0);
+  const amountTransferredToOwner = expenses.filter(e => e.category === 'Transfer to Owner').reduce((acc, curr) => acc + curr.amount, 0);
   const netRevenue = totalIncome - totalExpense;
 
   const barData = [
@@ -165,6 +166,16 @@ const Reports: React.FC = () => {
             {(netRevenue || 0).toLocaleString()} <span style={{ fontSize: '1rem', opacity: 0.8 }}>{currency}</span>
           </div>
         </div>
+
+        <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(255, 255, 255, 0.3)', borderLeft: '4px solid var(--secondary)' }}>
+          <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <FileText size={16} color="var(--secondary)" />
+            {t('amount_transferred_to_owner')}
+          </div>
+          <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)' }}>
+            {(amountTransferredToOwner || 0).toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
+          </div>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
@@ -185,7 +196,7 @@ const Reports: React.FC = () => {
 
         <div className="glass-panel p-4" style={{ maxHeight: 350, overflowY: 'auto' }}>
           <h4 style={{ fontSize: '1.125rem', marginBottom: '1rem', color: 'var(--text-main)', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem' }}>
-            {t('recent_transactions_title')}
+            {t('transaction_detail')} ( {t('recent_transactions_title')} )
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {incomes.map(inc => (
@@ -195,9 +206,9 @@ const Reports: React.FC = () => {
               </div>
             ))}
             {expenses.map(exp => (
-              <div key={exp.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '4px' }}>
-                <span>{exp.category}</span>
-                <span style={{ color: 'var(--danger)', fontWeight: 600 }}>-{(exp.amount || 0).toLocaleString()}</span>
+              <div key={exp.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: exp.category === 'Transfer to Owner' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)', borderRadius: '4px' }}>
+                <span>{exp.category === 'Transfer to Owner' ? t('cat_transfer_owner') : exp.category}</span>
+                <span style={{ color: exp.category === 'Transfer to Owner' ? 'var(--secondary)' : 'var(--danger)', fontWeight: 600 }}>-{(exp.amount || 0).toLocaleString()}</span>
               </div>
             ))}
           </div>

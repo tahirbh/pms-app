@@ -149,7 +149,7 @@ const Expenses: React.FC = () => {
               <option value="Utility Bill - Internet">{t('cat_util_net')}</option>
               <option value="Utility Bill - Others">{t('cat_util_other')}</option>
               <option value="Taxes">{t('cat_taxes')}</option>
-              <option value="Transferred to Owner">{t('cat_transferred')}</option>
+              <option value="Transfer to Owner">{t('cat_transfer_owner')}</option>
               <option value="Other">{t('cat_other')}</option>
             </select>
             <input className="input-field" type="number" placeholder={`${t('amount_sar')} (${currency})`} value={amount} onChange={e => setAmount(e.target.value)} required />
@@ -192,7 +192,7 @@ const Expenses: React.FC = () => {
             <div key={exp.id} className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(255, 255, 255, 0.3)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0' }}>
-                  <Receipt size={20} color="var(--primary)"/> {exp.category}
+                  <Receipt size={20} color="var(--primary)"/> {exp.category === 'Transfer to Owner' ? t('cat_transfer_owner') : exp.category}
                 </h3>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <button type="button" onClick={() => handleOpenForm(exp)} className="btn" style={{ padding: '0.5rem', background: 'var(--primary)', color: 'white' }}>

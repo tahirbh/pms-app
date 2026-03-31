@@ -90,7 +90,7 @@ const resources = {
       "property_label_inline": "Property:", "unknown_property": "Unknown",
       "contract_prefix": "Contract:", "to_date": "to", "ended_status": "Ended",
       "active_days_leaving": "Active Days in leaving month:", "daily_rate": "Daily Rate:",
-      "end_contract_now": "End Contract Now",
+      "end_contract_now": "End Contract Now", "iqama_number": "Iqama Number", "sponsor_name": "Sponsor Name",
 
       // Expenses
       "expenses_management": "Expenses Management", "add_expense": "Add Expense",
@@ -107,6 +107,7 @@ const resources = {
       "transferred_amount": "Transferred Amount", "collected_rent": "Collected Rent", "projected_rent": "Projected Rent", "cash_in_hand": "Cash in Hand",
       "cancel": "Cancel",
       "failed_delete_expense": "Failed to delete expense entry.", "no_description": "No description",
+      "cat_transfer_owner": "Transfer to Owner",
 
       // TenantLedger
       "payment_ledger": "Payment Ledger", "back": "Back",
@@ -138,6 +139,7 @@ const resources = {
       "income_ledger": "Income (Ledger)", "no_transactions": "No transactions in this period.",
       "filter_by_date": "Filter by date range",
       "recent_transactions_title": "Recent Transactions", "income_ledger_title": "Income (Ledger)",
+      "amount_transferred_to_owner": "Amount Transferred to Owner", "transaction_detail": "Transaction Detail",
 
       // Settings
       "language": "Language", "currency": "Currency",
@@ -244,6 +246,7 @@ const resources = {
       "property_label_inline": "العقار:", "unknown_property": "غير معروف",
       "contract_prefix": "العقد:", "to_date": "إلى", "ended_status": "منتهي",
       "active_days_leaving": "الأيام النشطة في شهر المغادرة:", "daily_rate": "المعدل اليومي:", "end_contract_now": "إنهاء العقد الآن",
+      "iqama_number": "رقم الإقامة", "sponsor_name": "اسم الكفيل",
       "expenses_management": "إدارة المصروفات", "add_expense": "إضافة مصروف",
       "log_expense": "تسجيل مصروف جديد", "edit_expense": "تعديل تفاصيل المصروف",
       "select_category": "اختر الفئة...", "amount_sar": "المبلغ",
@@ -258,6 +261,7 @@ const resources = {
       "transferred_amount": "المبلغ المحول", "collected_rent": "الإيجار المُحصل", "projected_rent": "الإيجار المتوقع", "cash_in_hand": "النقد المتاح",
       "cancel": "إلغاء",
       "failed_delete_expense": "فشل في حذف المصروف.", "no_description": "لا يوجد وصف",
+      "cat_transfer_owner": "تحويل للمالك",
       "payment_ledger": "دفتر المدفوعات", "back": "رجوع",
       "property_label": "العقار", "tenant_label": "المستأجر",
       "contract_start": "بداية العقد", "contract_end": "نهاية العقد",
@@ -283,6 +287,7 @@ const resources = {
       "income_ledger": "الدخل (دفتر)", "no_transactions": "لا توجد معاملات في هذه الفترة.",
       "filter_by_date": "تصفية حسب النطاق الزمني",
       "recent_transactions_title": "المعاملات الأخيرة", "income_ledger_title": "الدخل (الدفتر)",
+      "amount_transferred_to_owner": "المبلغ المحول للمالك", "transaction_detail": "تفاصيل المعاملة",
       "language": "اللغة", "currency": "العملة",
       "default_calendar": "نمط التقويم الافتراضي",
       "gregorian_calendar": "التقويم الميلادي", "hijri_calendar": "التقويم الهجري (الإسلامي)",
@@ -383,6 +388,7 @@ const resources = {
       "property_label_inline": "جائیداد:", "unknown_property": "نامعلوم",
       "contract_prefix": "معاہدہ:", "to_date": "سے", "ended_status": "ختم ہو گیا",
       "active_days_leaving": "روانگی کے مہینے میں فعال دن:", "daily_rate": "یومیہ شرح:", "end_contract_now": "اب معاہدہ ختم کریں",
+      "iqama_number": "اقامہ نمبر", "sponsor_name": "سپانسر کا نام",
       "expenses_management": "اخراجات کا انتظام", "add_expense": "خرچہ شامل کریں",
       "log_expense": "نیا خرچہ درج کریں", "edit_expense": "خرچے کی تفصیل ترمیم کریں",
       "select_category": "زمرہ منتخب کریں...", "amount_sar": "رقم",
@@ -397,6 +403,7 @@ const resources = {
       "transferred_amount": "منتقل شدہ رقم", "collected_rent": "وصول شدہ کرایہ", "projected_rent": "متوقع کرایہ", "cash_in_hand": "دستیاب نقد",
       "cancel": "منسوخ کریں",
       "failed_delete_expense": "خرچہ حذف کرنے میں ناکام۔", "no_description": "کوئی تفصیل نہیں",
+      "cat_transfer_owner": "مالک کو منتقلی",
       "payment_ledger": "ادائیگی کھاتہ", "back": "واپس",
       "property_label": "جائیداد", "tenant_label": "کرایہ دار",
       "contract_start": "معاہدہ آغاز", "contract_end": "معاہدہ اختتام",
@@ -422,6 +429,7 @@ const resources = {
       "income_ledger": "آمدنی (کھاتہ)", "no_transactions": "اس مدت میں کوئی لین دین نہیں۔",
       "filter_by_date": "تاریخ کی حد کے مطابق فلٹر کریں",
       "recent_transactions_title": "حالیہ لین دین", "income_ledger_title": "آمدنی (کھاتہ)",
+      "amount_transferred_to_owner": "مالک کو منتقل کی گئی رقم", "transaction_detail": "لین دین کی تفصیل",
       "language": "زبان", "currency": "کرنسی",
       "default_calendar": "پیش فرض تقویم موڈ",
       "gregorian_calendar": "عیسوی تقویم", "hijri_calendar": "ہجری (اسلامی) تقویم",
