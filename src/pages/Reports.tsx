@@ -29,6 +29,8 @@ const Reports: React.FC = () => {
       ? moment().format('iYYYY/iMM/iDD') 
       : new Date().toISOString().split('T')[0];
   });
+  
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [incomes, setIncomes] = useState<ContractLedger[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -113,8 +115,20 @@ const Reports: React.FC = () => {
     })
   ].sort((a, b) => new Date(a.rawDate || 0).getTime() - new Date(b.rawDate || 0).getTime());
 
+  const filteredTransactions = transactions.filter(txn => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      txn.description.toLowerCase().includes(term) ||
+      txn.date.toLowerCase().includes(term) ||
+      txn.income.toString().includes(term) ||
+      txn.expense.toString().includes(term) ||
+      txn.transferred.toString().includes(term)
+    );
+  });
+
   let runningBalance = 0;
-  const ledgerData = transactions.map(txn => {
+  const ledgerData = filteredTransactions.map(txn => {
     runningBalance += txn.income - txn.expense - txn.transferred;
     return { ...txn, balance: runningBalance };
   });
@@ -168,6 +182,16 @@ const Reports: React.FC = () => {
             format="YYYY/MM/DD"
             zIndex={9999}
             portal
+          />
+        </div>
+        <div style={{ flex: 1, minWidth: '200px' }}>
+          <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>{t('search_placeholder') || 'Search'}</label>
+          <input 
+            type="text" 
+            className="input-field" 
+            placeholder={t('search_placeholder') || "Search any word..."}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>

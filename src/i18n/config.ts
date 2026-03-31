@@ -139,7 +139,7 @@ const resources = {
       "income_ledger": "Income (Ledger)", "no_transactions": "No transactions in this period.",
       "filter_by_date": "Filter by date range",
       "recent_transactions_title": "Recent Transactions", "income_ledger_title": "Income (Ledger)",
-      "amount_transferred_to_owner": "Amount Transferred to Owner", "transaction_detail": "Transaction Detail",
+      "amount_transferred_to_owner": "Amount Transferred to Owner", "transaction_detail": "Transaction Detail", "search_placeholder": "Search any word...",
 
       // Settings
       "language": "Language", "currency": "Currency",
@@ -287,7 +287,7 @@ const resources = {
       "income_ledger": "الدخل (دفتر)", "no_transactions": "لا توجد معاملات في هذه الفترة.",
       "filter_by_date": "تصفية حسب النطاق الزمني",
       "recent_transactions_title": "المعاملات الأخيرة", "income_ledger_title": "الدخل (الدفتر)",
-      "amount_transferred_to_owner": "المبلغ المحول للمالك", "transaction_detail": "تفاصيل المعاملة",
+      "amount_transferred_to_owner": "المبلغ المحول للمالك", "transaction_detail": "تفاصيل المعاملة", "search_placeholder": "البحث عن أي كلمة...",
       "language": "اللغة", "currency": "العملة",
       "default_calendar": "نمط التقويم الافتراضي",
       "gregorian_calendar": "التقويم الميلادي", "hijri_calendar": "التقويم الهجري (الإسلامي)",
@@ -429,7 +429,7 @@ const resources = {
       "income_ledger": "آمدنی (کھاتہ)", "no_transactions": "اس مدت میں کوئی لین دین نہیں۔",
       "filter_by_date": "تاریخ کی حد کے مطابق فلٹر کریں",
       "recent_transactions_title": "حالیہ لین دین", "income_ledger_title": "آمدنی (کھاتہ)",
-      "amount_transferred_to_owner": "مالک کو منتقل کی گئی رقم", "transaction_detail": "لین دین کی تفصیل",
+      "amount_transferred_to_owner": "مالک کو منتقل کی گئی رقم", "transaction_detail": "لین دین کی تفصیل", "search_placeholder": "کوئی بھی لفظ تلاش کریں...",
       "language": "زبان", "currency": "کرنسی",
       "default_calendar": "پیش فرض تقویم موڈ",
       "gregorian_calendar": "عیسوی تقویم", "hijri_calendar": "ہجری (اسلامی) تقویم",
