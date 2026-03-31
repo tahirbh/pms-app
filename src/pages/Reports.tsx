@@ -35,53 +35,50 @@ const Reports: React.FC = () => {
   const [incomes, setIncomes] = useState<ContractLedger[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
+  const toEnglishDigits = (str: string) => str ? str.replace(/[٠-٩]/g, (d: string) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString()) : '';
+  
+  const parseGenericDate = (dateStr: string) => {
+    if (!dateStr) return 0;
+    const safeStr = toEnglishDigits(dateStr);
+    if (safeStr.includes('144')) {
+      return moment(safeStr, 'iYYYY/iMM/iDD').toDate().getTime();
+    }
+    return new Date(safeStr).getTime();
+  };
+
   useEffect(() => {
     const fetchReport = async () => {
       const allLedgers = await getAllLedgers();
       const allExpenses = await getExpenses();
 
-      // Convert filter strings to internal generic Gregorian absolute points to cross-check natively globally
-      let startBound: Date;
-      let endBound: Date;
-      
-      // Safely parse English digits from Arabic locales for accurate native Gregorian date casting
-      const toEnglishDigits = (str: string) => str ? str.replace(/[٠-٩]/g, (d: string) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString()) : '';
       const safeStartDate = toEnglishDigits(startDate);
       const safeEndDate = toEnglishDigits(endDate);
 
-      if (calendarMode === 'hijri') {
-        startBound = moment(safeStartDate, 'iYYYY/iMM/iDD').toDate();
-        endBound = moment(safeEndDate, 'iYYYY/iMM/iDD').toDate();
-      } else {
-        startBound = new Date(safeStartDate);
-        endBound = new Date(safeEndDate);
-      }
+      let startBoundMs: number;
+      let endBoundMs: number;
       
-      endBound.setHours(23, 59, 59, 999);
+      if (calendarMode === 'hijri') {
+        startBoundMs = moment(safeStartDate, 'iYYYY/iMM/iDD').toDate().getTime();
+        const ed = moment(safeEndDate, 'iYYYY/iMM/iDD').toDate();
+        ed.setHours(23, 59, 59, 999);
+        endBoundMs = ed.getTime();
+      } else {
+        startBoundMs = new Date(safeStartDate).getTime();
+        const ed = new Date(safeEndDate);
+        ed.setHours(23, 59, 59, 999);
+        endBoundMs = ed.getTime();
+      }
 
       // Filter Incomes (only strictly 'Paid' ledgers natively reflect guaranteed liquid income)
       const filteredIncomes = allLedgers.filter(L => {
         if (L.status !== 'Paid' || !L.paidDate) return false;
-        // The ledger records its strictly fulfilled date natively as YYYY/MM/DD string representation representing its native calendar setting
-        let pd: Date;
-        // Since paidDate is populated literally based on the global format when it was marked paid, assuming it shares current calendar Mode constraints or universally mapped.
-        // Actually, safest logic natively evaluates strings against bounds if they share identical structural parsing.
-        if (L.paidDate.includes('144')) {
-           pd = moment(L.paidDate, 'iYYYY/iMM/iDD').toDate();
-        } else {
-           pd = new Date(L.paidDate);
-        }
-        return pd >= startBound && pd <= endBound;
+        const pdTs = parseGenericDate(L.paidDate);
+        return pdTs >= startBoundMs && pdTs <= endBoundMs;
       });
 
       const filteredExpenses = allExpenses.filter(E => {
-        let ed: Date;
-        if (E.date.includes('144')) {
-          ed = moment(E.date, 'iYYYY/iMM/iDD').toDate();
-        } else {
-          ed = new Date(E.date);
-        }
-        return ed >= startBound && ed <= endBound;
+        const edTs = parseGenericDate(E.date);
+        return edTs >= startBoundMs && edTs <= endBoundMs;
       });
 
       setIncomes(filteredIncomes);
@@ -118,7 +115,7 @@ const Reports: React.FC = () => {
         rawDate: exp.date
       };
     })
-  ].sort((a, b) => new Date(a.rawDate || 0).getTime() - new Date(b.rawDate || 0).getTime());
+  ].sort((a, b) => parseGenericDate(a.rawDate || '') - parseGenericDate(b.rawDate || ''));
 
   const filteredTransactions = transactions.filter(txn => {
     if (!searchTerm) return true;
