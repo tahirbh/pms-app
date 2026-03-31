@@ -108,14 +108,22 @@ body {
   font-weight: 500;
   cursor: pointer;
   transition: var(--transition);
-  border: none;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--text-main);
   font-family: inherit;
   font-size: 1rem;
 }
 
+[data-theme='dark'] .btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .btn-primary {
-  background-color: var(--primary);
-  color: white;
+  background-color: var(--primary) !important;
+  color: white !important;
+  border: none !important;
 }
 
 .btn-primary:hover {
@@ -139,7 +147,7 @@ body {
 
 [data-theme='dark'] .input-field {
   background: rgba(0, 0, 0, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .input-field:focus {

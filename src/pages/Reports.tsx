@@ -194,7 +194,7 @@ const Reports: React.FC = () => {
       </div>
 
       {/* Date Filters */}
-      <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', background: 'rgba(255, 255, 255, 0.4)', display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+      <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
         <div style={{ flex: 1 }}>
           <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>{t('start_date')}</label>
           <DatePicker
@@ -239,7 +239,7 @@ const Reports: React.FC = () => {
 
       {/* Metrics Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-        <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(255, 255, 255, 0.3)', borderLeft: '4px solid var(--success)' }}>
+        <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--success)' }}>
           <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <ArrowUpRight size={16} color="var(--success)" />
             {t('paid_rent') || 'Total Income'}
@@ -249,7 +249,7 @@ const Reports: React.FC = () => {
           </div>
         </div>
         
-        <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(255, 255, 255, 0.3)', borderLeft: '4px solid var(--danger)' }}>
+        <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--danger)' }}>
           <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <ArrowDownRight size={16} color="var(--danger)" />
             {t('expenses') || 'Total Expenses'}
@@ -268,7 +268,7 @@ const Reports: React.FC = () => {
           </div>
         </div>
 
-        <div className="glass-panel" style={{ padding: '1.5rem', background: 'rgba(255, 255, 255, 0.3)', borderLeft: '4px solid var(--secondary)' }}>
+        <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--secondary)' }}>
           <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <FileText size={16} color="var(--secondary)" />
             {t('amount_transferred_to_owner')}

@@ -132,7 +132,7 @@ const Properties: React.FC = () => {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSaveProperty} className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(255, 255, 255, 0.4)' }}>
+        <form onSubmit={handleSaveProperty} className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>
             {editingId ? t('edit_property_details') : t('new_property')}
           </h3>
@@ -167,8 +167,8 @@ const Properties: React.FC = () => {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
           {properties.map(p => (
-            <div key={p.id} className="glass-panel" style={{ padding: 0, overflow: 'hidden', background: 'rgba(255, 255, 255, 0.3)', transition: 'var(--transition)', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ padding: '1.5rem', background: 'rgba(255, 255, 255, 0.3)' }}>
+            <div key={p.id} className="glass-panel" style={{ padding: 0, overflow: 'hidden', transition: 'var(--transition)', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0' }}>
                     <Home size={20} color="var(--primary)"/> {p.name}
