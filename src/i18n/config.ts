@@ -141,6 +141,7 @@ const resources = {
       "recent_transactions_title": "Recent Transactions", "income_ledger_title": "Income (Ledger)",
       "amount_transferred_to_owner": "Amount Transferred to Owner", "transaction_detail": "Transaction Detail", "search_placeholder": "Search any word...",
       "description_col": "Description", "transferred_col": "Transferred", "balance_col": "Balance",
+      "theme": "Theme", "light_theme": "Light", "dark_theme": "Dark",
 
       // Settings
       "language": "Language", "currency": "Currency",
@@ -290,6 +291,7 @@ const resources = {
       "recent_transactions_title": "المعاملات الأخيرة", "income_ledger_title": "الدخل (الدفتر)",
       "amount_transferred_to_owner": "المبلغ المحول للمالك", "transaction_detail": "تفاصيل المعاملة", "search_placeholder": "البحث عن أي كلمة...",
       "description_col": "الوصف", "transferred_col": "المحول", "balance_col": "الرصيد",
+      "theme": "المظهر", "light_theme": "فاتح", "dark_theme": "داكن",
       "language": "اللغة", "currency": "العملة",
       "default_calendar": "نمط التقويم الافتراضي",
       "gregorian_calendar": "التقويم الميلادي", "hijri_calendar": "التقويم الهجري (الإسلامي)",
@@ -433,6 +435,7 @@ const resources = {
       "recent_transactions_title": "حالیہ لین دین", "income_ledger_title": "آمدنی (کھاتہ)",
       "amount_transferred_to_owner": "مالک کو منتقل کی گئی رقم", "transaction_detail": "لین دین کی تفصیل", "search_placeholder": "کوئی بھی لفظ تلاش کریں...",
       "description_col": "تفصیل", "transferred_col": "منتقل شدہ", "balance_col": "بقیہ",
+      "theme": "تھیم", "light_theme": "روشن", "dark_theme": "تاریک",
       "language": "زبان", "currency": "کرنسی",
       "default_calendar": "پیش فرض تقویم موڈ",
       "gregorian_calendar": "عیسوی تقویم", "hijri_calendar": "ہجری (اسلامی) تقویم",

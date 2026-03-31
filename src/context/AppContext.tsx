@@ -8,6 +8,8 @@ type AppContextType = {
   setCurrency: (curr: string) => void;
   calendarMode: 'gregorian' | 'hijri';
   setCalendarMode: (mode: 'gregorian' | 'hijri') => void;
+  theme: 'light' | 'dark';
+  setTheme: (theme: 'light' | 'dark') => void;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -20,6 +22,14 @@ export const AppProvider: React.FC<{children: React.ReactNode}> = ({ children })
   const [calendarMode, setCalendarModeState] = useState<'gregorian' | 'hijri'>(
     (localStorage.getItem('calendarMode') as 'gregorian' | 'hijri') || 'gregorian'
   );
+  const [theme, setThemeState] = useState<'light' | 'dark'>(
+    (localStorage.getItem('theme') as 'light' | 'dark') || 'light'
+  );
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     i18n.changeLanguage(language);
@@ -40,7 +50,8 @@ export const AppProvider: React.FC<{children: React.ReactNode}> = ({ children })
     <AppContext.Provider value={{
       language, setLanguage: setLangState,
       currency, setCurrency: setCurrencyState,
-      calendarMode, setCalendarMode: setCalendarModeState
+      calendarMode, setCalendarMode: setCalendarModeState,
+      theme, setTheme: setThemeState
     }}>
       {children}
     </AppContext.Provider>

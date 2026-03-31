@@ -17,13 +17,17 @@
   --border-radius: 16px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
 [data-theme='dark'] {
-  --bg-color: #0f172a;
-  --surface-color: rgba(30, 41, 59, 0.45);
+  --bg-color: #030712; /* Deepest black/blue */
+  --surface-color: rgba(17, 24, 39, 0.75); /* Translucent obsidian glass */
   --glass-border: rgba(255, 255, 255, 0.08);
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
+  --text-main: #f9fafb;
+  --text-muted: #9ca3af;
+  --primary: #6366f1; /* Neon indigo */
+  --primary-hover: #4f46e5;
+  --secondary: #3b82f6; /* Bright blue */
+  --success: #10b981;
+  --danger: #f43f5e;
 }
 
 * {

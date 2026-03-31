@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { Users, Mail, Trash2, Loader2, CheckCircle2, Clock, XCircle, Languages, Calendar, LogOut } from 'lucide-react';
+import { Users, Mail, Trash2, Loader2, CheckCircle2, Clock, XCircle, Languages, Calendar, LogOut, Sun, Moon } from 'lucide-react';
 import { getMyInvitations, sendInvitation, revokeInvitation } from '../utils/store';
 import type { Invitation } from '../utils/store';
 
 const Settings: React.FC = () => {
   const { t } = useTranslation();
   const { signOut } = useAuth();
-  const { language, setLanguage, currency, setCurrency, calendarMode, setCalendarMode } = useAppContext();
+  const { language, setLanguage, currency, setCurrency, calendarMode, setCalendarMode, theme, setTheme } = useAppContext();
 
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -102,6 +102,29 @@ const Settings: React.FC = () => {
               <option value="gregorian">{t('gregorian_calendar')}</option>
               <option value="hijri">{t('hijri_calendar')}</option>
             </select>
+        </div>
+
+        {/* Theme Toggle */}
+        <div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {theme === 'dark' ? <Moon size={20} color="var(--primary)"/> : <Sun size={20} color="var(--primary)"/>} {t('theme') || 'Theme'}
+            </h3>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button 
+                className={`btn ${theme === 'light' ? 'btn-primary' : ''}`}
+                style={{ flex: 1, background: theme === 'light' ? 'var(--primary)' : 'rgba(0,0,0,0.05)', color: theme === 'light' ? 'white' : 'var(--text-main)', border: '1px solid var(--glass-border)' }}
+                onClick={() => setTheme('light')}
+              >
+                <Sun size={18} /> {t('light_theme') || 'Light'}
+              </button>
+              <button 
+                className={`btn ${theme === 'dark' ? 'btn-primary' : ''}`}
+                style={{ flex: 1, background: theme === 'dark' ? 'var(--primary)' : 'rgba(0,0,0,0.05)', color: theme === 'dark' ? 'white' : 'var(--text-main)', border: '1px solid var(--glass-border)' }}
+                onClick={() => setTheme('dark')}
+              >
+                <Moon size={18} /> {t('dark_theme') || 'Dark'}
+              </button>
+            </div>
         </div>
 
         {/* ── Team Access ── */}
