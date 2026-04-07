@@ -27,7 +27,7 @@ const TenantLedger: React.FC = () => {
   
   // State for the payment overlay
   const [payingLedger, setPayingLedger] = useState<string | null>(null);
-  const [paymentMode, setPaymentMode] = useState<'Cash' | 'Bank' | 'Online'>('Bank');
+  const [paymentMode, setPaymentMode] = useState<'Cash' | 'Bank' | 'Online'>('Cash');
   const [paidDate, setPaidDate] = useState(calendarMode === 'hijri' ? moment().format('iYYYY/iMM/iDD') : new Date().toISOString().split('T')[0]);
 
   const loadData = async () => {

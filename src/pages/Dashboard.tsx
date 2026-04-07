@@ -17,7 +17,6 @@ import TenantLedger from './TenantLedger.tsx';
 import Reports from './Reports.tsx';
 import Pivot from './Pivot.tsx';
 import { getProperties, getTenants, getExpenses, getAllLedgers } from '../utils/store.ts';
-import { calculateRent } from '../utils/rentCalculator.ts';
 
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
   constructor(props: any) {
@@ -69,10 +68,8 @@ const DashboardHome = () => {
       
       props.forEach(p => {
         const pTenants = tenants.filter(t => t.propertyId === p.id);
-        const pActual = pTenants.reduce((acc, t) => {
-          const res = calculateRent(p.annualRent, t.startDate, t.endDate, t.calendarMode);
-          return acc + res.expectedContractRent;
-        }, 0);
+        const activeTenant = pTenants.find(t => t.isActive);
+        const pActual = activeTenant ? p.annualRent : 0;
         
         expected += p.annualRent;
         actual += pActual;
@@ -187,11 +184,10 @@ const DashboardHome = () => {
       setHistoricalData(histData);
 
       const buildUtil = props.map(p => {
-        let contracted = 0;
-        tenants.filter(t => t.propertyId === p.id).forEach(tnt => {
-          const res = calculateRent(p.annualRent, tnt.startDate, tnt.endDate, tnt.calendarMode);
-          contracted += res.expectedContractRent;
-        });
+        const pTenants = tenants.filter(t => t.propertyId === p.id);
+        const activeTenant = pTenants.find(t => t.isActive);
+        let contracted = activeTenant ? p.annualRent : 0;
+        
         return {
           name: p.name,
           potential: p.annualRent,

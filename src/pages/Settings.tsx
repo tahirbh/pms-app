@@ -68,11 +68,27 @@ const Settings: React.FC = () => {
             <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Languages size={20} color="var(--primary)"/> {t('language')}
             </h3>
-            <select className="input-field" value={language} onChange={(e) => setLanguage(e.target.value)}>
-              <option value="en">English</option>
-              <option value="ar">العربية (Arabic)</option>
-              <option value="ur">اردو (Urdu)</option>
-            </select>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              {[
+                { val: 'en', label: 'English' },
+                { val: 'ar', label: 'العربية' },
+                { val: 'ur', label: 'اردو' }
+              ].map(lang => (
+                <button
+                  key={lang.val}
+                  className={`btn ${language === lang.val ? 'btn-primary' : ''}`}
+                  style={{
+                    flex: 1, minWidth: '100px',
+                    background: language === lang.val ? 'var(--primary)' : 'rgba(0,0,0,0.05)',
+                    color: language === lang.val ? 'white' : 'var(--text-main)',
+                    border: '1px solid var(--glass-border)'
+                  }}
+                  onClick={() => setLanguage(lang.val)}
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
                💡 {t('rtl_note')}
             </p>
@@ -83,14 +99,30 @@ const Settings: React.FC = () => {
           <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: 'var(--text-muted)' }}>
             {t('currency')}
           </label>
-          <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="input-field">
-            <option value="USD">USD ($)</option>
-            <option value="EUR">EUR (€)</option>
-            <option value="AED">AED (د.إ)</option>
-            <option value="SAR">SAR (ر.س)</option>
-            <option value="PKR">PKR (Rs)</option>
-            <option value="GBP">GBP (£)</option>
-          </select>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {[
+              { val: 'USD', label: 'USD ($)' },
+              { val: 'EUR', label: 'EUR (€)' },
+              { val: 'AED', label: 'AED (د.إ)' },
+              { val: 'SAR', label: 'SAR (ر.س)' },
+              { val: 'PKR', label: 'PKR (Rs)' },
+              { val: 'GBP', label: 'GBP (£)' }
+            ].map(curr => (
+              <button
+                key={curr.val}
+                className={`btn ${currency === curr.val ? 'btn-primary' : ''}`}
+                style={{
+                  flex: '1 1 30%',
+                  background: currency === curr.val ? 'var(--primary)' : 'rgba(0,0,0,0.05)',
+                  color: currency === curr.val ? 'white' : 'var(--text-main)',
+                  border: '1px solid var(--glass-border)'
+                }}
+                onClick={() => setCurrency(curr.val)}
+              >
+                {curr.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Calendar Mode */}
@@ -98,10 +130,22 @@ const Settings: React.FC = () => {
             <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Calendar size={20} color="var(--primary)"/> {t('default_calendar')}
             </h3>
-            <select className="input-field" value={calendarMode} onChange={(e) => setCalendarMode(e.target.value as any)}>
-              <option value="gregorian">{t('gregorian_calendar')}</option>
-              <option value="hijri">{t('hijri_calendar')}</option>
-            </select>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button 
+                className={`btn ${calendarMode === 'gregorian' ? 'btn-primary' : ''}`}
+                style={{ flex: 1, background: calendarMode === 'gregorian' ? 'var(--primary)' : 'rgba(0,0,0,0.05)', color: calendarMode === 'gregorian' ? 'white' : 'var(--text-main)', border: '1px solid var(--glass-border)' }}
+                onClick={() => setCalendarMode('gregorian')}
+              >
+                {t('gregorian_calendar')}
+              </button>
+              <button 
+                className={`btn ${calendarMode === 'hijri' ? 'btn-primary' : ''}`}
+                style={{ flex: 1, background: calendarMode === 'hijri' ? 'var(--primary)' : 'rgba(0,0,0,0.05)', color: calendarMode === 'hijri' ? 'white' : 'var(--text-main)', border: '1px solid var(--glass-border)' }}
+                onClick={() => setCalendarMode('hijri')}
+              >
+                {t('hijri_calendar')}
+              </button>
+            </div>
         </div>
 
         {/* Theme Toggle */}
