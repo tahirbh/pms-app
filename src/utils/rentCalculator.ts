@@ -24,7 +24,7 @@ export const calculateRent = (
   if (!annualRent || !startDate || !endDate) {
     return {
       activeDays: 0,
-      daysInBillingCycle: 0,
+      daysInBillingCycle: 30, // Default to equal period
       monthlyRent: 0,
       dailyRate: 0,
       currentMonthRentDue: 0,
@@ -33,50 +33,68 @@ export const calculateRent = (
     };
   }
 
-  let activeDays = 0;
-  let daysInBillingCycle = 0;
-  let totalContractDays = 0;
-
-  // Fallback if legacy tenants lack intrinsic calendar tags universally.
   const isHijri = calendarMode === 'hijri' || startDate.includes('144');
-  const daysInYear = isHijri ? 354.36 : 365.25;
+  
+  let activeDays = 0;
+  const daysInBillingCycle = 30; // Strict Equal Period Division
+  let totalContractDays = 0;
+  
+  const monthlyRent = annualRent / 12;
+  const dailyRate = monthlyRent / daysInBillingCycle;
+
+  let expectedContractRent = 0;
 
   if (isHijri) {
     const startM = moment(toEnglishDigits(startDate.replace(/-/g, '/')), 'iYYYY/iMM/iDD');
-    const leaveM = moment(toEnglishDigits(endDate.replace(/-/g, '/')), 'iYYYY/iMM/iDD');
-
-    activeDays = leaveM.iDate();
-    daysInBillingCycle = moment.iDaysInMonth(leaveM.iYear(), leaveM.iMonth());
+    const leaveMOrg = moment(toEnglishDigits(endDate.replace(/-/g, '/')), 'iYYYY/iMM/iDD');
     
-    totalContractDays = Math.ceil(leaveM.diff(startM, 'days'));
+    activeDays = leaveMOrg.iDate();
+    totalContractDays = Math.max(0, Math.ceil(leaveMOrg.diff(startM, 'days')));
+
+    // Equal period division: Exact months + 30-day fraction
+    const leaveM = leaveMOrg.clone().add(1, 'days');
+    let mDiff = (leaveM.iYear() - startM.iYear()) * 12 + (leaveM.iMonth() - startM.iMonth());
+    let dDiff = leaveM.iDate() - startM.iDate();
+
+    if (dDiff < 0) {
+      mDiff -= 1;
+      dDiff += 30; // Borrow an equal period 30-day month
+    }
+    
+    expectedContractRent = monthlyRent * (mDiff + (dDiff / 30));
+
   } else {
     const startD = new Date(startDate);
+    const leaveDOrg = new Date(endDate);
+    
+    activeDays = leaveDOrg.getDate();
+    totalContractDays = Math.max(0, Math.ceil((leaveDOrg.getTime() - startD.getTime()) / (1000 * 3600 * 24)));
+
+    // Equal period division
     const leaveD = new Date(endDate);
-    
-    activeDays = leaveD.getDate();
-    daysInBillingCycle = new Date(leaveD.getFullYear(), leaveD.getMonth() + 1, 0).getDate();
-    
-    const timeDiff = leaveD.getTime() - startD.getTime();
-    totalContractDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    leaveD.setDate(leaveD.getDate() + 1);
+
+    let mDiff = (leaveD.getFullYear() - startD.getFullYear()) * 12 + (leaveD.getMonth() - startD.getMonth());
+    let dDiff = leaveD.getDate() - startD.getDate();
+
+    if (dDiff < 0) {
+      mDiff -= 1;
+      dDiff += 30; // Borrow an equal period 30-day month
+    }
+
+    expectedContractRent = monthlyRent * (mDiff + (dDiff / 30));
   }
 
-  // Fallback safety
-  if (totalContractDays < 0) totalContractDays = 0;
-
-  const monthlyRent = annualRent / 12;
-  const cycleDailyRate = monthlyRent / daysInBillingCycle;
+  // Prevent negatives
+  expectedContractRent = Math.max(0, expectedContractRent);
   
-  // Calculate average daily rate strictly for contract capping
-  const averageDailyRate = annualRent / daysInYear;
-  const expectedContractRent = Math.min(annualRent, totalContractDays * averageDailyRate);
-  
-  const currentMonthRentDue = activeDays * cycleDailyRate;
+  const currentMonthRentDue = activeDays * dailyRate;
 
   return {
     activeDays,
     daysInBillingCycle,
     monthlyRent,
-    dailyRate: cycleDailyRate,
+    dailyRate,
     currentMonthRentDue,
     totalContractDays,
     expectedContractRent
