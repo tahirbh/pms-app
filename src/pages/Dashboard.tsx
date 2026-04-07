@@ -15,6 +15,7 @@ import Expenses from './Expenses.tsx';
 import TenantContractPage from './TenantContract.tsx';
 import TenantLedger from './TenantLedger.tsx';
 import Reports from './Reports.tsx';
+import Pivot from './Pivot.tsx';
 import { getProperties, getTenants, getExpenses, getAllLedgers } from '../utils/store.ts';
 import { calculateRent } from '../utils/rentCalculator.ts';
 
@@ -50,6 +51,12 @@ const DashboardHome = () => {
   const [ledgerStats, setLedgerStats] = useState({ paid: 0, overdue: 0, upcoming: 0 });
   const [notifications, setNotifications] = useState<{id: string, tenantId: string, name: string, type: 'overdue'|'upcoming', amount: number, date: string}[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  const [availableYears, setAvailableYears] = useState<string[]>([]);
+  const [startYear, setStartYear] = useState<string>('');
+  const [endYear, setEndYear] = useState<string>('');
+  const [historicalData, setHistoricalData] = useState<Record<string, { collectedRent: number, totalExpenses: number, transferredAmount: number }>>({});
+
   
   useEffect(() => {
     const loadAll = async () => {
@@ -73,11 +80,27 @@ const DashboardHome = () => {
 
       let transferred = 0;
       let regularExp = 0;
+      const histData: Record<string, { collectedRent: number, totalExpenses: number, transferredAmount: number }> = {};
+      const allYearsSet = new Set<string>();
+
+      const currentGregorianYear = new Date().getFullYear().toString();
+      const currentHijriYear = moment().format('iYYYY') + ' (H)';
+
       expenses.forEach(exp => {
-        if (exp.category === 'Transfer to Owner' || exp.category === 'Transferred to Owner') {
-          transferred += exp.amount;
+        const d = new Date(exp.date);
+        if (isNaN(d.getTime())) return;
+        const yearStr = d.getFullYear().toString();
+        allYearsSet.add(yearStr);
+        if (!histData[yearStr]) histData[yearStr] = { collectedRent: 0, totalExpenses: 0, transferredAmount: 0 };
+
+        const isTransfer = (exp.category === 'Transfer to Owner' || exp.category === 'Transferred to Owner');
+        
+        if (isTransfer) {
+          histData[yearStr].transferredAmount += exp.amount;
+          if (yearStr === currentGregorianYear) transferred += exp.amount;
         } else {
-          regularExp += exp.amount;
+          histData[yearStr].totalExpenses += exp.amount;
+          if (yearStr === currentGregorianYear) regularExp += exp.amount;
         }
       });
       
@@ -100,14 +123,24 @@ const DashboardHome = () => {
         if(!tnt) return;
         
         let ledgerDate: Date;
+        let yearStr = 'N/A';
         if(tnt.calendarMode === 'hijri') {
-          ledgerDate = moment(L.dueDate, 'iYYYY/iMM/iDD').toDate();
+          const m = moment(L.dueDate, 'iYYYY/iMM/iDD');
+          ledgerDate = m.toDate();
+          yearStr = m.format('iYYYY') + ' (H)';
         } else {
           ledgerDate = new Date(L.dueDate);
+          yearStr = ledgerDate.getFullYear().toString();
         }
+
+        allYearsSet.add(yearStr);
+        if (!histData[yearStr]) histData[yearStr] = { collectedRent: 0, totalExpenses: 0, transferredAmount: 0 };
         
         if (L.status === 'Paid') {
-          totalCollected += L.amount;
+          histData[yearStr].collectedRent += L.amount;
+          if (yearStr === currentGregorianYear || yearStr === currentHijriYear) {
+             totalCollected += L.amount;
+          }
           // Count recent payments (last 30 days) towards "Current Month Paid" logic
           if (ledgerDate >= thirtyDaysAgo && ledgerDate <= thirtyDaysFromNow) {
             currentMonthPaid += L.amount;
@@ -139,6 +172,14 @@ const DashboardHome = () => {
       setLedgerStats({ paid: currentMonthPaid, overdue: totalOverdue, upcoming: upcomingRent });
       setNotifications(notifs.sort((a: any, b: any) => a.type === 'overdue' ? -1 : (b.type === 'overdue' ? 1 : 0)));
 
+      const sortedYears = Array.from(allYearsSet).sort((a, b) => a.localeCompare(b));
+      setAvailableYears(sortedYears);
+      if (sortedYears.length > 0) {
+         setStartYear(sortedYears[0]);
+         setEndYear(sortedYears[sortedYears.length - 1]);
+      }
+      setHistoricalData(histData);
+
       const buildUtil = props.map(p => {
         let contracted = 0;
         tenants.filter(t => t.propertyId === p.id).forEach(tnt => {
@@ -156,6 +197,21 @@ const DashboardHome = () => {
     
     loadAll();
   }, []);
+
+  const filteredHistMetrics = React.useMemo(() => {
+    if (!startYear || !endYear) return { collectedRent: 0, totalExpenses: 0, transferredAmount: 0, cashInHand: 0 };
+    const startIndex = availableYears.indexOf(startYear);
+    const endIndex = availableYears.indexOf(endYear);
+    let c = 0, e = 0, t = 0;
+    availableYears.forEach((y, i) => {
+      if (i >= startIndex && i <= endIndex) {
+         c += historicalData[y]?.collectedRent || 0;
+         e += historicalData[y]?.totalExpenses || 0;
+         t += historicalData[y]?.transferredAmount || 0;
+      }
+    });
+    return { collectedRent: c, totalExpenses: e, transferredAmount: t, cashInHand: c - e - t };
+  }, [startYear, endYear, availableYears, historicalData]);
 
   const barData = [
     { name: t('rent_comparison'), expected: metrics.expectedRent, actual: metrics.actualRent }
@@ -221,7 +277,8 @@ const DashboardHome = () => {
       <h2 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '0.4rem', paddingRight: '3rem' }}>{t('welcome_title')}</h2>
       <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '1rem' }}>{t('welcome_subtitle')}</p>
 
-      {/* Summary Stat Cards */}
+      {/* Summary Stat Cards - Current Year */}
+      <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1rem 0' }}>📈 {t('current_year_metrics') || 'Current Year Metrics'}</h3>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '1.25rem', marginBottom: '3rem' }}>
         {[
           { label: t('projected_rent'), value: metrics.expectedRent, color: 'var(--secondary)', icon: '📋' },
@@ -231,6 +288,41 @@ const DashboardHome = () => {
           { label: t('cash_in_hand'), value: metrics.cashInHand, color: 'var(--success)', icon: '💵' },
         ].map((card) => (
           <div key={card.label} className="glass-panel" style={{ padding: '1.25rem 1.5rem', borderLeft: `4px solid ${card.color}`, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <div style={{ fontSize: '1.4rem' }}>{card.icon}</div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{card.label}</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: card.color }}>
+              {(card.value || 0).toLocaleString()} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-muted)' }}>{currency}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Summary Stat Cards - Historical Filtered */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>📅 {t('historical_metrics') || 'Historical Metrics'}</h3>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <div>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginRight: '0.5rem' }}>{t('start_year') || 'Start Year'}</label>
+            <select className="input" value={startYear} onChange={(e) => setStartYear(e.target.value)} style={{ padding: '0.3rem 0.5rem', minWidth: '100px' }}>
+              {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginRight: '0.5rem' }}>{t('end_year') || 'End Year'}</label>
+            <select className="input" value={endYear} onChange={(e) => setEndYear(e.target.value)} style={{ padding: '0.3rem 0.5rem', minWidth: '100px' }}>
+              {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+        </div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '1.25rem', marginBottom: '3rem' }}>
+        {[
+          { label: t('collected_rent'), value: filteredHistMetrics.collectedRent, color: 'var(--primary)', icon: '✅' },
+          { label: t('transferred_amount'), value: filteredHistMetrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
+          { label: t('total_expenses'), value: filteredHistMetrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
+          { label: t('cash_in_hand'), value: filteredHistMetrics.cashInHand, color: 'var(--success)', icon: '💵' },
+        ].map((card) => (
+          <div key={`hist-${card.label}`} className="glass-panel" style={{ padding: '1.25rem 1.5rem', borderLeft: `4px solid ${card.color}`, display: 'flex', flexDirection: 'column', gap: '0.4rem', background: 'rgba(var(--glass-bg), 0.4)' }}>
             <div style={{ fontSize: '1.4rem' }}>{card.icon}</div>
             <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{card.label}</div>
             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: card.color }}>
@@ -378,6 +470,7 @@ const Dashboard: React.FC = () => {
     { path: '/dashboard/tenants', label: t('tenants'), icon: Users },
     { path: '/dashboard/expenses', label: t('expenses'), icon: Receipt },
     { path: '/dashboard/report', label: t('reports'), icon: FileText },
+    { path: '/dashboard/pivot', label: t('pivot_reports') || 'Pivot', icon: FileText },
     { path: '/dashboard/settings', label: t('settings'), icon: SettingsIcon },
   ];
 
@@ -442,6 +535,7 @@ const Dashboard: React.FC = () => {
             <Route path="contract/:id" element={<TenantContractPage />} />
             <Route path="ledger/:id" element={<TenantLedger />} />
             <Route path="report" element={<Reports />} />
+            <Route path="pivot" element={<Pivot />} />
             <Route path="settings" element={<Settings />} />
           </Routes>
         </ErrorBoundary>
