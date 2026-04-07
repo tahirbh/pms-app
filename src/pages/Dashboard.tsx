@@ -43,7 +43,7 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
 
 const DashboardHome = () => {
   const { t } = useTranslation();
-  const { currency } = useAppContext();
+  const { currency, calendarMode } = useAppContext();
   const navigate = useNavigate();
   
   const [metrics, setMetrics] = useState({ expectedRent: 0, actualRent: 0, totalExpenses: 0, transferredAmount: 0, collectedRent: 0, cashInHand: 0 });
@@ -213,6 +213,42 @@ const DashboardHome = () => {
     return { collectedRent: c, totalExpenses: e, transferredAmount: t, cashInHand: c - e - t };
   }, [startYear, endYear, availableYears, historicalData]);
 
+  const handleCardClick = (type: string, isHistorical: boolean) => {
+    let qStart = '';
+    let qEnd = '';
+    let qFilter = '';
+
+    if (isHistorical) {
+      if (startYear) {
+        qStart = startYear.includes('(H)') ? `${startYear.split(' ')[0]}/01/01` : `${startYear}/01/01`;
+      }
+      if (endYear) {
+        qEnd = endYear.includes('(H)') ? `${endYear.split(' ')[0]}/12/30` : `${endYear}/12/31`;
+      }
+    } else {
+      if (calendarMode === 'hijri') {
+        const cy = moment().format('iYYYY');
+        qStart = `${cy}/01/01`;
+        qEnd = `${cy}/12/30`;
+      } else {
+        const cy = new Date().getFullYear();
+        qStart = `${cy}/01/01`;
+        qEnd = `${cy}/12/31`;
+      }
+    }
+
+    if (type === 'transferred_amount') qFilter = 'transfer';
+    else if (type === 'total_expenses') qFilter = 'expense';
+    else if (type === 'collected_rent') qFilter = 'income';
+
+    const params = new URLSearchParams();
+    if (qStart) params.append('start', qStart);
+    if (qEnd) params.append('end', qEnd);
+    if (qFilter) params.append('filter', qFilter);
+
+    navigate(`/dashboard/report?${params.toString()}`);
+  };
+
   const barData = [
     { name: t('rent_comparison'), expected: metrics.expectedRent, actual: metrics.actualRent }
   ];
@@ -281,13 +317,20 @@ const DashboardHome = () => {
       <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1rem 0' }}>📈 {t('current_year_metrics') || 'Current Year Metrics'}</h3>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '1.25rem', marginBottom: '3rem' }}>
         {[
-          { label: t('projected_rent'), value: metrics.expectedRent, color: 'var(--secondary)', icon: '📋' },
-          { label: t('collected_rent'), value: metrics.collectedRent, color: 'var(--primary)', icon: '✅' },
-          { label: t('transferred_amount'), value: metrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
-          { label: t('total_expenses'), value: metrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
-          { label: t('cash_in_hand'), value: metrics.cashInHand, color: 'var(--success)', icon: '💵' },
+          { key: 'projected_rent', label: t('projected_rent'), value: metrics.expectedRent, color: 'var(--secondary)', icon: '📋' },
+          { key: 'collected_rent', label: t('collected_rent'), value: metrics.collectedRent, color: 'var(--primary)', icon: '✅' },
+          { key: 'transferred_amount', label: t('transferred_amount'), value: metrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
+          { key: 'total_expenses', label: t('total_expenses'), value: metrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
+          { key: 'cash_in_hand', label: t('cash_in_hand'), value: metrics.cashInHand, color: 'var(--success)', icon: '💵' },
         ].map((card) => (
-          <div key={card.label} className="glass-panel" style={{ padding: '1.25rem 1.5rem', borderLeft: `4px solid ${card.color}`, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          <div 
+            key={card.key} 
+            className="glass-panel" 
+            style={{ padding: '1.25rem 1.5rem', borderLeft: `4px solid ${card.color}`, display: 'flex', flexDirection: 'column', gap: '0.4rem', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }}
+            onClick={() => handleCardClick(card.key, false)}
+            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'none'}
+          >
             <div style={{ fontSize: '1.4rem' }}>{card.icon}</div>
             <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{card.label}</div>
             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: card.color }}>
@@ -317,12 +360,19 @@ const DashboardHome = () => {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '1.25rem', marginBottom: '3rem' }}>
         {[
-          { label: t('collected_rent'), value: filteredHistMetrics.collectedRent, color: 'var(--primary)', icon: '✅' },
-          { label: t('transferred_amount'), value: filteredHistMetrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
-          { label: t('total_expenses'), value: filteredHistMetrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
-          { label: t('cash_in_hand'), value: filteredHistMetrics.cashInHand, color: 'var(--success)', icon: '💵' },
+          { key: 'collected_rent', label: t('collected_rent'), value: filteredHistMetrics.collectedRent, color: 'var(--primary)', icon: '✅' },
+          { key: 'transferred_amount', label: t('transferred_amount'), value: filteredHistMetrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
+          { key: 'total_expenses', label: t('total_expenses'), value: filteredHistMetrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
+          { key: 'cash_in_hand', label: t('cash_in_hand'), value: filteredHistMetrics.cashInHand, color: 'var(--success)', icon: '💵' },
         ].map((card) => (
-          <div key={`hist-${card.label}`} className="glass-panel" style={{ padding: '1.25rem 1.5rem', borderLeft: `4px solid ${card.color}`, display: 'flex', flexDirection: 'column', gap: '0.4rem', background: 'rgba(var(--glass-bg), 0.4)' }}>
+          <div 
+            key={`hist-${card.key}`} 
+            className="glass-panel" 
+            style={{ padding: '1.25rem 1.5rem', borderLeft: `4px solid ${card.color}`, display: 'flex', flexDirection: 'column', gap: '0.4rem', background: 'rgba(var(--glass-bg), 0.4)', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }}
+            onClick={() => handleCardClick(card.key, true)}
+            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'none'}
+          >
             <div style={{ fontSize: '1.4rem' }}>{card.icon}</div>
             <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{card.label}</div>
             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: card.color }}>

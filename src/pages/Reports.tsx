@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { getExpenses, getAllLedgers } from '../utils/store';
 import type { Expense, ContractLedger } from '../utils/store';
 import { useAppContext } from '../context/AppContext';
+import { useLocation } from 'react-router-dom';
 import DatePickerModule from "react-multi-date-picker";
 const DatePicker = (DatePickerModule as any).default || DatePickerModule;
 import arabic from "react-date-object/calendars/arabic";
@@ -19,12 +20,20 @@ const Reports: React.FC = () => {
   const { t } = useTranslation();
   const { currency, calendarMode, language } = useAppContext();
 
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const qStart = searchParams.get('start');
+  const qEnd = searchParams.get('end');
+  const qFilter = searchParams.get('filter');
+
   const [startDate, setStartDate] = useState(() => {
+    if (qStart) return qStart;
     return calendarMode === 'hijri' 
       ? moment().subtract(30, 'days').format('iYYYY/iMM/iDD') 
       : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   });
   const [endDate, setEndDate] = useState(() => {
+    if (qEnd) return qEnd;
     return calendarMode === 'hijri' 
       ? moment().format('iYYYY/iMM/iDD') 
       : new Date().toISOString().split('T')[0];
@@ -126,6 +135,10 @@ const Reports: React.FC = () => {
   ].sort((a, b) => parseGenericDate(a.rawDate || '') - parseGenericDate(b.rawDate || ''));
 
   const filteredTransactions = transactions.filter(txn => {
+    if (qFilter === 'income' && txn.income === 0) return false;
+    if (qFilter === 'expense' && txn.expense === 0) return false;
+    if (qFilter === 'transfer' && txn.transferred === 0) return false;
+
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
     return (
