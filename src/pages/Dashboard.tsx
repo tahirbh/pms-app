@@ -8,15 +8,15 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import moment from 'moment-hijri';
 
 // Force TS server to re-resolve the module if it was cached as missing
-import Properties from './Properties.tsx';
-import Tenants from './Tenants.tsx';
-import Settings from './Settings.tsx';
-import Expenses from './Expenses.tsx';
-import TenantContractPage from './TenantContract.tsx';
-import TenantLedger from './TenantLedger.tsx';
-import Reports from './Reports.tsx';
-import Pivot from './Pivot.tsx';
-import { getProperties, getTenants, getExpenses, getAllLedgers } from '../utils/store.ts';
+import Properties from './Properties';
+import Tenants from './Tenants';
+import Settings from './Settings';
+import Expenses from './Expenses';
+import TenantContractPage from './TenantContract';
+import TenantLedger from './TenantLedger';
+import Reports from './Reports';
+import Pivot from './Pivot';
+import { getProperties, getTenants, getExpenses, getAllLedgers } from '../utils/store';
 
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
   constructor(props: any) {
@@ -45,8 +45,8 @@ const DashboardHome = () => {
   const { currency, calendarMode } = useAppContext();
   const navigate = useNavigate();
   
-  const [metrics, setMetrics] = useState({ expectedRent: 0, actualRent: 0, totalExpenses: 0, transferredAmount: 0, collectedRent: 0, cashInHand: 0, unpaidRent: 0 });
-  const [utilizationData, setUtilizationData] = useState<{name: string, potential: number, contracted: number}[]>([]);
+  const [metrics, setMetrics] = useState({ expectedRent: 0, actualRent: 0, activeCollected: 0, totalExpenses: 0, transferredAmount: 0, collectedRent: 0, cashInHand: 0, unpaidRent: 0 });
+  const [utilizationData, setUtilizationData] = useState<{name: string, potential: number, contracted: number, collected: number}[]>([]);
   const [ledgerStats, setLedgerStats] = useState({ paid: 0, overdue: 0, upcoming: 0 });
   const [notifications, setNotifications] = useState<{id: string, tenantId: string, name: string, type: 'overdue'|'upcoming', amount: number, date: string}[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -63,17 +63,7 @@ const DashboardHome = () => {
       const tenants = await getTenants();
       const expenses = await getExpenses();
       
-      let expected = 0;
-      let actual = 0;
-      
-      props.forEach(p => {
-        const pTenants = tenants.filter(t => t.propertyId === p.id);
-        const activeTenant = pTenants.find(t => t.isActive);
-        const pActual = activeTenant ? p.annualRent : 0;
-        
-        expected += p.annualRent;
-        actual += pActual;
-      });
+      // expected, actualContracted, and activeCollected calculated later
 
       let transferred = 0;
       let regularExp = 0;
@@ -162,16 +152,6 @@ const DashboardHome = () => {
       
       let cashInHand = totalCollected - regularExp - transferred;
 
-      setMetrics({ 
-        expectedRent: expected, 
-        actualRent: actual, 
-        totalExpenses: regularExp, 
-        transferredAmount: transferred,
-        collectedRent: totalCollected,
-        cashInHand: cashInHand,
-        unpaidRent: totalUnpaid
-      });
-      
       setLedgerStats({ paid: currentMonthPaid, overdue: totalOverdue, upcoming: upcomingRent });
       setNotifications(notifs.sort((a: any, b: any) => a.type === 'overdue' ? -1 : (b.type === 'overdue' ? 1 : 0)));
 
@@ -183,17 +163,46 @@ const DashboardHome = () => {
       }
       setHistoricalData(histData);
 
+      let expected = 0;
+      let actualContracted = 0;
+      let activeCollected = 0;
+
       const buildUtil = props.map(p => {
         const pTenants = tenants.filter(t => t.propertyId === p.id);
-        const activeTenant = pTenants.find(t => t.isActive);
-        let contracted = activeTenant ? p.annualRent : 0;
+        const activeTenants = pTenants.filter(t => t.isActive);
         
+        let contracted = 0;
+        let collected = 0;
+
+        activeTenants.forEach(activeTenant => {
+           const tenantLedgers = allLedgers.filter(l => l.tenantId === activeTenant.id);
+           contracted += tenantLedgers.reduce((acc, curr) => acc + curr.amount, 0);
+           collected += tenantLedgers.filter(l => l.status === 'Paid').reduce((acc, curr) => acc + curr.amount, 0);
+        });
+
+        expected += p.annualRent;
+        actualContracted += contracted;
+        activeCollected += collected;
+
         return {
           name: p.name,
           potential: p.annualRent,
-          contracted
+          contracted,
+          collected
         };
       });
+
+      setMetrics({ 
+        expectedRent: expected, 
+        actualRent: actualContracted, 
+        activeCollected: activeCollected,
+        totalExpenses: regularExp, 
+        transferredAmount: transferred,
+        collectedRent: totalCollected,
+        cashInHand: cashInHand,
+        unpaidRent: totalUnpaid
+      });
+
       setUtilizationData(buildUtil);
     };
     
@@ -261,7 +270,7 @@ const DashboardHome = () => {
   };
 
   const barData = [
-    { name: t('rent_comparison'), expected: metrics.expectedRent, actual: metrics.actualRent }
+    { name: t('rent_comparison'), expected: metrics.expectedRent, contracted: metrics.actualRent, collected: metrics.activeCollected }
   ];
 
   const pieData = [
@@ -413,8 +422,9 @@ const DashboardHome = () => {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip formatter={(value) => `${Number(value).toLocaleString()} ${currency}`} />
-                <Bar dataKey="expected" name={t('expected_annual')} fill="var(--secondary)" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="actual" name={t('actual_contracted')} fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="expected" name={t('expected_annual') || 'Annual Expected'} fill="var(--text-muted)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="contracted" name={t('actual_contracted_rent') || 'Contracted Amount'} fill="var(--secondary)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="collected" name={t('collected_rent') || 'Collected Amount'} fill="var(--primary)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -504,8 +514,9 @@ const DashboardHome = () => {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip formatter={(value) => `${Number(value).toLocaleString()} ${currency}`} />
-                  <Bar dataKey="potential" name={t('potential_rent_annual')} fill="var(--text-muted)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="contracted" name={t('actual_contracted_rent')} fill="var(--secondary)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="potential" name={t('potential_rent_annual') || 'Annual Expected'} fill="var(--text-muted)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="contracted" name={t('actual_contracted_rent') || 'Contracted Amount'} fill="var(--secondary)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="collected" name={t('collected_rent') || 'Collected Amount'} fill="var(--primary)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -517,7 +528,7 @@ const DashboardHome = () => {
   );
 };
 
-import AllTenantsLedger from './AllTenantsLedger.tsx';
+import AllTenantsLedger from './AllTenantsLedger';
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
