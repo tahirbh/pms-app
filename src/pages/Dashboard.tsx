@@ -46,7 +46,7 @@ const DashboardHome = () => {
   const { currency, calendarMode } = useAppContext();
   const navigate = useNavigate();
   
-  const [metrics, setMetrics] = useState({ expectedRent: 0, actualRent: 0, totalExpenses: 0, transferredAmount: 0, collectedRent: 0, cashInHand: 0 });
+  const [metrics, setMetrics] = useState({ expectedRent: 0, actualRent: 0, totalExpenses: 0, transferredAmount: 0, collectedRent: 0, cashInHand: 0, unpaidRent: 0 });
   const [utilizationData, setUtilizationData] = useState<{name: string, potential: number, contracted: number}[]>([]);
   const [ledgerStats, setLedgerStats] = useState({ paid: 0, overdue: 0, upcoming: 0 });
   const [notifications, setNotifications] = useState<{id: string, tenantId: string, name: string, type: 'overdue'|'upcoming', amount: number, date: string}[]>([]);
@@ -55,7 +55,7 @@ const DashboardHome = () => {
   const [availableYears, setAvailableYears] = useState<string[]>([]);
   const [startYear, setStartYear] = useState<string>('');
   const [endYear, setEndYear] = useState<string>('');
-  const [historicalData, setHistoricalData] = useState<Record<string, { collectedRent: number, totalExpenses: number, transferredAmount: number }>>({});
+  const [historicalData, setHistoricalData] = useState<Record<string, { collectedRent: number, totalExpenses: number, transferredAmount: number, unpaidRent: number }>>({});
 
   
   useEffect(() => {
@@ -80,7 +80,7 @@ const DashboardHome = () => {
 
       let transferred = 0;
       let regularExp = 0;
-      const histData: Record<string, { collectedRent: number, totalExpenses: number, transferredAmount: number }> = {};
+      const histData: Record<string, { collectedRent: number, totalExpenses: number, transferredAmount: number, unpaidRent: number }> = {};
       const allYearsSet = new Set<string>();
 
       const currentGregorianYear = new Date().getFullYear().toString();
@@ -91,7 +91,7 @@ const DashboardHome = () => {
         if (isNaN(d.getTime())) return;
         const yearStr = d.getFullYear().toString();
         allYearsSet.add(yearStr);
-        if (!histData[yearStr]) histData[yearStr] = { collectedRent: 0, totalExpenses: 0, transferredAmount: 0 };
+        if (!histData[yearStr]) histData[yearStr] = { collectedRent: 0, totalExpenses: 0, transferredAmount: 0, unpaidRent: 0 };
 
         const isTransfer = (exp.category === 'Transfer to Owner' || exp.category === 'Transferred to Owner');
         
@@ -114,6 +114,7 @@ const DashboardHome = () => {
       
       let currentMonthPaid = 0;
       let totalCollected = 0;
+      let totalUnpaid = 0;
       let totalOverdue = 0;
       let upcomingRent = 0;
       const notifs: typeof notifications = [];
@@ -134,7 +135,7 @@ const DashboardHome = () => {
         }
 
         allYearsSet.add(yearStr);
-        if (!histData[yearStr]) histData[yearStr] = { collectedRent: 0, totalExpenses: 0, transferredAmount: 0 };
+        if (!histData[yearStr]) histData[yearStr] = { collectedRent: 0, totalExpenses: 0, transferredAmount: 0, unpaidRent: 0 };
         
         if (L.status === 'Paid') {
           histData[yearStr].collectedRent += L.amount;
@@ -146,6 +147,10 @@ const DashboardHome = () => {
             currentMonthPaid += L.amount;
           }
         } else {
+          histData[yearStr].unpaidRent += L.amount;
+          if (yearStr === currentGregorianYear || yearStr === currentHijriYear) {
+             totalUnpaid += L.amount;
+          }
           if (ledgerDate < today) {
             totalOverdue += L.amount;
             notifs.push({ id: L.id, tenantId: L.tenantId, name: tnt.tenantName, type: 'overdue', amount: L.amount, date: L.dueDate });
@@ -166,7 +171,8 @@ const DashboardHome = () => {
         totalExpenses: regularExp, 
         transferredAmount: transferred,
         collectedRent: totalCollected,
-        cashInHand: cashInHand
+        cashInHand: cashInHand,
+        unpaidRent: totalUnpaid
       });
       
       setLedgerStats({ paid: currentMonthPaid, overdue: totalOverdue, upcoming: upcomingRent });
@@ -199,18 +205,19 @@ const DashboardHome = () => {
   }, []);
 
   const filteredHistMetrics = React.useMemo(() => {
-    if (!startYear || !endYear) return { collectedRent: 0, totalExpenses: 0, transferredAmount: 0, cashInHand: 0 };
+    if (!startYear || !endYear) return { collectedRent: 0, totalExpenses: 0, transferredAmount: 0, cashInHand: 0, unpaidRent: 0 };
     const startIndex = availableYears.indexOf(startYear);
     const endIndex = availableYears.indexOf(endYear);
-    let c = 0, e = 0, t = 0;
+    let c = 0, e = 0, t = 0, u = 0;
     availableYears.forEach((y, i) => {
       if (i >= startIndex && i <= endIndex) {
          c += historicalData[y]?.collectedRent || 0;
          e += historicalData[y]?.totalExpenses || 0;
          t += historicalData[y]?.transferredAmount || 0;
+         u += historicalData[y]?.unpaidRent || 0;
       }
     });
-    return { collectedRent: c, totalExpenses: e, transferredAmount: t, cashInHand: c - e - t };
+    return { collectedRent: c, totalExpenses: e, transferredAmount: t, unpaidRent: u, cashInHand: c - e - t };
   }, [startYear, endYear, availableYears, historicalData]);
 
   const handleCardClick = (type: string, isHistorical: boolean) => {
@@ -240,6 +247,14 @@ const DashboardHome = () => {
     if (type === 'transferred_amount') qFilter = 'transfer';
     else if (type === 'total_expenses') qFilter = 'expense';
     else if (type === 'collected_rent') qFilter = 'income';
+
+    if (type === 'unpaid_rent') {
+       const params = new URLSearchParams();
+       if (qStart) params.append('start', qStart);
+       if (qEnd) params.append('end', qEnd);
+       navigate(`/dashboard/all-ledgers?${params.toString()}`);
+       return;
+    }
 
     const params = new URLSearchParams();
     if (qStart) params.append('start', qStart);
@@ -319,6 +334,7 @@ const DashboardHome = () => {
         {[
           { key: 'projected_rent', label: t('projected_rent'), value: metrics.expectedRent, color: 'var(--secondary)', icon: '📋' },
           { key: 'collected_rent', label: t('collected_rent'), value: metrics.collectedRent, color: 'var(--primary)', icon: '✅' },
+          { key: 'unpaid_rent', label: t('unpaid_rent') || 'Unpaid Rent', value: metrics.unpaidRent, color: 'var(--danger)', icon: '⚠️' },
           { key: 'transferred_amount', label: t('transferred_amount'), value: metrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
           { key: 'total_expenses', label: t('total_expenses'), value: metrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
           { key: 'cash_in_hand', label: t('cash_in_hand'), value: metrics.cashInHand, color: 'var(--success)', icon: '💵' },
@@ -361,6 +377,7 @@ const DashboardHome = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '1.25rem', marginBottom: '3rem' }}>
         {[
           { key: 'collected_rent', label: t('collected_rent'), value: filteredHistMetrics.collectedRent, color: 'var(--primary)', icon: '✅' },
+          { key: 'unpaid_rent', label: t('unpaid_rent') || 'Unpaid Rent', value: filteredHistMetrics.unpaidRent, color: 'var(--danger)', icon: '⚠️' },
           { key: 'transferred_amount', label: t('transferred_amount'), value: filteredHistMetrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
           { key: 'total_expenses', label: t('total_expenses'), value: filteredHistMetrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
           { key: 'cash_in_hand', label: t('cash_in_hand'), value: filteredHistMetrics.cashInHand, color: 'var(--success)', icon: '💵' },
@@ -504,6 +521,8 @@ const DashboardHome = () => {
   );
 };
 
+import AllTenantsLedger from './AllTenantsLedger.tsx';
+
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -519,6 +538,7 @@ const Dashboard: React.FC = () => {
     { path: '/dashboard/properties', label: t('properties'), icon: Home },
     { path: '/dashboard/tenants', label: t('tenants'), icon: Users },
     { path: '/dashboard/expenses', label: t('expenses'), icon: Receipt },
+    { path: '/dashboard/all-ledgers', label: t('tenant_ledgers') || 'Tenant Ledgers', icon: Users },
     { path: '/dashboard/report', label: t('reports'), icon: FileText },
     { path: '/dashboard/pivot', label: t('pivot_reports') || 'Pivot', icon: FileText },
     { path: '/dashboard/settings', label: t('settings'), icon: SettingsIcon },
@@ -584,6 +604,7 @@ const Dashboard: React.FC = () => {
             <Route path="expenses" element={<Expenses />} />
             <Route path="contract/:id" element={<TenantContractPage />} />
             <Route path="ledger/:id" element={<TenantLedger />} />
+            <Route path="all-ledgers" element={<AllTenantsLedger />} />
             <Route path="report" element={<Reports />} />
             <Route path="pivot" element={<Pivot />} />
             <Route path="settings" element={<Settings />} />
