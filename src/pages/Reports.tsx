@@ -91,11 +91,22 @@ const Reports: React.FC = () => {
         endBoundMs = ed.getTime();
       }
 
-      // Filter Incomes (only strictly 'Paid' ledgers natively reflect guaranteed liquid income)
+      // Filter Incomes
       const filteredIncomes = allLedgers.filter(L => {
-        if (L.status !== 'Paid' || !L.paidDate) return false;
-        const pdTs = parseGenericDate(L.paidDate);
-        return pdTs >= startBoundMs && pdTs <= endBoundMs;
+        if (L.status !== 'Paid') return false;
+        
+        // Determination strategy: 
+        // 1. If we have a paidDate, check it first (Standard Cash Basis).
+        // 2. If it falls outside or is missing, check dueDate (Fallback for historical back-filling).
+        const pdTs = L.paidDate ? parseGenericDate(L.paidDate) : 0;
+        const ddTs = parseGenericDate(L.dueDate);
+        
+        const isPaidInWindow = pdTs >= startBoundMs && pdTs <= endBoundMs;
+        const isDueInWindow = ddTs >= startBoundMs && ddTs <= endBoundMs;
+
+        // If filtering for a specific historical year (e.g. from Dashboard), 
+        // we prioritize the Due Date association to that year.
+        return isPaidInWindow || isDueInWindow;
       });
 
       const filteredExpenses = allExpenses.filter(E => {

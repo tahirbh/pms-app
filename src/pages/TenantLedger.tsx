@@ -53,12 +53,12 @@ const TenantLedger: React.FC = () => {
     loadData();
   }, [id]);
 
-  const startEditing = (ledger: ContractLedger) => {
+  const startEditing = (ledger: ContractLedger, forceStatus?: 'Paid' | 'Pending') => {
     setPayingLedger(ledger.id);
     setPaymentMode(ledger.paymentMode || 'Cash');
     setPaidDate(ledger.paidDate || (calendarMode === 'hijri' ? moment().format('iYYYY/iMM/iDD') : new Date().toISOString().split('T')[0]));
     setEditAmount(ledger.amount);
-    setEditStatus(ledger.status);
+    setEditStatus(forceStatus || ledger.status);
   };
 
   const executePayment = async (ledgerId: string) => {
@@ -223,7 +223,7 @@ const TenantLedger: React.FC = () => {
                           <button 
                             className="btn btn-primary" 
                             style={{ padding: '0.5rem 1.5rem', background: 'var(--text-main)', borderRadius: '50px' }}
-                            onClick={() => startEditing(ledger)}
+                            onClick={() => startEditing(ledger, 'Paid')}
                           >
                             {t('mark_as_paid')}
                           </button>
