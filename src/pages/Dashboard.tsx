@@ -40,17 +40,7 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
   }
 }
 
-// ── Centralized year key helpers ──────────────────────────────────────
-/** Returns the "year key" for a given date string based on calendar mode.
- *  Hijri → "1447 (H)", Gregorian → "2026"                             */
-const getYearKey = (dateStr: string, calMode: 'gregorian' | 'hijri'): string => {
-  if (calMode === 'hijri') {
-    const m = moment(dateStr, 'iYYYY/iMM/iDD');
-    return m.isValid() ? m.format('iYYYY') + ' (H)' : 'N/A';
-  }
-  const d = new Date(dateStr);
-  return isNaN(d.getTime()) ? 'N/A' : d.getFullYear().toString();
-};
+
 
 /** Get the current year key dynamically. */
 const getCurrentYearKey = (calMode: 'gregorian' | 'hijri'): string => {
@@ -79,14 +69,7 @@ const DashboardHome = () => {
     unpaidRent: 0,
   });
 
-  // ── Historical metrics (previous years only) ──
-  const [historicalMetrics, setHistoricalMetrics] = useState({
-    contractedRent: 0,
-    collectedRent: 0,
-    totalExpenses: 0,
-    transferredAmount: 0,
-    unpaidRent: 0,
-  });
+
 
   // ── Historical per-year data for dropdowns ──
   const [availableHistYears, setAvailableHistYears] = useState<string[]>([]);
@@ -236,7 +219,6 @@ const DashboardHome = () => {
 
       // Unpaid rent = max(0, contracted - collected)
       const cyUnpaid = Math.max(0, cyContracted - cyCollected);
-      const hUnpaid = Math.max(0, hContracted - hCollected);
 
       setCurrentYearMetrics({
         projectedRent,
@@ -247,13 +229,6 @@ const DashboardHome = () => {
         unpaidRent: cyUnpaid,
       });
 
-      setHistoricalMetrics({
-        contractedRent: hContracted,
-        collectedRent: hCollected,
-        totalExpenses: hExpenses,
-        transferredAmount: hTransferred,
-        unpaidRent: hUnpaid,
-      });
 
       // ── Historical year dropdown setup (exclude current year and future) ──
       const sortedHistYears = Object.keys(histPerYear).sort((a, b) => a.localeCompare(b));
