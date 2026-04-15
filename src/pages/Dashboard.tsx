@@ -433,7 +433,8 @@ const DashboardHome = () => {
       <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1rem 0' }}>📈 {t('current_year_metrics') || 'Current Year Metrics'} ({currentYearKey})</h3>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '1.25rem', marginBottom: '3rem' }}>
         {[
-          { key: 'projected_rent', label: t('projected_rent'), value: currentYearMetrics.projectedRent, color: 'var(--secondary)', icon: '📋' },
+          { key: 'projected_rent', label: t('projected_rent'), value: currentYearMetrics.projectedRent, color: 'var(--text-muted)', icon: '📋' },
+          { key: 'contracted_rent', label: t('actual_contracted_rent') || 'Actual Contracted Rent', value: currentYearMetrics.contractedRent, color: 'var(--secondary)', icon: '📜' },
           { key: 'collected_rent', label: t('collected_rent'), value: currentYearMetrics.collectedRent, color: 'var(--primary)', icon: '✅' },
           { key: 'total_expenses', label: t('total_expenses'), value: currentYearMetrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
           { key: 'transferred_amount', label: t('transferred_amount'), value: currentYearMetrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
