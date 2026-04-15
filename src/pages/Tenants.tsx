@@ -17,7 +17,6 @@ import { generateLedgerSchedules } from '../utils/ledgerGenerator';
 import type { RentCalculationResult } from '../utils/rentCalculator';
 import { useAppContext } from '../context/AppContext';
 import { exportCSV } from '../utils/exportUtils';
-import moment from 'moment-hijri';
 
 const Tenants: React.FC = () => {
   const { t } = useTranslation();
@@ -176,30 +175,42 @@ const Tenants: React.FC = () => {
   };
 
   const handleExtendContract = async (tnt: TenantContract) => {
-    // Determine next Hijri year from system date
-    const currentHijriYear = parseInt(moment().format('iYYYY'), 10);
-    const nextYear = currentHijriYear + 1;
-    const newStartDate = `${nextYear}/01/01`;  // 1 Muharram next year
-    const newEndDate   = `${nextYear}/12/30`;  // Last day Zulhijjah
+    // Fetch all tenants to find historical contracts for the same person
+    const allTenants = await getTenants();
+    const history = allTenants.filter(t => t.tenantName === tnt.tenantName);
+    
+    // Sort by endDate to find the latest contract
+    const latestContract = history.sort((a, b) => b.endDate.localeCompare(a.endDate))[0] || tnt;
+
+    // Helper to increment year in YYYY/MM/DD format
+    const incrementYear = (dateStr: string) => {
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return dateStr;
+      const year = parseInt(parts[0], 10);
+      return `${year + 1}/${parts[1]}/${parts[2]}`;
+    };
+
+    const calculatedStartDate = incrementYear(latestContract.startDate);
+    const calculatedEndDate = incrementYear(latestContract.endDate);
 
     if (!confirm(
-      `${t('extend_contract_confirm') || 'Extend contract to next Hijri year'} ${nextYear}?\n` +
+      `${t('extend_contract_confirm') || 'Extend contract based on historical data?'} \n` +
       `${t('tenant_name')}: ${tnt.tenantName}\n` +
       `${t('payment_plan')}: ${tnt.paymentPlan}\n` +
-      `${t('start_date')}: ${newStartDate}  →  ${t('end_date')}: ${newEndDate}`
+      `${t('start_date')}: ${calculatedStartDate}  →  ${t('end_date')}: ${calculatedEndDate}`
     )) return;
 
     // Clone the tenant as a new active contract for the next year
     const newTenant = await saveTenant({
-      tenantName: tnt.tenantName,
-      propertyId: tnt.propertyId,
-      startDate: newStartDate,
-      endDate: newEndDate,
-      calendarMode: 'hijri',
-      paymentPlan: tnt.paymentPlan,  // Copy previous payment structure
-      iqamaNumber: tnt.iqamaNumber || '',
-      sponsorName: tnt.sponsorName || '',
-      mobileNumber: tnt.mobileNumber || '',
+      tenantName: latestContract.tenantName,
+      propertyId: latestContract.propertyId,
+      startDate: calculatedStartDate,
+      endDate: calculatedEndDate,
+      calendarMode: latestContract.calendarMode,
+      paymentPlan: latestContract.paymentPlan || 'Monthly',
+      iqamaNumber: latestContract.iqamaNumber || '',
+      sponsorName: latestContract.sponsorName || '',
+      mobileNumber: latestContract.mobileNumber || '',
       isActive: true
     });
 
@@ -209,14 +220,14 @@ const Tenants: React.FC = () => {
         const ledgers = generateLedgerSchedules(
           newTenant.id,
           prop.annualRent,
-          newStartDate,
-          newEndDate,
-          tnt.paymentPlan,
-          'hijri'
+          calculatedStartDate,
+          calculatedEndDate,
+          tnt.paymentPlan || 'Monthly',
+          latestContract.calendarMode
         );
         await saveLedgers(ledgers);
       }
-      alert(`${t('contract_extended_success') || 'Contract extended successfully!'}\n${t('start_date')}: ${newStartDate}  →  ${t('end_date')}: ${newEndDate}`);
+      alert(`${t('contract_extended_success') || 'Contract extended successfully!'}`);
       await loadData();
     } else {
       alert(t('contract_extend_failed') || 'Failed to extend contract. Please try again.');
