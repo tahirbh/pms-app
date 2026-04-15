@@ -352,9 +352,6 @@ const Tenants: React.FC = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                   <div>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--primary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }}>
-                      <UserCircle size={20} style={{ marginRight: '0.5rem' }}/> {tnt.tenantName}
-                    </h3>
                     <p style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{t('property_label_inline')} {prop?.name || t('unknown_property')}</p>
                     {tnt.iqamaNumber && <p style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}><strong>{t('iqama_number')}:</strong> {tnt.iqamaNumber}</p>}
                     {tnt.sponsorName && <p style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}><strong>{t('sponsor_name')}:</strong> {tnt.sponsorName}</p>}

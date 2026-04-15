@@ -67,6 +67,7 @@ const DashboardHome = () => {
     totalExpenses: 0,
     transferredAmount: 0,
     unpaidRent: 0,
+    cashInHand: 0,
   });
 
 
@@ -227,6 +228,7 @@ const DashboardHome = () => {
         totalExpenses: cyExpenses,
         transferredAmount: cyTransferred,
         unpaidRent: cyUnpaid,
+        cashInHand: cyCollected - cyExpenses - cyTransferred,
       });
 
 
@@ -338,6 +340,13 @@ const DashboardHome = () => {
       return;
     }
 
+    // Cash in hand → show income report
+    if (type === 'cash_in_hand') {
+      params.append('filter', 'income');
+      navigate(`/dashboard/report?${params.toString()}`);
+      return;
+    }
+
     // Collected / Expenses / Transferred → Reports page with filter
     if (type === 'collected_rent') params.append('filter', 'income');
     else if (type === 'total_expenses') params.append('filter', 'expense');
@@ -420,6 +429,7 @@ const DashboardHome = () => {
           { key: 'total_expenses', label: t('total_expenses'), value: currentYearMetrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
           { key: 'transferred_amount', label: t('transferred_amount'), value: currentYearMetrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
           { key: 'unpaid_rent', label: t('unpaid_rent') || 'Unpaid Rent', value: currentYearMetrics.unpaidRent, color: currentYearMetrics.unpaidRent > 0 ? 'var(--danger)' : 'var(--success)', icon: '⚠️' },
+          { key: 'cash_in_hand', label: t('cash_in_hand') || 'Cash in Hand', value: currentYearMetrics.cashInHand, color: 'var(--success)', icon: '💰' },
         ].map((card) => (
           <div 
             key={card.key} 

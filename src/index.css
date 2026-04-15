@@ -12,6 +12,8 @@
   --text-muted: #64748b;
   --danger: #ef4444;
   --success: #10b981;
+  --accent: #f59e0b;
+  --amber: #f59e0b;
   
   --nav-width: 280px;
   --border-radius: 16px;
@@ -28,6 +30,8 @@
   --secondary: #3b82f6; /* Bright blue */
   --success: #10b981;
   --danger: #f43f5e;
+  --accent: #fbbf24;
+  --amber: #fbbf24;
 }
 
 * {
