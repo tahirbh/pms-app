@@ -303,12 +303,21 @@ const DashboardHome = () => {
     let qEnd = '';
 
     if (isHistorical) {
-      // Historical: use selected start/end year range
-      if (startYear) {
+      // Historical: use selected start/end year range or default to "all history"
+      if (startYear && endYear) {
         qStart = startYear.includes('(H)') ? `${startYear.split(' ')[0]}/01/01` : `${startYear}/01/01`;
-      }
-      if (endYear) {
         qEnd = endYear.includes('(H)') ? `${endYear.split(' ')[0]}/12/30` : `${endYear}/12/31`;
+      } else {
+        // Default historical range: All time up until the END of the previous year
+        if (calendarMode === 'hijri') {
+          const prevYear = parseInt(moment().format('iYYYY')) - 1;
+          qStart = "1400/01/01"; 
+          qEnd = `${prevYear}/12/30`;
+        } else {
+          const prevYear = new Date().getFullYear() - 1;
+          qStart = "2000/01/01";
+          qEnd = `${prevYear}/12/31`;
+        }
       }
     } else {
       // Current year only
