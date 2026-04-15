@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getTenants, getProperties, getLedgersByTenant, updateLedgerPaymentStatus, deleteLedger } from '../utils/store';
+import { getTenants, getProperties, getLedgersByTenant, deleteLedger, updateLedger } from '../utils/store';
 import type { TenantContract, Property, ContractLedger } from '../utils/store';
-import { ArrowLeft, CheckCircle2, Clock, CalendarDays, KeyRound, Building2, Trash2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Clock, CalendarDays, KeyRound, Building2, Trash2, Edit3, CheckCircle } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import DatePickerModule from "react-multi-date-picker";
 const DatePicker = (DatePickerModule as any).default || DatePickerModule;
@@ -29,6 +29,13 @@ const TenantLedger: React.FC = () => {
   const [payingLedger, setPayingLedger] = useState<string | null>(null);
   const [paymentMode, setPaymentMode] = useState<'Cash' | 'Bank' | 'Online'>('Cash');
   const [paidDate, setPaidDate] = useState(calendarMode === 'hijri' ? moment().format('iYYYY/iMM/iDD') : new Date().toISOString().split('T')[0]);
+  const [editAmount, setEditAmount] = useState<number>(0);
+  const [editStatus, setEditStatus] = useState<'Pending' | 'Paid'>('Paid');
+
+  // Batch states
+  const [isMarkingAll, setIsMarkingAll] = useState(false);
+  const [batchMode, setBatchMode] = useState<'Cash' | 'Bank' | 'Online'>('Cash');
+  const [batchDate, setBatchDate] = useState(calendarMode === 'hijri' ? moment().format('iYYYY/iMM/iDD') : new Date().toISOString().split('T')[0]);
 
   const loadData = async () => {
     if (!id) return;
@@ -46,9 +53,37 @@ const TenantLedger: React.FC = () => {
     loadData();
   }, [id]);
 
+  const startEditing = (ledger: ContractLedger) => {
+    setPayingLedger(ledger.id);
+    setPaymentMode(ledger.paymentMode || 'Cash');
+    setPaidDate(ledger.paidDate || (calendarMode === 'hijri' ? moment().format('iYYYY/iMM/iDD') : new Date().toISOString().split('T')[0]));
+    setEditAmount(ledger.amount);
+    setEditStatus(ledger.status);
+  };
+
   const executePayment = async (ledgerId: string) => {
-    await updateLedgerPaymentStatus(ledgerId, 'Paid', paymentMode, paidDate);
+    await updateLedger(ledgerId, {
+      status: editStatus,
+      paymentMode,
+      paidDate: editStatus === 'Paid' ? paidDate : null,
+      amount: editAmount
+    });
     setPayingLedger(null);
+    await loadData();
+  };
+
+  const executeMarkAllPaid = async () => {
+    const pending = ledgers.filter(l => l.status === 'Pending');
+    if (pending.length === 0) return;
+
+    for (const l of pending) {
+      await updateLedger(l.id, {
+        status: 'Paid',
+        paymentMode: batchMode,
+        paidDate: batchDate
+      });
+    }
+    setIsMarkingAll(false);
     await loadData();
   };
 
@@ -89,7 +124,55 @@ const TenantLedger: React.FC = () => {
         </div>
       </div>
 
-      <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1.5rem' }}>{t('automated_installments')}</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h3 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0 }}>{t('automated_installments')}</h3>
+        {ledgers.some(l => l.status === 'Pending') && (
+          <button className="btn btn-primary" onClick={() => setIsMarkingAll(true)} style={{ background: 'var(--success)', color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <CheckCircle size={18} /> {t('mark_all_paid') || 'Mark All as Paid'}
+          </button>
+        )}
+      </div>
+
+      {isMarkingAll && (
+        <div className="glass-panel animate-slide-in" style={{ padding: '2rem', marginBottom: '2rem', border: '2px solid var(--success)' }}>
+          <h4 style={{ marginTop: 0, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <CheckCircle size={20} color="var(--success)"/> {t('batch_payment_config') || 'Batch Payment Details'}
+          </h4>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>{t('payment_mode')}</label>
+              <select className="input-field" value={batchMode} onChange={e => setBatchMode(e.target.value as any)}>
+                <option value="Cash">{t('mode_cash')}</option>
+                <option value="Bank">{t('mode_bank')}</option>
+                <option value="Online">{t('mode_online')}</option>
+              </select>
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>{t('payment_date')}</label>
+              <DatePicker
+                value={batchDate}
+                onChange={(dateObject: any) => setBatchDate(dateObject ? dateObject.format('YYYY/MM/DD') : '')}
+                calendar={calendarMode === 'hijri' ? arabic : gregorian}
+                locale={calendarMode === 'hijri' ? (language === 'ar' ? arabic_ar : arabic_en) : (language === 'ar' ? gregorian_ar : gregorian_en)}
+                calendarPosition="bottom-right"
+                inputClass="input-field"
+                containerStyle={{ width: '100%' }}
+                format="YYYY/MM/DD"
+                zIndex={9999}
+                portal
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button className="btn" style={{ background: 'var(--success)', color: 'white', padding: '0.85rem 2rem' }} onClick={executeMarkAllPaid}>
+                {t('confirm_all_paid') || 'Confirm All as Paid'}
+              </button>
+              <button className="btn" style={{ background: '#eee', padding: '0.85rem 1rem' }} onClick={() => setIsMarkingAll(false)}>
+                {t('cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {ledgers.length === 0 ? (
         <div style={{ padding: '2rem', textAlign: 'center', background: 'rgba(255,255,255,0.2)', borderRadius: '8px' }}>
@@ -125,14 +208,27 @@ const TenantLedger: React.FC = () => {
                       {ledger.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
                     </div>
 
-                    {!isPaid && !isPaying && (
-                      <button 
-                        className="btn btn-primary" 
-                        style={{ padding: '0.5rem 1.5rem', background: 'var(--text-main)', borderRadius: '50px' }}
-                        onClick={() => setPayingLedger(ledger.id)}
-                      >
-                        {t('mark_as_paid')}
-                      </button>
+                    {!isPaying && (
+                      <>
+                        {isPaid ? (
+                          <button 
+                            className="btn" 
+                            style={{ padding: '0.5rem', background: 'var(--glass-border)', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                            onClick={() => startEditing(ledger)}
+                            title={t('edit_ledger') || 'Edit Entry'}
+                          >
+                            <Edit3 size={16} />
+                          </button>
+                        ) : (
+                          <button 
+                            className="btn btn-primary" 
+                            style={{ padding: '0.5rem 1.5rem', background: 'var(--text-main)', borderRadius: '50px' }}
+                            onClick={() => startEditing(ledger)}
+                          >
+                            {t('mark_as_paid')}
+                          </button>
+                        )}
+                      </>
                     )}
                     
                     <button 
@@ -147,8 +243,24 @@ const TenantLedger: React.FC = () => {
                 </div>
 
                 {isPaying && (
-                  <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #eee', display: 'flex', gap: '1rem', alignItems: 'flex-end', animation: 'slideInUp 0.3s ease-out' }}>
-                    <div style={{ flex: 1 }}>
+                  <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #eee', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end', animation: 'slideInUp 0.3s ease-out' }}>
+                    <div style={{ flex: '1 1 150px' }}>
+                      <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>{t('amount_label')}</label>
+                      <input 
+                        type="number" 
+                        className="input-field" 
+                        value={editAmount} 
+                        onChange={e => setEditAmount(parseFloat(e.target.value) || 0)} 
+                      />
+                    </div>
+                    <div style={{ flex: '1 1 150px' }}>
+                      <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>Status</label>
+                      <select className="input-field" value={editStatus} onChange={e => setEditStatus(e.target.value as any)}>
+                        <option value="Pending">{t('status_pending') || 'Pending'}</option>
+                        <option value="Paid">{t('status_paid') || 'Paid'}</option>
+                      </select>
+                    </div>
+                    <div style={{ flex: '1 1 150px' }}>
                       <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>{t('payment_mode')}</label>
                       <select className="input-field" value={paymentMode} onChange={e => setPaymentMode(e.target.value as any)}>
                         <option value="Cash">{t('mode_cash')}</option>
@@ -156,7 +268,7 @@ const TenantLedger: React.FC = () => {
                         <option value="Online">{t('mode_online')}</option>
                       </select>
                     </div>
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: '1 1 150px' }}>
                       <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>{t('payment_date')}</label>
                       <DatePicker
                         value={paidDate}
@@ -171,9 +283,9 @@ const TenantLedger: React.FC = () => {
                         portal
                       />
                     </div>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', flex: '1 1 100%' }}>
                       <button className="btn" style={{ background: 'var(--success)', color: 'white', padding: '0.85rem 2rem' }} onClick={() => executePayment(ledger.id)}>
-                        {t('confirm_payment')}
+                        {t('save') || 'Save Changes'}
                       </button>
                       <button className="btn" style={{ background: '#eee', padding: '0.85rem 1rem' }} onClick={() => setPayingLedger(null)}>
                         {t('cancel')}

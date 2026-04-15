@@ -35,29 +35,51 @@ const TenantContractPage: React.FC = () => {
   const handleExtendContract = async () => {
     if (!tenant || !property) return;
 
-    // Determine next Hijri year from system date
-    const currentHijriYear = parseInt(moment().format('iYYYY'), 10);
-    const nextYear = currentHijriYear + 1;
-    const newStartDate = `${nextYear}/01/01`;
-    const newEndDate   = `${nextYear}/12/30`;
+    // Fetch all tenants to find historical contracts for the same person
+    const allTenants = await getTenants();
+    const history = allTenants.filter(t => t.tenantName === tenant.tenantName);
+    
+    // Sort by endDate to find the latest contract
+    //endDate format: "YYYY/MM/DD" or "iYYYY/iMM/iDD"
+    const latestContract = history.sort((a, b) => b.endDate.localeCompare(a.endDate))[0] || tenant;
+
+    // Helper to increment year in YYYY/MM/DD format
+    const incrementYear = (dateStr: string) => {
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return dateStr;
+      const year = parseInt(parts[0], 10);
+      return `${year + 1}/${parts[1]}/${parts[2]}`;
+    };
+
+    // Actually, user said "increment the year". If last was 1445-01-01 to 1445-12-30.
+    // Next should be 1446-01-01 to 1446-12-30.
+    
+    // Let's see: if last endDate was YYYY/MM/DD, next startDate should be YYYY+1/MM/DD ? 
+    // No, if last ends 1445/12/30, next starts 1446/01/01. 
+    // Wait, the user said "detect last updated contract year then extend for the next year".
+    // If last was 1 year, next is 1 year.
+    
+    // Let's use a simpler approach: increment both start and end dates of the LATEST contract by 1 year.
+    const calculatedStartDate = incrementYear(latestContract.startDate);
+    const calculatedEndDate = incrementYear(latestContract.endDate);
 
     if (!confirm(
-      `${t('extend_contract_confirm') || 'Extend contract to next Hijri year'} ${nextYear}?\n` +
+      `${t('extend_contract_confirm') || 'Extend contract based on historical data?'} \n` +
       `${t('tenant_name')}: ${tenant.tenantName}\n` +
       `${t('payment_plan')}: ${tenant.paymentPlan}\n` +
-      `${t('start_date')}: ${newStartDate}  →  ${t('end_date')}: ${newEndDate}`
+      `${t('start_date')}: ${calculatedStartDate}  →  ${t('end_date')}: ${calculatedEndDate}`
     )) return;
 
     const newTenant = await saveTenant({
-      tenantName: tenant.tenantName,
-      propertyId: tenant.propertyId,
-      startDate: newStartDate,
-      endDate: newEndDate,
-      calendarMode: 'hijri',
-      paymentPlan: tenant.paymentPlan || 'Monthly',
-      iqamaNumber: tenant.iqamaNumber || '',
-      sponsorName: tenant.sponsorName || '',
-      mobileNumber: tenant.mobileNumber || '',
+      tenantName: latestContract.tenantName,
+      propertyId: latestContract.propertyId,
+      startDate: calculatedStartDate,
+      endDate: calculatedEndDate,
+      calendarMode: latestContract.calendarMode,
+      paymentPlan: latestContract.paymentPlan || 'Monthly',
+      iqamaNumber: latestContract.iqamaNumber || '',
+      sponsorName: latestContract.sponsorName || '',
+      mobileNumber: latestContract.mobileNumber || '',
       isActive: true
     });
 
@@ -65,8 +87,8 @@ const TenantContractPage: React.FC = () => {
       const ledgers = generateLedgerSchedules(
         newTenant.id,
         property.annualRent,
-        newStartDate,
-        newEndDate,
+        calculatedStartDate,
+        calculatedEndDate,
         tenant.paymentPlan || 'Monthly',
         'hijri'
       );

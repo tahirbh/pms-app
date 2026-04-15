@@ -136,6 +136,7 @@ export const saveLedgers = async (ledgers: Omit<ContractLedger, 'id' | 'created_
   return true;
 };
 
+// Update payment status (keeping for backward compatibility or shared logic)
 export const updateLedgerPaymentStatus = async (
   ledgerId: string,
   status: 'Pending' | 'Paid',
@@ -143,6 +144,13 @@ export const updateLedgerPaymentStatus = async (
   paidDate: string | null
 ): Promise<boolean> => {
   const { error } = await supabase.from('contract_ledger').update({ status, paymentMode, paidDate }).eq('id', ledgerId);
+  if (error) { console.error('Error updating ledger', error); return false; }
+  return true;
+};
+
+// Generic update for all ledger fields
+export const updateLedger = async (id: string, updates: Partial<ContractLedger>): Promise<boolean> => {
+  const { error } = await supabase.from('contract_ledger').update(updates).eq('id', id);
   if (error) { console.error('Error updating ledger', error); return false; }
   return true;
 };
