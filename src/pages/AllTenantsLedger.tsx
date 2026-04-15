@@ -25,6 +25,7 @@ const AllTenantsLedger: React.FC = () => {
   const searchParams = new URLSearchParams(location.search);
   const qStart = searchParams.get('start');
   const qEnd = searchParams.get('end');
+  const qStatus = searchParams.get('status');
 
   const [startDate, setStartDate] = useState(() => {
     if (qStart) return qStart;
@@ -110,6 +111,10 @@ const AllTenantsLedger: React.FC = () => {
   }, [startDate, endDate, calendarMode]);
 
   const filteredLedgers = ledgers.filter(txn => {
+    // Status filter from URL (e.g. ?status=unpaid)
+    if (qStatus === 'unpaid' && txn.status === 'Paid') return false;
+    if (qStatus === 'paid' && txn.status !== 'Paid') return false;
+
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
     return (
@@ -165,6 +170,7 @@ const AllTenantsLedger: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '2rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <Users /> {t('tenant_ledgers') || 'Tenant Ledgers'}
+          {qStatus === 'unpaid' && <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--danger)', marginLeft: '0.5rem' }}>({t('unpaid_rent') || 'Unpaid Only'})</span>}
         </h2>
       </div>
 

@@ -40,79 +40,120 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
   }
 }
 
+// ── Centralized year key helpers ──────────────────────────────────────
+/** Returns the "year key" for a given date string based on calendar mode.
+ *  Hijri → "1447 (H)", Gregorian → "2026"                             */
+const getYearKey = (dateStr: string, calMode: 'gregorian' | 'hijri'): string => {
+  if (calMode === 'hijri') {
+    const m = moment(dateStr, 'iYYYY/iMM/iDD');
+    return m.isValid() ? m.format('iYYYY') + ' (H)' : 'N/A';
+  }
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? 'N/A' : d.getFullYear().toString();
+};
+
+/** Get the current year key dynamically. */
+const getCurrentYearKey = (calMode: 'gregorian' | 'hijri'): string => {
+  if (calMode === 'hijri') return moment().format('iYYYY') + ' (H)';
+  return new Date().getFullYear().toString();
+};
+
+/** Checks if `yearStr` is strictly before `currentYearStr` in a sortable sense. */
+const isBeforeCurrentYear = (yearStr: string, currentYearStr: string): boolean => {
+  if (yearStr === 'N/A' || currentYearStr === 'N/A') return false;
+  return yearStr.localeCompare(currentYearStr) < 0;
+};
+
 const DashboardHome = () => {
   const { t } = useTranslation();
   const { currency, calendarMode } = useAppContext();
   const navigate = useNavigate();
   
-  const [metrics, setMetrics] = useState({ expectedRent: 0, actualRent: 0, activeCollected: 0, totalExpenses: 0, transferredAmount: 0, collectedRent: 0, cashInHand: 0, unpaidRent: 0 });
+  // ── Current year metrics (top cards) ──
+  const [currentYearMetrics, setCurrentYearMetrics] = useState({
+    projectedRent: 0,
+    contractedRent: 0,
+    collectedRent: 0,
+    totalExpenses: 0,
+    transferredAmount: 0,
+    unpaidRent: 0,
+  });
+
+  // ── Historical metrics (previous years only) ──
+  const [historicalMetrics, setHistoricalMetrics] = useState({
+    contractedRent: 0,
+    collectedRent: 0,
+    totalExpenses: 0,
+    transferredAmount: 0,
+    unpaidRent: 0,
+  });
+
+  // ── Historical per-year data for dropdowns ──
+  const [availableHistYears, setAvailableHistYears] = useState<string[]>([]);
+  const [startYear, setStartYear] = useState<string>('');
+  const [endYear, setEndYear] = useState<string>('');
+  const [historicalDataPerYear, setHistoricalDataPerYear] = useState<Record<string, { contractedRent: number, collectedRent: number, totalExpenses: number, transferredAmount: number }>>({}); 
+
+  // ── Charts & notifications ──
   const [utilizationData, setUtilizationData] = useState<{name: string, potential: number, contracted: number, collected: number}[]>([]);
   const [ledgerStats, setLedgerStats] = useState({ paid: 0, overdue: 0, upcoming: 0 });
   const [notifications, setNotifications] = useState<{id: string, tenantId: string, name: string, type: 'overdue'|'upcoming', amount: number, date: string}[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const [availableYears, setAvailableYears] = useState<string[]>([]);
-  const [startYear, setStartYear] = useState<string>('');
-  const [endYear, setEndYear] = useState<string>('');
-  const [historicalData, setHistoricalData] = useState<Record<string, { collectedRent: number, totalExpenses: number, transferredAmount: number, unpaidRent: number }>>({});
-
+  // Current year key (computed once)
+  const currentYearKey = getCurrentYearKey(calendarMode);
   
   useEffect(() => {
     const loadAll = async () => {
       const props = await getProperties();
       const tenants = await getTenants();
       const expenses = await getExpenses();
-      
-      // expected, actualContracted, and activeCollected calculated later
+      const allLedgers = await getAllLedgers();
 
-      let transferred = 0;
-      let regularExp = 0;
-      const histData: Record<string, { collectedRent: number, totalExpenses: number, transferredAmount: number, unpaidRent: number }> = {};
-      const allYearsSet = new Set<string>();
+      // ── Determine current year key ──
+      const cyKey = getCurrentYearKey(calendarMode);
 
-      const currentGregorianYear = new Date().getFullYear().toString();
-      const currentHijriYear = moment().format('iYYYY') + ' (H)';
+      // ── Per-year accumulation (for both current + historical) ──
+      const yearData: Record<string, { contractedRent: number, collectedRent: number, totalExpenses: number, transferredAmount: number }> = {};
+      const ensureYear = (yk: string) => {
+        if (!yearData[yk]) yearData[yk] = { contractedRent: 0, collectedRent: 0, totalExpenses: 0, transferredAmount: 0 };
+      };
 
+      // ── Process expenses ──
       expenses.forEach(exp => {
         const d = new Date(exp.date);
         if (isNaN(d.getTime())) return;
+        // Expenses are always Gregorian-dated in this app
         const yearStr = d.getFullYear().toString();
-        allYearsSet.add(yearStr);
-        if (!histData[yearStr]) histData[yearStr] = { collectedRent: 0, totalExpenses: 0, transferredAmount: 0, unpaidRent: 0 };
+        ensureYear(yearStr);
 
         const isTransfer = (exp.category === 'Transfer to Owner' || exp.category === 'Transferred to Owner');
-        
         if (isTransfer) {
-          histData[yearStr].transferredAmount += exp.amount;
-          if (yearStr === currentGregorianYear) transferred += exp.amount;
+          yearData[yearStr].transferredAmount += exp.amount;
         } else {
-          histData[yearStr].totalExpenses += exp.amount;
-          if (yearStr === currentGregorianYear) regularExp += exp.amount;
+          yearData[yearStr].totalExpenses += exp.amount;
         }
       });
-      
-      const allLedgers = await getAllLedgers();
-      
+
+      // ── Process ledgers ──
       const today = new Date();
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(today.getDate() + 30);
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(today.getDate() - 30);
-      
+
       let currentMonthPaid = 0;
-      let totalCollected = 0;
-      let totalUnpaid = 0;
       let totalOverdue = 0;
       let upcomingRent = 0;
       const notifs: typeof notifications = [];
 
       allLedgers.forEach(L => {
         const tnt = tenants.find(t => t.id === L.tenantId);
-        if(!tnt) return;
-        
+        if (!tnt) return;
+
         let ledgerDate: Date;
-        let yearStr = 'N/A';
-        if(tnt.calendarMode === 'hijri') {
+        let yearStr: string;
+        if (tnt.calendarMode === 'hijri') {
           const m = moment(L.dueDate, 'iYYYY/iMM/iDD');
           ledgerDate = m.toDate();
           yearStr = m.format('iYYYY') + ' (H)';
@@ -121,23 +162,19 @@ const DashboardHome = () => {
           yearStr = ledgerDate.getFullYear().toString();
         }
 
-        allYearsSet.add(yearStr);
-        if (!histData[yearStr]) histData[yearStr] = { collectedRent: 0, totalExpenses: 0, transferredAmount: 0, unpaidRent: 0 };
-        
+        ensureYear(yearStr);
+        // All ledger amounts count as "contracted"
+        yearData[yearStr].contractedRent += L.amount;
+
         if (L.status === 'Paid') {
-          histData[yearStr].collectedRent += L.amount;
-          if (yearStr === currentGregorianYear || yearStr === currentHijriYear) {
-             totalCollected += L.amount;
-          }
-          // Count recent payments (last 30 days) towards "Current Month Paid" logic
+          yearData[yearStr].collectedRent += L.amount;
+
+          // Count recent payments (last 30 days) towards ledger donut
           if (ledgerDate >= thirtyDaysAgo && ledgerDate <= thirtyDaysFromNow) {
             currentMonthPaid += L.amount;
           }
         } else {
-          histData[yearStr].unpaidRent += L.amount;
-          if (yearStr === currentGregorianYear || yearStr === currentHijriYear) {
-             totalUnpaid += L.amount;
-          }
+          // Overdue / upcoming notifications
           if (ledgerDate < today) {
             totalOverdue += L.amount;
             notifs.push({ id: L.id, tenantId: L.tenantId, name: tnt.tenantName, type: 'overdue', amount: L.amount, date: L.dueDate });
@@ -149,24 +186,89 @@ const DashboardHome = () => {
           }
         }
       });
-      
-      let cashInHand = totalCollected - regularExp - transferred;
 
+      // ── Separate current-year vs historical ──
+      let cyContracted = 0, cyCollected = 0, cyExpenses = 0, cyTransferred = 0;
+      let hContracted = 0, hCollected = 0, hExpenses = 0, hTransferred = 0;
+      const histPerYear: typeof yearData = {};
+      const allYearsSet = new Set<string>();
+
+      Object.entries(yearData).forEach(([yk, vals]) => {
+        allYearsSet.add(yk);
+        if (yk === cyKey) {
+          // Current year: top cards
+          cyContracted += vals.contractedRent;
+          cyCollected += vals.collectedRent;
+          cyExpenses += vals.totalExpenses;
+          cyTransferred += vals.transferredAmount;
+        } else if (isBeforeCurrentYear(yk, cyKey)) {
+          // Historical: previous years only
+          hContracted += vals.contractedRent;
+          hCollected += vals.collectedRent;
+          hExpenses += vals.totalExpenses;
+          hTransferred += vals.transferredAmount;
+          histPerYear[yk] = vals;
+        }
+        // Years AFTER current are ignored in both sections
+      });
+
+      // Also add Hijri-year equivalent for expenses that were stored Gregorian 
+      // if calendar mode is Hijri — the current year key might be "1447 (H)" 
+      // but expense dates are Gregorian. Map Gregorian expense year to the Hijri current year.
+      if (calendarMode === 'hijri') {
+        const gregYear = new Date().getFullYear().toString();
+        if (yearData[gregYear]) {
+          // These Gregorian-keyed expenses should map into the current Hijri year for top cards  
+          cyExpenses += yearData[gregYear].totalExpenses;
+          cyTransferred += yearData[gregYear].transferredAmount;
+          // Also remove from historical if it was accidentally added
+          if (histPerYear[gregYear]) {
+            hExpenses -= yearData[gregYear].totalExpenses;
+            hTransferred -= yearData[gregYear].transferredAmount;
+            delete histPerYear[gregYear];
+          }
+        }
+      }
+
+      // Projected/potential rent from properties
+      let projectedRent = 0;
+      props.forEach(p => { projectedRent += p.annualRent; });
+
+      // Unpaid rent = max(0, contracted - collected)
+      const cyUnpaid = Math.max(0, cyContracted - cyCollected);
+      const hUnpaid = Math.max(0, hContracted - hCollected);
+
+      setCurrentYearMetrics({
+        projectedRent,
+        contractedRent: cyContracted,
+        collectedRent: cyCollected,
+        totalExpenses: cyExpenses,
+        transferredAmount: cyTransferred,
+        unpaidRent: cyUnpaid,
+      });
+
+      setHistoricalMetrics({
+        contractedRent: hContracted,
+        collectedRent: hCollected,
+        totalExpenses: hExpenses,
+        transferredAmount: hTransferred,
+        unpaidRent: hUnpaid,
+      });
+
+      // ── Historical year dropdown setup (exclude current year and future) ──
+      const sortedHistYears = Object.keys(histPerYear).sort((a, b) => a.localeCompare(b));
+      setAvailableHistYears(sortedHistYears);
+      if (sortedHistYears.length > 0) {
+        setStartYear(sortedHistYears[0]);
+        setEndYear(sortedHistYears[sortedHistYears.length - 1]);
+      }
+      setHistoricalDataPerYear(histPerYear);
+
+      // ── Ledger stats (donut chart) ──
       setLedgerStats({ paid: currentMonthPaid, overdue: totalOverdue, upcoming: upcomingRent });
       setNotifications(notifs.sort((a: any, b: any) => a.type === 'overdue' ? -1 : (b.type === 'overdue' ? 1 : 0)));
 
-      const sortedYears = Array.from(allYearsSet).sort((a, b) => a.localeCompare(b));
-      setAvailableYears(sortedYears);
-      if (sortedYears.length > 0) {
-         setStartYear(sortedYears[0]);
-         setEndYear(sortedYears[sortedYears.length - 1]);
-      }
-      setHistoricalData(histData);
-
-      let expected = 0;
-      let actualContracted = 0;
-      let activeCollected = 0;
-
+      // ── Building utilization chart ──
       const buildUtil = props.map(p => {
         const pTenants = tenants.filter(t => t.propertyId === p.id);
         const activeTenants = pTenants.filter(t => t.isActive);
@@ -180,10 +282,6 @@ const DashboardHome = () => {
            collected += tenantLedgers.filter(l => l.status === 'Paid').reduce((acc, curr) => acc + curr.amount, 0);
         });
 
-        expected += p.annualRent;
-        actualContracted += contracted;
-        activeCollected += collected;
-
         return {
           name: p.name,
           potential: p.annualRent,
@@ -191,46 +289,44 @@ const DashboardHome = () => {
           collected
         };
       });
-
-      setMetrics({ 
-        expectedRent: expected, 
-        actualRent: actualContracted, 
-        activeCollected: activeCollected,
-        totalExpenses: regularExp, 
-        transferredAmount: transferred,
-        collectedRent: totalCollected,
-        cashInHand: cashInHand,
-        unpaidRent: totalUnpaid
-      });
-
       setUtilizationData(buildUtil);
     };
     
     loadAll();
-  }, []);
+  }, [calendarMode]);
 
+  // ── Filtered historical metrics based on year dropdown ──
   const filteredHistMetrics = React.useMemo(() => {
-    if (!startYear || !endYear) return { collectedRent: 0, totalExpenses: 0, transferredAmount: 0, cashInHand: 0, unpaidRent: 0 };
-    const startIndex = availableYears.indexOf(startYear);
-    const endIndex = availableYears.indexOf(endYear);
-    let c = 0, e = 0, t = 0, u = 0;
-    availableYears.forEach((y, i) => {
+    if (!startYear || !endYear || availableHistYears.length === 0) {
+      return { contractedRent: 0, collectedRent: 0, totalExpenses: 0, transferredAmount: 0, unpaidRent: 0 };
+    }
+    const startIndex = availableHistYears.indexOf(startYear);
+    const endIndex = availableHistYears.indexOf(endYear);
+    let c = 0, col = 0, e = 0, tr = 0;
+    availableHistYears.forEach((y, i) => {
       if (i >= startIndex && i <= endIndex) {
-         c += historicalData[y]?.collectedRent || 0;
-         e += historicalData[y]?.totalExpenses || 0;
-         t += historicalData[y]?.transferredAmount || 0;
-         u += historicalData[y]?.unpaidRent || 0;
+        c += historicalDataPerYear[y]?.contractedRent || 0;
+        col += historicalDataPerYear[y]?.collectedRent || 0;
+        e += historicalDataPerYear[y]?.totalExpenses || 0;
+        tr += historicalDataPerYear[y]?.transferredAmount || 0;
       }
     });
-    return { collectedRent: c, totalExpenses: e, transferredAmount: t, unpaidRent: u, cashInHand: c - e - t };
-  }, [startYear, endYear, availableYears, historicalData]);
+    return {
+      contractedRent: c,
+      collectedRent: col,
+      totalExpenses: e,
+      transferredAmount: tr,
+      unpaidRent: Math.max(0, c - col),
+    };
+  }, [startYear, endYear, availableHistYears, historicalDataPerYear]);
 
+  // ── Click handlers: navigate with correct filter ──
   const handleCardClick = (type: string, isHistorical: boolean) => {
     let qStart = '';
     let qEnd = '';
-    let qFilter = '';
 
     if (isHistorical) {
+      // Historical: use selected start/end year range
       if (startYear) {
         qStart = startYear.includes('(H)') ? `${startYear.split(' ')[0]}/01/01` : `${startYear}/01/01`;
       }
@@ -238,6 +334,7 @@ const DashboardHome = () => {
         qEnd = endYear.includes('(H)') ? `${endYear.split(' ')[0]}/12/30` : `${endYear}/12/31`;
       }
     } else {
+      // Current year only
       if (calendarMode === 'hijri') {
         const cy = moment().format('iYYYY');
         qStart = `${cy}/01/01`;
@@ -249,33 +346,39 @@ const DashboardHome = () => {
       }
     }
 
-    if (type === 'transferred_amount') qFilter = 'transfer';
-    else if (type === 'total_expenses') qFilter = 'expense';
-    else if (type === 'collected_rent') qFilter = 'income';
-
-    if (type === 'unpaid_rent') {
-       const params = new URLSearchParams();
-       if (qStart) params.append('start', qStart);
-       if (qEnd) params.append('end', qEnd);
-       navigate(`/dashboard/all-ledgers?${params.toString()}`);
-       return;
-    }
-
     const params = new URLSearchParams();
     if (qStart) params.append('start', qStart);
     if (qEnd) params.append('end', qEnd);
-    if (qFilter) params.append('filter', qFilter);
+
+    // Contracted rent → show all contracts in all-ledgers
+    if (type === 'contracted_rent') {
+      navigate(`/dashboard/all-ledgers?${params.toString()}`);
+      return;
+    }
+
+    // Unpaid rent → show only unpaid ledgers
+    if (type === 'unpaid_rent') {
+      params.append('status', 'unpaid');
+      navigate(`/dashboard/all-ledgers?${params.toString()}`);
+      return;
+    }
+
+    // Collected / Expenses / Transferred → Reports page with filter
+    if (type === 'collected_rent') params.append('filter', 'income');
+    else if (type === 'total_expenses') params.append('filter', 'expense');
+    else if (type === 'transferred_amount') params.append('filter', 'transfer');
 
     navigate(`/dashboard/report?${params.toString()}`);
   };
 
+  // ── Chart data ──
   const barData = [
-    { name: t('rent_comparison'), expected: metrics.expectedRent, contracted: metrics.actualRent, collected: metrics.activeCollected }
+    { name: t('rent_comparison'), expected: currentYearMetrics.projectedRent, contracted: currentYearMetrics.contractedRent, collected: currentYearMetrics.collectedRent }
   ];
 
   const pieData = [
-    { name: t('collected_rent'), value: metrics.collectedRent },
-    { name: t('expense_label'), value: metrics.totalExpenses + metrics.transferredAmount },
+    { name: t('collected_rent'), value: currentYearMetrics.collectedRent },
+    { name: t('expense_label'), value: currentYearMetrics.totalExpenses + currentYearMetrics.transferredAmount },
   ];
   const COLORS = ['#10b981', '#ef4444'];
   const ledgerPieData = [
@@ -333,16 +436,15 @@ const DashboardHome = () => {
       <h2 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '0.4rem', paddingRight: '3rem' }}>{t('welcome_title')}</h2>
       <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '1rem' }}>{t('welcome_subtitle')}</p>
 
-      {/* Summary Stat Cards - Current Year */}
-      <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1rem 0' }}>📈 {t('current_year_metrics') || 'Current Year Metrics'}</h3>
+      {/* ═══════ TOP CARDS — CURRENT YEAR ONLY ═══════ */}
+      <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 1rem 0' }}>📈 {t('current_year_metrics') || 'Current Year Metrics'} ({currentYearKey})</h3>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '1.25rem', marginBottom: '3rem' }}>
         {[
-          { key: 'projected_rent', label: t('projected_rent'), value: metrics.expectedRent, color: 'var(--secondary)', icon: '📋' },
-          { key: 'collected_rent', label: t('collected_rent'), value: metrics.collectedRent, color: 'var(--primary)', icon: '✅' },
-          { key: 'unpaid_rent', label: t('unpaid_rent') || 'Unpaid Rent', value: metrics.unpaidRent, color: 'var(--danger)', icon: '⚠️' },
-          { key: 'transferred_amount', label: t('transferred_amount'), value: metrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
-          { key: 'total_expenses', label: t('total_expenses'), value: metrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
-          { key: 'cash_in_hand', label: t('cash_in_hand'), value: metrics.cashInHand, color: 'var(--success)', icon: '💵' },
+          { key: 'projected_rent', label: t('projected_rent'), value: currentYearMetrics.projectedRent, color: 'var(--secondary)', icon: '📋' },
+          { key: 'collected_rent', label: t('collected_rent'), value: currentYearMetrics.collectedRent, color: 'var(--primary)', icon: '✅' },
+          { key: 'total_expenses', label: t('total_expenses'), value: currentYearMetrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
+          { key: 'transferred_amount', label: t('transferred_amount'), value: currentYearMetrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
+          { key: 'unpaid_rent', label: t('unpaid_rent') || 'Unpaid Rent', value: currentYearMetrics.unpaidRent, color: currentYearMetrics.unpaidRent > 0 ? 'var(--danger)' : 'var(--success)', icon: '⚠️' },
         ].map((card) => (
           <div 
             key={card.key} 
@@ -361,31 +463,33 @@ const DashboardHome = () => {
         ))}
       </div>
 
-      {/* Summary Stat Cards - Historical Filtered */}
+      {/* ═══════ HISTORICAL CARDS — PREVIOUS YEARS ONLY ═══════ */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
         <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>📅 {t('historical_metrics') || 'Historical Metrics'}</h3>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <div>
-            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginRight: '0.5rem' }}>{t('start_year') || 'Start Year'}</label>
-            <select className="input" value={startYear} onChange={(e) => setStartYear(e.target.value)} style={{ padding: '0.3rem 0.5rem', minWidth: '100px' }}>
-              {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
+        {availableHistYears.length > 0 && (
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginRight: '0.5rem' }}>{t('start_year') || 'Start Year'}</label>
+              <select className="input" value={startYear} onChange={(e) => setStartYear(e.target.value)} style={{ padding: '0.3rem 0.5rem', minWidth: '100px' }}>
+                {availableHistYears.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginRight: '0.5rem' }}>{t('end_year') || 'End Year'}</label>
+              <select className="input" value={endYear} onChange={(e) => setEndYear(e.target.value)} style={{ padding: '0.3rem 0.5rem', minWidth: '100px' }}>
+                {availableHistYears.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
           </div>
-          <div>
-            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginRight: '0.5rem' }}>{t('end_year') || 'End Year'}</label>
-            <select className="input" value={endYear} onChange={(e) => setEndYear(e.target.value)} style={{ padding: '0.3rem 0.5rem', minWidth: '100px' }}>
-              {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
-          </div>
-        </div>
+        )}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '1.25rem', marginBottom: '3rem' }}>
         {[
+          { key: 'contracted_rent', label: t('actual_contracted_rent') || 'Actual Contracted Rent', value: filteredHistMetrics.contractedRent, color: 'var(--secondary)', icon: '📋' },
           { key: 'collected_rent', label: t('collected_rent'), value: filteredHistMetrics.collectedRent, color: 'var(--primary)', icon: '✅' },
-          { key: 'unpaid_rent', label: t('unpaid_rent') || 'Unpaid Rent', value: filteredHistMetrics.unpaidRent, color: 'var(--danger)', icon: '⚠️' },
-          { key: 'transferred_amount', label: t('transferred_amount'), value: filteredHistMetrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
           { key: 'total_expenses', label: t('total_expenses'), value: filteredHistMetrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
-          { key: 'cash_in_hand', label: t('cash_in_hand'), value: filteredHistMetrics.cashInHand, color: 'var(--success)', icon: '💵' },
+          { key: 'transferred_amount', label: t('transferred_amount'), value: filteredHistMetrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
+          { key: 'unpaid_rent', label: t('unpaid_rent') || 'Unpaid Rent', value: filteredHistMetrics.unpaidRent, color: filteredHistMetrics.unpaidRent > 0 ? 'var(--danger)' : 'var(--success)', icon: '⚠️' },
         ].map((card) => (
           <div 
             key={`hist-${card.key}`} 
@@ -435,7 +539,7 @@ const DashboardHome = () => {
           <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 0.3rem 0' }}>{t('income_vs_expenses')}</h4>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{t('income_vs_expenses_sub')}</p>
           <div style={{ width: '100%', height: 260 }}>
-            {metrics.actualRent === 0 && metrics.totalExpenses === 0 ? (
+            {currentYearMetrics.collectedRent === 0 && currentYearMetrics.totalExpenses === 0 ? (
               <div style={{ display:'flex', height:'100%', alignItems:'center', justifyContent:'center', color: 'var(--text-muted)' }}>{t('no_data')}</div>
             ) : (
               <ResponsiveContainer>

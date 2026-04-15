@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, Edit, Trash2, Printer, Receipt, UserCircle, Calculator, Download } from 'lucide-react';
+import { UserPlus, Edit, Trash2, Printer, Receipt, UserCircle, Calculator, Download, ArrowUpCircle } from 'lucide-react';
 import { getTenants, getProperties, saveTenant, updateTenant, deleteTenant, endTenantContract, saveLedgers, deleteLedgersByTenant } from '../utils/store';
 import type { TenantContract, Property } from '../utils/store';
 import { calculateRent } from '../utils/rentCalculator';
@@ -17,6 +17,7 @@ import { generateLedgerSchedules } from '../utils/ledgerGenerator';
 import type { RentCalculationResult } from '../utils/rentCalculator';
 import { useAppContext } from '../context/AppContext';
 import { exportCSV } from '../utils/exportUtils';
+import moment from 'moment-hijri';
 
 const Tenants: React.FC = () => {
   const { t } = useTranslation();
@@ -174,6 +175,54 @@ const Tenants: React.FC = () => {
     await loadData();
   };
 
+  const handleExtendContract = async (tnt: TenantContract) => {
+    // Determine next Hijri year from system date
+    const currentHijriYear = parseInt(moment().format('iYYYY'), 10);
+    const nextYear = currentHijriYear + 1;
+    const newStartDate = `${nextYear}/01/01`;  // 1 Muharram next year
+    const newEndDate   = `${nextYear}/12/30`;  // Last day Zulhijjah
+
+    if (!confirm(
+      `${t('extend_contract_confirm') || 'Extend contract to next Hijri year'} ${nextYear}?\n` +
+      `${t('tenant_name')}: ${tnt.tenantName}\n` +
+      `${t('payment_plan')}: ${tnt.paymentPlan}\n` +
+      `${t('start_date')}: ${newStartDate}  →  ${t('end_date')}: ${newEndDate}`
+    )) return;
+
+    // Clone the tenant as a new active contract for the next year
+    const newTenant = await saveTenant({
+      tenantName: tnt.tenantName,
+      propertyId: tnt.propertyId,
+      startDate: newStartDate,
+      endDate: newEndDate,
+      calendarMode: 'hijri',
+      paymentPlan: tnt.paymentPlan,  // Copy previous payment structure
+      iqamaNumber: tnt.iqamaNumber || '',
+      sponsorName: tnt.sponsorName || '',
+      mobileNumber: tnt.mobileNumber || '',
+      isActive: true
+    });
+
+    if (newTenant) {
+      const prop = properties.find(p => p.id === tnt.propertyId);
+      if (prop) {
+        const ledgers = generateLedgerSchedules(
+          newTenant.id,
+          prop.annualRent,
+          newStartDate,
+          newEndDate,
+          tnt.paymentPlan,
+          'hijri'
+        );
+        await saveLedgers(ledgers);
+      }
+      alert(`${t('contract_extended_success') || 'Contract extended successfully!'}\n${t('start_date')}: ${newStartDate}  →  ${t('end_date')}: ${newEndDate}`);
+      await loadData();
+    } else {
+      alert(t('contract_extend_failed') || 'Failed to extend contract. Please try again.');
+    }
+  };
+
   return (
     <div className="glass-panel p-8 animate-slide-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -281,6 +330,11 @@ const Tenants: React.FC = () => {
                     </h3>
                   
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {tnt.isActive && (
+                        <button type="button" onClick={() => handleExtendContract(tnt)} className="btn" style={{ padding: '0.5rem', background: 'var(--accent)', color: 'white' }} title={t('extend_contract') || 'Extend Contract (Next Hijri Year)'}>
+                          <ArrowUpCircle size={16} />
+                        </button>
+                      )}
                       <button type="button" onClick={() => navigate(`/dashboard/ledger/${tnt.id}`)} className="btn" style={{ padding: '0.5rem', background: 'var(--success)', color: 'white' }} title="View Ledger Account">
                         <Receipt size={16} />
                       </button>
