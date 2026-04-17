@@ -27,6 +27,7 @@ const Tenants: React.FC = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void } | null>(null);
   
   const [tenantName, setTenantName] = useState('');
   const [propertyId, setPropertyId] = useState('');
@@ -143,12 +144,18 @@ const Tenants: React.FC = () => {
     setShowForm(false);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm(t('confirm_delete') || 'Are you sure?')) {
-      const success = await deleteTenant(id);
-      if (!success) alert(t('failed_delete_tenant'));
-      await loadData();
-    }
+  const handleDelete = (id: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: t('confirm_delete') || 'Confirm Deletion',
+      message: t('confirm_delete_msg') || 'Are you sure you want to delete this tenant?',
+      onConfirm: async () => {
+        setConfirmModal(null);
+        const success = await deleteTenant(id);
+        if (!success) alert(t('failed_delete_tenant'));
+        await loadData();
+      }
+    });
   };
 
   const handleCalculateRent = (tnt: TenantContract) => {
@@ -224,54 +231,61 @@ const Tenants: React.FC = () => {
       
       console.log('Calculated next period:', calculatedStartDate, 'to', calculatedEndDate);
 
-      if (!confirm(
-        `${t('extend_contract_confirm') || 'Extend contract based on historical data?'} \n` +
-        `${t('tenant_name')}: ${tnt.tenantName}\n` +
-        `${t('payment_plan')}: ${tnt.paymentPlan}\n` +
-        `${t('start_date')}: ${calculatedStartDate}  →  ${t('end_date')}: ${calculatedEndDate}`
-      )) {
-        console.log('Extension cancelled by user');
-        return;
-      }
+      setConfirmModal({
+        isOpen: true,
+        title: t('extend_contract') || 'Extend Contract',
+        message: `${t('extend_contract_confirm') || 'Extend contract based on historical data?'} \n` +
+          `${t('tenant_name')}: ${tnt.tenantName}\n` +
+          `${t('payment_plan')}: ${tnt.paymentPlan}\n` +
+          `${t('start_date')}: ${calculatedStartDate}  →  ${t('end_date')}: ${calculatedEndDate}`,
+        onConfirm: async () => {
+          setConfirmModal(null);
+          try {
+            // Clone the tenant as a new active contract for the next year
+            const newTenantData = {
+              tenantName: latestContract.tenantName,
+              propertyId: latestContract.propertyId,
+              startDate: calculatedStartDate,
+              endDate: calculatedEndDate,
+              calendarMode: latestContract.calendarMode,
+              paymentPlan: latestContract.paymentPlan || 'Monthly',
+              iqamaNumber: latestContract.iqamaNumber || '',
+              sponsorName: latestContract.sponsorName || '',
+              mobileNumber: latestContract.mobileNumber || '',
+              isActive: true
+            };
 
-      // Clone the tenant as a new active contract for the next year
-      const newTenantData = {
-        tenantName: latestContract.tenantName,
-        propertyId: latestContract.propertyId,
-        startDate: calculatedStartDate,
-        endDate: calculatedEndDate,
-        calendarMode: latestContract.calendarMode,
-        paymentPlan: latestContract.paymentPlan || 'Monthly',
-        iqamaNumber: latestContract.iqamaNumber || '',
-        sponsorName: latestContract.sponsorName || '',
-        mobileNumber: latestContract.mobileNumber || '',
-        isActive: true
-      };
+            console.log('Saving new tenant contract...', newTenantData);
+            const newTenant = await saveTenant(newTenantData);
 
-      console.log('Saving new tenant contract...', newTenantData);
-      const newTenant = await saveTenant(newTenantData);
-
-      if (newTenant) {
-        console.log('New tenant contract saved, ID:', newTenant.id);
-        const prop = properties.find(p => p.id === tnt.propertyId);
-        if (prop) {
-          console.log('Generating ledgers for property:', prop.name);
-          const ledgers = generateLedgerSchedules(
-            newTenant.id,
-            prop.annualRent,
-            calculatedStartDate,
-            calculatedEndDate,
-            tnt.paymentPlan || 'Monthly',
-            latestContract.calendarMode
-          );
-          console.log('Generated ledgers count:', ledgers.length);
-          await saveLedgers(ledgers);
+            if (newTenant) {
+              console.log('New tenant contract saved, ID:', newTenant.id);
+              const prop = properties.find(p => p.id === tnt.propertyId);
+              if (prop) {
+                console.log('Generating ledgers for property:', prop.name);
+                const ledgers = generateLedgerSchedules(
+                  newTenant.id,
+                  prop.annualRent,
+                  calculatedStartDate,
+                  calculatedEndDate,
+                  tnt.paymentPlan || 'Monthly',
+                  latestContract.calendarMode
+                );
+                console.log('Generated ledgers count:', ledgers.length);
+                await saveLedgers(ledgers);
+              }
+              alert(`${t('contract_extended_success') || 'Contract extended successfully!'}`);
+              await loadData();
+            } else {
+              throw new Error('saveTenant returned null');
+            }
+          } catch (err) {
+            console.error('Error extending:', err);
+            alert(`${t('contract_extend_failed') || 'Failed to extend.'}`);
+          }
         }
-        alert(`${t('contract_extended_success') || 'Contract extended successfully!'}`);
-        await loadData();
-      } else {
-        throw new Error('saveTenant returned null');
-      }
+      });
+
     } catch (err) {
       console.error('Error in handleExtendContract:', err);
       alert(`${t('contract_extend_failed') || 'Failed to extend contract.'} ${err instanceof Error ? err.message : ''}`);
@@ -438,9 +452,9 @@ const Tenants: React.FC = () => {
 
                       {res && (
                         <div style={{ background: 'rgba(255,255,255,0.6)', padding: '1rem', borderRadius: '8px', fontSize: '0.875rem' }}>
-                          <p><strong>{t('pro_rata_rent')}:</strong> {(res?.currentMonthRentDue || 0).toFixed(2)} {currency}</p>
+                          <p><strong>{t('monthly_rent') || 'Monthly Rent'}:</strong> {Math.round(res?.monthlyRent || 0).toLocaleString()} {currency}</p>
                           <p>{t('active_days_leaving')} {res?.activeDays || 0}</p>
-                          <p>{t('daily_rate')} {(res?.dailyRate || 0).toFixed(2)} {currency}</p>
+                          <p>{t('daily_rate')} {Math.round(res?.dailyRate || 0).toLocaleString()} {currency}</p>
                           <button 
                             type="button" 
                             className="btn" 
@@ -457,6 +471,19 @@ const Tenants: React.FC = () => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {confirmModal && confirmModal.isOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-start', paddingTop: '15vh', justifyContent: 'center', zIndex: 10000 }}>
+          <div style={{ padding: '2rem', maxWidth: '400px', width: '100%', background: 'var(--bg, #ffffff)', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', color: 'var(--text)' }}>
+            <h3 style={{ marginTop: 0, fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--text-main, #000)' }}>{confirmModal.title}</h3>
+            <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6, color: 'var(--text-muted, #444)' }}>{confirmModal.message}</p>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'flex-end' }}>
+              <button type="button" className="btn" onClick={() => setConfirmModal(null)} style={{ background: '#eee', color: '#333' }}>{t('cancel')}</button>
+              <button type="button" className="btn btn-primary" onClick={confirmModal.onConfirm} style={{ background: 'var(--success, #10b981)', color: '#fff' }}>{t('confirm') || 'Confirm'}</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

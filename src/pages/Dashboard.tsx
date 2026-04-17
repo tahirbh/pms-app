@@ -412,7 +412,7 @@ const DashboardHome = () => {
                         {n.name}
                       </p>
                       <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: n.type === 'overdue' ? 'var(--danger)' : 'var(--accent)' }}>
-                        {n.type === 'overdue' ? t('overdue_alert') : t('upcoming_alert')}: {n.amount.toLocaleString()} {currency}
+                        {n.type === 'overdue' ? t('overdue_alert') : t('upcoming_alert')}: {Math.round(n.amount).toLocaleString()} {currency}
                       </p>
                       <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         {t('due_date')}: {n.date}
@@ -452,7 +452,7 @@ const DashboardHome = () => {
             <div style={{ fontSize: '1.4rem' }}>{card.icon}</div>
             <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{card.label}</div>
             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: card.color }}>
-              {(card.value || 0).toLocaleString()} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-muted)' }}>{currency}</span>
+              {Math.round(card.value || 0).toLocaleString()} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-muted)' }}>{currency}</span>
             </div>
           </div>
         ))}
@@ -497,7 +497,7 @@ const DashboardHome = () => {
             <div style={{ fontSize: '1.4rem' }}>{card.icon}</div>
             <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{card.label}</div>
             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: card.color }}>
-              {(card.value || 0).toLocaleString()} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-muted)' }}>{currency}</span>
+              {Math.round(card.value || 0).toLocaleString()} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-muted)' }}>{currency}</span>
             </div>
           </div>
         ))}
@@ -520,7 +520,7 @@ const DashboardHome = () => {
               <BarChart data={barData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip formatter={(value) => `${Number(value).toLocaleString()} ${currency}`} />
+                <Tooltip formatter={(value) => `${Math.round(Number(value)).toLocaleString()} ${currency}`} />
                 <Bar dataKey="expected" name={t('expected_annual') || 'Annual Expected'} fill="var(--text-muted)" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="contracted" name={t('actual_contracted_rent') || 'Contracted Amount'} fill="var(--secondary)" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="collected" name={t('collected_rent') || 'Collected Amount'} fill="var(--primary)" radius={[4, 4, 0, 0]} />
@@ -553,7 +553,7 @@ const DashboardHome = () => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => `${Number(value).toLocaleString()} ${currency}`} />
+                  <Tooltip formatter={(value) => `${Math.round(Number(value)).toLocaleString()} ${currency}`} />
                 </PieChart>
               </ResponsiveContainer>
             )}
@@ -588,7 +588,7 @@ const DashboardHome = () => {
                       <Cell key={`cell-${index}`} fill={LEDGER_COLORS[index % LEDGER_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => `${Number(value).toLocaleString()} ${currency}`} />
+                  <Tooltip formatter={(value) => `${Math.round(Number(value)).toLocaleString()} ${currency}`} />
                 </PieChart>
               </ResponsiveContainer>
             )}
@@ -612,7 +612,7 @@ const DashboardHome = () => {
                 <BarChart data={utilizationData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip formatter={(value) => `${Number(value).toLocaleString()} ${currency}`} />
+                  <Tooltip formatter={(value) => `${Math.round(Number(value)).toLocaleString()} ${currency}`} />
                   <Bar dataKey="potential" name={t('potential_rent_annual') || 'Annual Expected'} fill="var(--text-muted)" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="contracted" name={t('actual_contracted_rent') || 'Contracted Amount'} fill="var(--secondary)" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="collected" name={t('collected_rent') || 'Collected Amount'} fill="var(--primary)" radius={[4, 4, 0, 0]} />
