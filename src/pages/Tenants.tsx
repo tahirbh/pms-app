@@ -175,62 +175,106 @@ const Tenants: React.FC = () => {
   };
 
   const handleExtendContract = async (tnt: TenantContract) => {
-    // Fetch all tenants to find historical contracts for the same person
-    const allTenants = await getTenants();
-    const history = allTenants.filter(t => t.tenantName === tnt.tenantName);
-    
-    // Sort by endDate to find the latest contract
-    const latestContract = history.sort((a, b) => b.endDate.localeCompare(a.endDate))[0] || tnt;
+    console.log('handleExtendContract started for:', tnt.tenantName);
+    try {
+      // Fetch all tenants to find historical contracts for the same person
+      const allTenants = await getTenants();
+      console.log('Fetched all tenants, count:', allTenants.length);
+      
+      const history = allTenants.filter(t => t.tenantName === tnt.tenantName);
+      console.log('History for tenant:', history.length);
+      
+      // Sort by endDate to find the latest contract, being defensive about missing dates
+      const latestContract = history.sort((a, b) => {
+        const dateA = a.endDate || '';
+        const dateB = b.endDate || '';
+        return dateB.localeCompare(dateA);
+      })[0] || tnt;
 
-    // Helper to increment year in YYYY/MM/DD format
-    const incrementYear = (dateStr: string) => {
-      const parts = dateStr.split('/');
-      if (parts.length !== 3) return dateStr;
-      const year = parseInt(parts[0], 10);
-      return `${year + 1}/${parts[1]}/${parts[2]}`;
-    };
+      console.log('Latest contract identified:', latestContract.startDate, 'to', latestContract.endDate);
 
-    const calculatedStartDate = incrementYear(latestContract.startDate);
-    const calculatedEndDate = incrementYear(latestContract.endDate);
+      const incrementYear = (dateStr: string) => {
+        if (!dateStr) return '';
+        // Convert Arabic/Eastern numerals to Western numerals before parsing
+        const convertToEnglish = (str: string) => str.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
+        
+        const englishStr = convertToEnglish(dateStr);
+        const separator = englishStr.includes('/') ? '/' : (englishStr.includes('-') ? '-' : '/');
+        const parts = englishStr.split(separator);
+        
+        if (parts.length !== 3) return dateStr;
+        const year = parseInt(parts[0], 10);
+        if (isNaN(year)) return dateStr;
+        
+        // Pad month and day to ensure consistent formatting
+        const month = parts[1].padStart(2, '0');
+        const day = parts[2].padStart(2, '0');
+        
+        const newYearStr = `${year + 1}${separator}${month}${separator}${day}`;
+        
+        // If the original date contained Arabic numerals, convert the new date back
+        if (/[٠-٩]/.test(dateStr)) {
+           return newYearStr.replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[parseInt(d, 10)]);
+        }
+        return newYearStr;
+      };
 
-    if (!confirm(
-      `${t('extend_contract_confirm') || 'Extend contract based on historical data?'} \n` +
-      `${t('tenant_name')}: ${tnt.tenantName}\n` +
-      `${t('payment_plan')}: ${tnt.paymentPlan}\n` +
-      `${t('start_date')}: ${calculatedStartDate}  →  ${t('end_date')}: ${calculatedEndDate}`
-    )) return;
+      const calculatedStartDate = incrementYear(latestContract.startDate);
+      const calculatedEndDate = incrementYear(latestContract.endDate);
+      
+      console.log('Calculated next period:', calculatedStartDate, 'to', calculatedEndDate);
 
-    // Clone the tenant as a new active contract for the next year
-    const newTenant = await saveTenant({
-      tenantName: latestContract.tenantName,
-      propertyId: latestContract.propertyId,
-      startDate: calculatedStartDate,
-      endDate: calculatedEndDate,
-      calendarMode: latestContract.calendarMode,
-      paymentPlan: latestContract.paymentPlan || 'Monthly',
-      iqamaNumber: latestContract.iqamaNumber || '',
-      sponsorName: latestContract.sponsorName || '',
-      mobileNumber: latestContract.mobileNumber || '',
-      isActive: true
-    });
-
-    if (newTenant) {
-      const prop = properties.find(p => p.id === tnt.propertyId);
-      if (prop) {
-        const ledgers = generateLedgerSchedules(
-          newTenant.id,
-          prop.annualRent,
-          calculatedStartDate,
-          calculatedEndDate,
-          tnt.paymentPlan || 'Monthly',
-          latestContract.calendarMode
-        );
-        await saveLedgers(ledgers);
+      if (!confirm(
+        `${t('extend_contract_confirm') || 'Extend contract based on historical data?'} \n` +
+        `${t('tenant_name')}: ${tnt.tenantName}\n` +
+        `${t('payment_plan')}: ${tnt.paymentPlan}\n` +
+        `${t('start_date')}: ${calculatedStartDate}  →  ${t('end_date')}: ${calculatedEndDate}`
+      )) {
+        console.log('Extension cancelled by user');
+        return;
       }
-      alert(`${t('contract_extended_success') || 'Contract extended successfully!'}`);
-      await loadData();
-    } else {
-      alert(t('contract_extend_failed') || 'Failed to extend contract. Please try again.');
+
+      // Clone the tenant as a new active contract for the next year
+      const newTenantData = {
+        tenantName: latestContract.tenantName,
+        propertyId: latestContract.propertyId,
+        startDate: calculatedStartDate,
+        endDate: calculatedEndDate,
+        calendarMode: latestContract.calendarMode,
+        paymentPlan: latestContract.paymentPlan || 'Monthly',
+        iqamaNumber: latestContract.iqamaNumber || '',
+        sponsorName: latestContract.sponsorName || '',
+        mobileNumber: latestContract.mobileNumber || '',
+        isActive: true
+      };
+
+      console.log('Saving new tenant contract...', newTenantData);
+      const newTenant = await saveTenant(newTenantData);
+
+      if (newTenant) {
+        console.log('New tenant contract saved, ID:', newTenant.id);
+        const prop = properties.find(p => p.id === tnt.propertyId);
+        if (prop) {
+          console.log('Generating ledgers for property:', prop.name);
+          const ledgers = generateLedgerSchedules(
+            newTenant.id,
+            prop.annualRent,
+            calculatedStartDate,
+            calculatedEndDate,
+            tnt.paymentPlan || 'Monthly',
+            latestContract.calendarMode
+          );
+          console.log('Generated ledgers count:', ledgers.length);
+          await saveLedgers(ledgers);
+        }
+        alert(`${t('contract_extended_success') || 'Contract extended successfully!'}`);
+        await loadData();
+      } else {
+        throw new Error('saveTenant returned null');
+      }
+    } catch (err) {
+      console.error('Error in handleExtendContract:', err);
+      alert(`${t('contract_extend_failed') || 'Failed to extend contract.'} ${err instanceof Error ? err.message : ''}`);
     }
   };
 
