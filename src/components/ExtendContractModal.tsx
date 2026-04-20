@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, CheckCircle2, X, Info } from 'lucide-react';
+import { CheckCircle2, X, Info } from 'lucide-react';
 import type { TenantContract, Property } from '../utils/store';
 import { useAppContext } from '../context/AppContext';
 import DatePickerModule from "react-multi-date-picker";
@@ -35,7 +35,7 @@ const ExtendContractModal: React.FC<ExtendContractModalProps> = ({
   property 
 }) => {
   const { t } = useTranslation();
-  const { currency, language, calendarMode } = useAppContext();
+  const { currency, language } = useAppContext();
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
