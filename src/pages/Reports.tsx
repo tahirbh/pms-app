@@ -28,17 +28,17 @@ const Reports: React.FC = () => {
 
   const [startDate, setStartDate] = useState(() => {
     if (qStart) return qStart;
-    return calendarMode === 'hijri' 
-      ? moment().subtract(30, 'days').format('iYYYY/iMM/iDD') 
+    return calendarMode === 'hijri'
+      ? moment().subtract(30, 'days').format('iYYYY/iMM/iDD')
       : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   });
   const [endDate, setEndDate] = useState(() => {
     if (qEnd) return qEnd;
-    return calendarMode === 'hijri' 
-      ? moment().format('iYYYY/iMM/iDD') 
+    return calendarMode === 'hijri'
+      ? moment().format('iYYYY/iMM/iDD')
       : new Date().toISOString().split('T')[0];
   });
-  
+
   const [searchTerm, setSearchTerm] = useState('');
 
   const [incomes, setIncomes] = useState<ContractLedger[]>([]);
@@ -58,7 +58,7 @@ const Reports: React.FC = () => {
     en = en.replace(/-/g, '/');
     return en.replace(/[^\d/]/g, '');
   };
-  
+
   const parseGenericDate = (dateStr: string) => {
     if (!dateStr) return 0;
     const safeStr = toEnglishDigits(dateStr);
@@ -78,7 +78,7 @@ const Reports: React.FC = () => {
 
       let startBoundMs: number;
       let endBoundMs: number;
-      
+
       if (calendarMode === 'hijri') {
         startBoundMs = moment(safeStartDate, 'iYYYY/iMM/iDD').toDate().getTime();
         const ed = moment(safeEndDate, 'iYYYY/iMM/iDD').toDate();
@@ -94,13 +94,13 @@ const Reports: React.FC = () => {
       // Filter Incomes
       const filteredIncomes = allLedgers.filter(L => {
         if (L.status !== 'Paid') return false;
-        
+
         // Determination strategy: 
         // 1. If we have a paidDate, check it first (Standard Cash Basis).
         // 2. If it falls outside or is missing, check dueDate (Fallback for historical back-filling).
         const pdTs = L.paidDate ? parseGenericDate(L.paidDate) : 0;
         const ddTs = parseGenericDate(L.dueDate);
-        
+
         const isPaidInWindow = pdTs >= startBoundMs && pdTs <= endBoundMs;
         const isDueInWindow = ddTs >= startBoundMs && ddTs <= endBoundMs;
 
@@ -194,8 +194,8 @@ const Reports: React.FC = () => {
   const displayDate = (rawDate: string) => {
     if (!rawDate) return '';
     const ts = parseGenericDate(rawDate);
-    if (!ts) return formatDigits(rawDate); 
-    
+    if (!ts) return formatDigits(rawDate);
+
     let formatted = '';
     if (calendarMode === 'hijri') {
       formatted = moment(ts).format('iYYYY/iMM/iDD');
@@ -251,9 +251,9 @@ const Reports: React.FC = () => {
         </div>
         <div style={{ flex: 1, minWidth: '200px' }}>
           <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>{t('search_placeholder') || 'Search'}</label>
-          <input 
-            type="text" 
-            className="input-field" 
+          <input
+            type="text"
+            className="input-field"
             placeholder={t('search_placeholder') || "Search any word..."}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -272,7 +272,7 @@ const Reports: React.FC = () => {
             {(totalIncome || 0).toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
           </div>
         </div>
-        
+
         <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--danger)' }}>
           <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <ArrowDownRight size={16} color="var(--danger)" />
@@ -315,7 +315,7 @@ const Reports: React.FC = () => {
               </button>
             </div>
           </div>
-          
+
           <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>
             {ledgerData.length === 0 ? (
               <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem' }}>{t('no_transactions')}</div>

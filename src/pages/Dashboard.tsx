@@ -18,7 +18,7 @@ import Reports from './Reports';
 import Pivot from './Pivot';
 import { getProperties, getTenants, getExpenses, getAllLedgers } from '../utils/store';
 
-class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: Error | null }> {
   constructor(props: any) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -58,7 +58,7 @@ const DashboardHome = () => {
   const { t } = useTranslation();
   const { currency, calendarMode } = useAppContext();
   const navigate = useNavigate();
-  
+
   // ── Current year metrics (top cards) ──
   const [currentYearMetrics, setCurrentYearMetrics] = useState({
     projectedRent: 0,
@@ -76,17 +76,17 @@ const DashboardHome = () => {
   const [availableHistYears, setAvailableHistYears] = useState<string[]>([]);
   const [startYear, setStartYear] = useState<string>('');
   const [endYear, setEndYear] = useState<string>('');
-  const [historicalDataPerYear, setHistoricalDataPerYear] = useState<Record<string, { contractedRent: number, collectedRent: number, totalExpenses: number, transferredAmount: number }>>({}); 
+  const [historicalDataPerYear, setHistoricalDataPerYear] = useState<Record<string, { contractedRent: number, collectedRent: number, totalExpenses: number, transferredAmount: number }>>({});
 
   // ── Charts & notifications ──
-  const [utilizationData, setUtilizationData] = useState<{name: string, potential: number, contracted: number, collected: number}[]>([]);
+  const [utilizationData, setUtilizationData] = useState<{ name: string, potential: number, contracted: number, collected: number }[]>([]);
   const [ledgerStats, setLedgerStats] = useState({ paid: 0, overdue: 0, upcoming: 0 });
-  const [notifications, setNotifications] = useState<{id: string, tenantId: string, name: string, type: 'overdue'|'upcoming', amount: number, date: string}[]>([]);
+  const [notifications, setNotifications] = useState<{ id: string, tenantId: string, name: string, type: 'overdue' | 'upcoming', amount: number, date: string }[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
   // Current year key (computed once)
   const currentYearKey = getCurrentYearKey(calendarMode);
-  
+
   useEffect(() => {
     const loadAll = async () => {
       const props = await getProperties();
@@ -249,14 +249,14 @@ const DashboardHome = () => {
       const buildUtil = props.map(p => {
         const pTenants = tenants.filter(t => t.propertyId === p.id);
         const activeTenants = pTenants.filter(t => t.isActive);
-        
+
         let contracted = 0;
         let collected = 0;
 
         activeTenants.forEach(activeTenant => {
-           const tenantLedgers = allLedgers.filter(l => l.tenantId === activeTenant.id);
-           contracted += tenantLedgers.reduce((acc, curr) => acc + curr.amount, 0);
-           collected += tenantLedgers.filter(l => l.status === 'Paid').reduce((acc, curr) => acc + curr.amount, 0);
+          const tenantLedgers = allLedgers.filter(l => l.tenantId === activeTenant.id);
+          contracted += tenantLedgers.reduce((acc, curr) => acc + curr.amount, 0);
+          collected += tenantLedgers.filter(l => l.status === 'Paid').reduce((acc, curr) => acc + curr.amount, 0);
         });
 
         return {
@@ -268,7 +268,7 @@ const DashboardHome = () => {
       });
       setUtilizationData(buildUtil);
     };
-    
+
     loadAll();
   }, [calendarMode]);
 
@@ -311,7 +311,7 @@ const DashboardHome = () => {
         // Default historical range: All time up until the END of the previous year
         if (calendarMode === 'hijri') {
           const prevYear = parseInt(moment().format('iYYYY')) - 1;
-          qStart = "1400/01/01"; 
+          qStart = "1400/01/01";
           qEnd = `${prevYear}/12/30`;
         } else {
           const prevYear = new Date().getFullYear() - 1;
@@ -384,8 +384,8 @@ const DashboardHome = () => {
   return (
     <div className="glass-panel p-6 animate-slide-in relative">
       <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem' }}>
-        <button 
-          className="btn" 
+        <button
+          className="btn"
           style={{ position: 'relative', padding: '0.5rem', background: 'var(--surface-color)', border: '1px solid var(--glass-border)' }}
           onClick={() => setShowNotifications(!showNotifications)}
         >
@@ -441,9 +441,9 @@ const DashboardHome = () => {
           { key: 'unpaid_rent', label: t('unpaid_rent') || 'Unpaid Rent', value: currentYearMetrics.unpaidRent, color: currentYearMetrics.unpaidRent > 0 ? 'var(--danger)' : 'var(--success)', icon: '⚠️' },
           { key: 'cash_in_hand', label: t('cash_in_hand') || 'Cash in Hand', value: currentYearMetrics.cashInHand, color: 'var(--success)', icon: '💰' },
         ].map((card) => (
-          <div 
-            key={card.key} 
-            className="glass-panel" 
+          <div
+            key={card.key}
+            className="glass-panel"
             style={{ padding: '1.25rem 1.5rem', borderLeft: `4px solid ${card.color}`, display: 'flex', flexDirection: 'column', gap: '0.4rem', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }}
             onClick={() => handleCardClick(card.key, false)}
             onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
@@ -486,9 +486,9 @@ const DashboardHome = () => {
           { key: 'transferred_amount', label: t('transferred_amount'), value: filteredHistMetrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
           { key: 'unpaid_rent', label: t('unpaid_rent') || 'Unpaid Rent', value: filteredHistMetrics.unpaidRent, color: filteredHistMetrics.unpaidRent > 0 ? 'var(--danger)' : 'var(--success)', icon: '⚠️' },
         ].map((card) => (
-          <div 
-            key={`hist-${card.key}`} 
-            className="glass-panel" 
+          <div
+            key={`hist-${card.key}`}
+            className="glass-panel"
             style={{ padding: '1.25rem 1.5rem', borderLeft: `4px solid ${card.color}`, display: 'flex', flexDirection: 'column', gap: '0.4rem', background: 'rgba(var(--glass-bg), 0.4)', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }}
             onClick={() => handleCardClick(card.key, true)}
             onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
@@ -508,9 +508,9 @@ const DashboardHome = () => {
         <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>📊 {t('financial_analytics')}</h3>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>{t('financial_analytics_subtitle')}</p>
       </div>
-      
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-        
+
         {/* Expected vs Actual Rent Bar Chart */}
         <div className="glass-panel" style={{ padding: '1.5rem' }}>
           <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 0.3rem 0' }}>{t('expected_vs_actual')}</h4>
@@ -535,7 +535,7 @@ const DashboardHome = () => {
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{t('income_vs_expenses_sub')}</p>
           <div style={{ width: '100%', height: 260 }}>
             {currentYearMetrics.collectedRent === 0 && currentYearMetrics.totalExpenses === 0 ? (
-              <div style={{ display:'flex', height:'100%', alignItems:'center', justifyContent:'center', color: 'var(--text-muted)' }}>{t('no_data')}</div>
+              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>{t('no_data')}</div>
             ) : (
               <ResponsiveContainer>
                 <PieChart>
@@ -558,8 +558,8 @@ const DashboardHome = () => {
               </ResponsiveContainer>
             )}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginTop: '1rem' }}>
-              <span style={{ display:'flex', alignItems: 'center', gap: '0.5rem' }}><span style={{width: 12, height:12, borderRadius:'50%', background: COLORS[0]}}></span> {t('income')}</span>
-              <span style={{ display:'flex', alignItems: 'center', gap: '0.5rem' }}><span style={{width: 12, height:12, borderRadius:'50%', background: COLORS[1]}}></span> {t('expense_label')}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><span style={{ width: 12, height: 12, borderRadius: '50%', background: COLORS[0] }}></span> {t('income')}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><span style={{ width: 12, height: 12, borderRadius: '50%', background: COLORS[1] }}></span> {t('expense_label')}</span>
             </div>
           </div>
         </div>
@@ -570,7 +570,7 @@ const DashboardHome = () => {
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{t('ledger_revenue_sub')}</p>
           <div style={{ width: '100%', height: 260 }}>
             {ledgerStats.paid === 0 && ledgerStats.overdue === 0 && ledgerStats.upcoming === 0 ? (
-              <div style={{ display:'flex', height:'100%', alignItems:'center', justifyContent:'center', color: 'var(--text-muted)' }}>{t('no_data')}</div>
+              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>{t('no_data')}</div>
             ) : (
               <ResponsiveContainer>
                 <PieChart>
@@ -593,9 +593,9 @@ const DashboardHome = () => {
               </ResponsiveContainer>
             )}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
-              <span style={{ display:'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}><span style={{width: 12, height:12, borderRadius:'50%', background: LEDGER_COLORS[0]}}></span> {t('paid_rent')}</span>
-              <span style={{ display:'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}><span style={{width: 12, height:12, borderRadius:'50%', background: LEDGER_COLORS[1]}}></span> {t('overdue_rent')}</span>
-              <span style={{ display:'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}><span style={{width: 12, height:12, borderRadius:'50%', background: LEDGER_COLORS[2]}}></span> {t('upcoming_rent')}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}><span style={{ width: 12, height: 12, borderRadius: '50%', background: LEDGER_COLORS[0] }}></span> {t('paid_rent')}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}><span style={{ width: 12, height: 12, borderRadius: '50%', background: LEDGER_COLORS[1] }}></span> {t('overdue_rent')}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}><span style={{ width: 12, height: 12, borderRadius: '50%', background: LEDGER_COLORS[2] }}></span> {t('upcoming_rent')}</span>
             </div>
           </div>
         </div>
@@ -606,7 +606,7 @@ const DashboardHome = () => {
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{t('building_utilization_sub')}</p>
           <div style={{ width: '100%', height: 320 }}>
             {utilizationData.length === 0 ? (
-              <div style={{ display:'flex', height:'100%', alignItems:'center', justifyContent:'center', color: 'var(--text-muted)' }}>{t('no_data')}</div>
+              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>{t('no_data')}</div>
             ) : (
               <ResponsiveContainer>
                 <BarChart data={utilizationData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -652,17 +652,18 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="dashboard-layout" style={{ display: 'flex', minHeight: '100vh' }}>
-      
+
       {/* Sidebar Navigation */}
       <aside className="glass-panel sidebar">
-        <div className="app-title" style={{ padding: '2rem 1.5rem', fontWeight: 700, fontSize: '1.5rem', color: 'var(--primary)' }}>
-          {t('app_title')}
+        <div className="app-title" style={{ padding: '2rem 1.5rem', fontWeight: 700, fontSize: '1.5rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+          <span className="app-title-glow">{t('app_title')}</span>
+          <span className="version-badge">v1.0.0</span>
         </div>
-        
+
         <nav className="sidebar-nav">
           {navItems.map((item) => (
-            <NavLink 
-              key={item.path} 
+            <NavLink
+              key={item.path}
               to={item.path}
               end={item.exact}
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
@@ -689,8 +690,8 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           )}
-          <button 
-            className="btn" 
+          <button
+            className="btn"
             style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--danger)', background: 'transparent' }}
             onClick={handleSignOut}
           >

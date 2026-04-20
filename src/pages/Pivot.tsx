@@ -146,12 +146,12 @@ const Pivot = () => {
                       p1ColTotals[p.id] += val;
                       return (
                         <td key={p.id} style={{ padding: '0.75rem 1.5rem' }}>
-                          {val.toLocaleString()} <span style={{fontSize:'0.7em', color:'var(--text-muted)'}}>{currency}</span>
+                          {Math.round(val).toLocaleString()} <span style={{fontSize:'0.7em', color:'var(--text-muted)'}}>{currency}</span>
                         </td>
                       );
                     })}
                     <td style={{ padding: '0.75rem 1.5rem', fontWeight: 700, color: 'var(--primary)' }}>
-                      {rowTotal.toLocaleString()} <span style={{fontSize:'0.7em'}}>{currency}</span>
+                      {Math.round(rowTotal).toLocaleString()} <span style={{fontSize:'0.7em'}}>{currency}</span>
                     </td>
                   </tr>
                 );
@@ -164,12 +164,12 @@ const Pivot = () => {
                   p1GrandTotal += p1ColTotals[p.id];
                   return (
                     <td key={p.id} style={{ padding: '0.75rem 1.5rem', fontWeight: 800, color: 'var(--primary)' }}>
-                      {p1ColTotals[p.id].toLocaleString()} <span style={{fontSize:'0.7em'}}>{currency}</span>
+                      {Math.round(p1ColTotals[p.id]).toLocaleString()} <span style={{fontSize:'0.7em'}}>{currency}</span>
                     </td>
                   );
                 })}
                 <td style={{ padding: '0.75rem 1.5rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                  {p1GrandTotal.toLocaleString()} <span style={{fontSize:'0.7em'}}>{currency}</span>
+                  {Math.round(p1GrandTotal).toLocaleString()} <span style={{fontSize:'0.7em'}}>{currency}</span>
                 </td>
               </tr>
             </tfoot>
@@ -208,12 +208,12 @@ const Pivot = () => {
                       p2ColTotals[cat.key] += val;
                       return (
                         <td key={cat.key} style={{ padding: '0.75rem 1.5rem' }}>
-                          {val.toLocaleString()} <span style={{fontSize:'0.7em', color:'var(--text-muted)'}}>{currency}</span>
+                          {Math.round(val).toLocaleString()} <span style={{fontSize:'0.7em', color:'var(--text-muted)'}}>{currency}</span>
                         </td>
                       );
                     })}
                     <td style={{ padding: '0.75rem 1.5rem', fontWeight: 700, color: 'var(--primary)' }}>
-                      {rowTotal.toLocaleString()} <span style={{fontSize:'0.7em'}}>{currency}</span>
+                      {Math.round(rowTotal).toLocaleString()} <span style={{fontSize:'0.7em'}}>{currency}</span>
                     </td>
                   </tr>
                 );
@@ -226,12 +226,12 @@ const Pivot = () => {
                   p2GrandTotal += p2ColTotals[cat.key];
                   return (
                     <td key={cat.key} style={{ padding: '0.75rem 1.5rem', fontWeight: 800, color: 'var(--primary)' }}>
-                      {p2ColTotals[cat.key].toLocaleString()} <span style={{fontSize:'0.7em'}}>{currency}</span>
+                      {Math.round(p2ColTotals[cat.key]).toLocaleString()} <span style={{fontSize:'0.7em'}}>{currency}</span>
                     </td>
                   );
                 })}
                 <td style={{ padding: '0.75rem 1.5rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                  {p2GrandTotal.toLocaleString()} <span style={{fontSize:'0.7em'}}>{currency}</span>
+                  {Math.round(p2GrandTotal).toLocaleString()} <span style={{fontSize:'0.7em'}}>{currency}</span>
                 </td>
               </tr>
             </tfoot>

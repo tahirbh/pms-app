@@ -17,6 +17,10 @@ import { generateLedgerSchedules } from '../utils/ledgerGenerator';
 import type { RentCalculationResult } from '../utils/rentCalculator';
 import { useAppContext } from '../context/AppContext';
 import { exportCSV } from '../utils/exportUtils';
+import ExtendContractModal from '../components/ExtendContractModal';
+import ConfirmModal from '../components/ConfirmModal';
+import { updateProperty } from '../utils/store';
+
 
 const Tenants: React.FC = () => {
   const { t } = useTranslation();
@@ -28,6 +32,8 @@ const Tenants: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void } | null>(null);
+  const [extendingContract, setExtendingContract] = useState<{ tenant: TenantContract; property: Property } | null>(null);
+
   
   const [tenantName, setTenantName] = useState('');
   const [propertyId, setPropertyId] = useState('');
@@ -181,116 +187,63 @@ const Tenants: React.FC = () => {
     await loadData();
   };
 
-  const handleExtendContract = async (tnt: TenantContract) => {
-    console.log('handleExtendContract started for:', tnt.tenantName);
+  const handleExtendContract = (tnt: TenantContract) => {
+    const prop = properties.find(p => p.id === tnt.propertyId);
+    if (!prop) return;
+    setExtendingContract({ tenant: tnt, property: prop });
+  };
+
+  const handleConfirmExtension = async (data: { 
+    newRent: number; 
+    updateMaster: boolean; 
+    paymentPlan: 'Monthly' | '3 Month' | '6 Month' | 'Yearly';
+    startDate: string;
+    endDate: string;
+  }) => {
+    if (!extendingContract) return;
+    const { tenant: tnt, property: prop } = extendingContract;
+    
+    setExtendingContract(null);
     try {
-      // Fetch all tenants to find historical contracts for the same person
-      const allTenants = await getTenants();
-      console.log('Fetched all tenants, count:', allTenants.length);
-      
-      const history = allTenants.filter(t => t.tenantName === tnt.tenantName);
-      console.log('History for tenant:', history.length);
-      
-      // Sort by endDate to find the latest contract, being defensive about missing dates
-      const latestContract = history.sort((a, b) => {
-        const dateA = a.endDate || '';
-        const dateB = b.endDate || '';
-        return dateB.localeCompare(dateA);
-      })[0] || tnt;
+      // 1. Update Property Master if requested
+      if (data.updateMaster) {
+        await updateProperty({ ...prop, annualRent: data.newRent });
+      }
 
-      console.log('Latest contract identified:', latestContract.startDate, 'to', latestContract.endDate);
-
-      const incrementYear = (dateStr: string) => {
-        if (!dateStr) return '';
-        // Convert Arabic/Eastern numerals to Western numerals before parsing
-        const convertToEnglish = (str: string) => str.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
-        
-        const englishStr = convertToEnglish(dateStr);
-        const separator = englishStr.includes('/') ? '/' : (englishStr.includes('-') ? '-' : '/');
-        const parts = englishStr.split(separator);
-        
-        if (parts.length !== 3) return dateStr;
-        const year = parseInt(parts[0], 10);
-        if (isNaN(year)) return dateStr;
-        
-        // Pad month and day to ensure consistent formatting
-        const month = parts[1].padStart(2, '0');
-        const day = parts[2].padStart(2, '0');
-        
-        const newYearStr = `${year + 1}${separator}${month}${separator}${day}`;
-        
-        // If the original date contained Arabic numerals, convert the new date back
-        if (/[٠-٩]/.test(dateStr)) {
-           return newYearStr.replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[parseInt(d, 10)]);
-        }
-        return newYearStr;
-      };
-
-      const calculatedStartDate = incrementYear(latestContract.startDate);
-      const calculatedEndDate = incrementYear(latestContract.endDate);
-      
-      console.log('Calculated next period:', calculatedStartDate, 'to', calculatedEndDate);
-
-      setConfirmModal({
-        isOpen: true,
-        title: t('extend_contract') || 'Extend Contract',
-        message: `${t('extend_contract_confirm') || 'Extend contract based on historical data?'} \n` +
-          `${t('tenant_name')}: ${tnt.tenantName}\n` +
-          `${t('payment_plan')}: ${tnt.paymentPlan}\n` +
-          `${t('start_date')}: ${calculatedStartDate}  →  ${t('end_date')}: ${calculatedEndDate}`,
-        onConfirm: async () => {
-          setConfirmModal(null);
-          try {
-            // Clone the tenant as a new active contract for the next year
-            const newTenantData = {
-              tenantName: latestContract.tenantName,
-              propertyId: latestContract.propertyId,
-              startDate: calculatedStartDate,
-              endDate: calculatedEndDate,
-              calendarMode: latestContract.calendarMode,
-              paymentPlan: latestContract.paymentPlan || 'Monthly',
-              iqamaNumber: latestContract.iqamaNumber || '',
-              sponsorName: latestContract.sponsorName || '',
-              mobileNumber: latestContract.mobileNumber || '',
-              isActive: true
-            };
-
-            console.log('Saving new tenant contract...', newTenantData);
-            const newTenant = await saveTenant(newTenantData);
-
-            if (newTenant) {
-              console.log('New tenant contract saved, ID:', newTenant.id);
-              const prop = properties.find(p => p.id === tnt.propertyId);
-              if (prop) {
-                console.log('Generating ledgers for property:', prop.name);
-                const ledgers = generateLedgerSchedules(
-                  newTenant.id,
-                  prop.annualRent,
-                  calculatedStartDate,
-                  calculatedEndDate,
-                  tnt.paymentPlan || 'Monthly',
-                  latestContract.calendarMode
-                );
-                console.log('Generated ledgers count:', ledgers.length);
-                await saveLedgers(ledgers);
-              }
-              alert(`${t('contract_extended_success') || 'Contract extended successfully!'}`);
-              await loadData();
-            } else {
-              throw new Error('saveTenant returned null');
-            }
-          } catch (err) {
-            console.error('Error extending:', err);
-            alert(`${t('contract_extend_failed') || 'Failed to extend.'}`);
-          }
-        }
+      // 2. Save new Tenant contract
+      const newTenant = await saveTenant({
+        tenantName: tnt.tenantName,
+        propertyId: tnt.propertyId,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        calendarMode: tnt.calendarMode,
+        paymentPlan: data.paymentPlan,
+        iqamaNumber: tnt.iqamaNumber || '',
+        sponsorName: tnt.sponsorName || '',
+        mobileNumber: tnt.mobileNumber || '',
+        isActive: true
       });
 
+      if (newTenant) {
+        // 3. Generate ledgers with the NEW rent
+        const ledgers = generateLedgerSchedules(
+          newTenant.id,
+          data.newRent,
+          data.startDate,
+          data.endDate,
+          data.paymentPlan,
+          tnt.calendarMode
+        );
+        await saveLedgers(ledgers);
+        alert(`${t('contract_extended_success') || 'Contract extended successfully!'}`);
+        await loadData();
+      }
     } catch (err) {
-      console.error('Error in handleExtendContract:', err);
-      alert(`${t('contract_extend_failed') || 'Failed to extend contract.'} ${err instanceof Error ? err.message : ''}`);
+      console.error('Error extending:', err);
+      alert(`${t('contract_extend_failed') || 'Failed to extend.'}`);
     }
   };
+
 
   return (
     <div className="glass-panel p-8 animate-slide-in">
@@ -319,7 +272,7 @@ const Tenants: React.FC = () => {
             <input className="input-field" placeholder={t('tenant_name')} value={tenantName} onChange={e => setTenantName(e.target.value)} required />
             <select className="input-field" value={propertyId} onChange={e => setPropertyId(e.target.value)} required>
               <option value="">{t('select_property')}</option>
-              {properties.map(p => <option key={p.id} value={p.id}>{p.name} ({p.annualRent} {currency}/yr)</option>)}
+              {properties.map(p => <option key={p.id} value={p.id}>{p.name} ({Math.round(p.annualRent).toLocaleString()} {currency}/yr)</option>)}
             </select>
             
             <input className="input-field" placeholder={t('iqama_number')} value={iqamaNumber} onChange={e => setIqamaNumber(e.target.value)} />
@@ -474,19 +427,26 @@ const Tenants: React.FC = () => {
         </div>
       )}
 
-      {confirmModal && confirmModal.isOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-start', paddingTop: '15vh', justifyContent: 'center', zIndex: 10000 }}>
-          <div style={{ padding: '2rem', maxWidth: '400px', width: '100%', background: 'var(--bg, #ffffff)', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', color: 'var(--text)' }}>
-            <h3 style={{ marginTop: 0, fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--text-main, #000)' }}>{confirmModal.title}</h3>
-            <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6, color: 'var(--text-muted, #444)' }}>{confirmModal.message}</p>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'flex-end' }}>
-              <button type="button" className="btn" onClick={() => setConfirmModal(null)} style={{ background: '#eee', color: '#333' }}>{t('cancel')}</button>
-              <button type="button" className="btn btn-primary" onClick={confirmModal.onConfirm} style={{ background: 'var(--success, #10b981)', color: '#fff' }}>{t('confirm') || 'Confirm'}</button>
-            </div>
-          </div>
-        </div>
+      <ConfirmModal
+        isOpen={!!confirmModal?.isOpen}
+        title={confirmModal?.title || ''}
+        message={confirmModal?.message || ''}
+        onConfirm={confirmModal?.onConfirm || (() => {})}
+        onCancel={() => setConfirmModal(null)}
+        variant="danger"
+      />
+
+      {extendingContract && (
+        <ExtendContractModal 
+          isOpen={!!extendingContract}
+          onClose={() => setExtendingContract(null)}
+          onConfirm={handleConfirmExtension}
+          tenant={extendingContract.tenant}
+          property={extendingContract.property}
+        />
       )}
     </div>
+
   );
 };
 

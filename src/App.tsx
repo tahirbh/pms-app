@@ -4,6 +4,9 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import SplashScreen from './components/SplashScreen';
+import { useState } from 'react';
+
 
 // Guards the dashboard — redirects to /login if not authenticated
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -29,8 +32,19 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 function App() {
+  const [showSplash, setShowSplash] = useState(() => {
+    // Only show splash screen once per session
+    return !sessionStorage.getItem('pms_splash_shown');
+  });
+
+  const handleSplashFinished = () => {
+    sessionStorage.setItem('pms_splash_shown', 'true');
+    setShowSplash(false);
+  };
+
   return (
     <AuthProvider>
+      {showSplash && <SplashScreen onFinished={handleSplashFinished} />}
       <Router>
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -49,5 +63,6 @@ function App() {
     </AuthProvider>
   );
 }
+
 
 export default App;

@@ -175,7 +175,16 @@ const resources = {
       "feat_1_title": "Multi-Calendar Support", "feat_1_desc": "Natively supports both Gregorian and Hijri calendars with precise pro-rata rent calculations engineered for global usability.",
       "feat_2_title": "Cloud Security", "feat_2_desc": "Your data is securely synchronized and backed up instantly to the robust Supabase cloud infrastructure.",
       "feat_3_desc": "Track dynamic rent collection and organizational expenses seamlessly using beautiful automated visualizations.",
-      "cta_title": "Ready to transform your properties?", "register_account": "Register Account", "footer_copyright": "Global PMS. All rights reserved. Built for the modern landowner."
+      "cta_title": "Ready to transform your properties?", "register_account": "Register Account", "footer_copyright": "Global PMS. All rights reserved. Built for the modern landowner.",
+      "extend_contract_dialog_title": "Extend Contract",
+      "current_rent": "Current Rent",
+      "new_rent_label": "New Rent Amount",
+      "update_master_rent": "Update Apartment Master Rent",
+      "update_master_rent_hint": "Save this rent as the default for future tenants",
+      "calculated_period": "Calculated Extension Period",
+      "confirm_extension": "Confirm Extension",
+      "previous_end": "Previous End Date",
+      "extension_tip": "Defaults to 12-month extension from previous end date."
     }
   },
   ar: {
@@ -326,7 +335,16 @@ const resources = {
       "feat_1_title": "دعم التقاويم المتعددة", "feat_1_desc": "يدعم التقويمين الميلادي والهجري مع حساب دقيق.",
       "feat_2_title": "الأمان السحابي", "feat_2_desc": "تُزامن بياناتك بأمان ويُحتفظ بها في السحابة.",
       "feat_3_desc": "تتبع تحصيل الإيجار والمصروفات بسهولة.",
-      "cta_title": "هل أنت مستعد لتحويل عقاراتك؟", "register_account": "تسجيل حساب", "footer_copyright": "جميع الحقوق محفوظة. نظام إدارة العقارات العالمي."
+      "cta_title": "هل أنت مستعد لتحويل عقاراتك؟", "register_account": "تسجيل حساب", "footer_copyright": "جميع الحقوق محفوظة. نظام إدارة العقارات العالمي.",
+      "extend_contract_dialog_title": "تمديد العقد",
+      "current_rent": "الإيجار الحالي",
+      "new_rent_label": "مبلغ الإيجار الجديد",
+      "update_master_rent": "تحديث إيجار الشقة الأساسي",
+      "update_master_rent_hint": "حفظ هذا الإيجار كافتراضي للمستأجرين المستقبليين",
+      "calculated_period": "فترة التمديد المحسوبة",
+      "confirm_extension": "تأكيد التمديد",
+      "previous_end": "تاريخ الانتهاء السابق",
+      "extension_tip": "افتراضيًا يتم التمديد لمدة ١٢ شهرًا من تاريخ الانتهاء السابق."
     }
   },
   ur: {
@@ -477,7 +495,16 @@ const resources = {
       "feat_1_title": "متعدد کیلنڈر کی معاونت", "feat_1_desc": "عیسوی اور ہجری دونوں کو سپورٹ کرتا ہے۔",
       "feat_2_title": "کلاؤڈ سیکیورٹی", "feat_2_desc": "آپ کا ڈیٹا محفوظ ہے۔",
       "feat_3_desc": "کرایے اور اخراجات کو آسانی سے ٹریک کریں۔",
-      "cta_title": "کیا آپ جائیدادوں کو تبدیل کرنے کے لیے تیار ہیں؟", "register_account": "اکاؤنٹ رجسٹر کریں", "footer_copyright": "عالمی پی ایم ایس۔ تمام حقوق محفوظ ہیں۔"
+      "cta_title": "کیا آپ جائیدادوں کو تبدیل کرنے کے لیے تیار ہیں؟", "register_account": "اکاؤنٹ رجسٹر کریں", "footer_copyright": "عالمی پی ایم ایس۔ تمام حقوق محفوظ ہیں۔",
+      "extend_contract_dialog_title": "معاہدے میں توسیع",
+      "current_rent": "موجودہ کرایہ",
+      "new_rent_label": "کرایے کی نئی رقم",
+      "update_master_rent": "اپارٹمنٹ ماسٹر کرایہ اپ ڈیٹ کریں",
+      "update_master_rent_hint": "مستقبل کے کرایہ داروں کے لیے اسے ڈیفالٹ کرایے کے طور پر محفوظ کریں",
+      "calculated_period": "توسیع کی مدت",
+      "confirm_extension": "توسیع کی تصدیق کریں",
+      "previous_end": "پچھلی آخری تاریخ",
+      "extension_tip": "سسٹم پچھلی رجسٹریشن کی تاریخ سے ۱۲ ماہ کی توسیع کرتا ہے۔"
     }
   }
 };

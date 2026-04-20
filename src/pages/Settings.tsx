@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { Users, Mail, Trash2, Loader2, CheckCircle2, Clock, XCircle, Languages, Calendar, LogOut, Sun, Moon } from 'lucide-react';
 import { getMyInvitations, sendInvitation, revokeInvitation } from '../utils/store';
 import type { Invitation } from '../utils/store';
+import ConfirmModal from '../components/ConfirmModal';
 
 const Settings: React.FC = () => {
   const { t } = useTranslation();
@@ -15,6 +16,7 @@ const Settings: React.FC = () => {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteMsg, setInviteMsg] = useState<{ text: string; ok: boolean } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; id: string; email: string } | null>(null);
 
   const loadInvitations = async () => {
     const data = await getMyInvitations();
@@ -39,8 +41,14 @@ const Settings: React.FC = () => {
     }
   };
 
-  const handleRevoke = async (id: string, email: string) => {
-    if (!confirm(`Revoke access for ${email}?`)) return;
+  const handleRevoke = (id: string, email: string) => {
+    setConfirmModal({ isOpen: true, id, email });
+  };
+
+  const handleConfirmRevoke = async () => {
+    if (!confirmModal) return;
+    const { id } = confirmModal;
+    setConfirmModal(null);
     await revokeInvitation(id);
     await loadInvitations();
   };
@@ -251,6 +259,16 @@ const Settings: React.FC = () => {
         </div>
 
       </div>
+
+      <ConfirmModal
+        isOpen={!!confirmModal?.isOpen}
+        title={t('revoke_access_title') || 'Revoke Access'}
+        message={`Are you sure you want to revoke data access for ${confirmModal?.email}?`}
+        onConfirm={handleConfirmRevoke}
+        onCancel={() => setConfirmModal(null)}
+        variant="danger"
+      />
+
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );

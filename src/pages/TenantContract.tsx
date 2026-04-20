@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getTenants, getProperties, saveTenant, saveLedgers } from '../utils/store';
+import { getTenants, getProperties, saveTenant, saveLedgers, updateProperty } from '../utils/store';
 import type { TenantContract as TenantType, Property } from '../utils/store';
 import { Printer, ArrowLeft, ArrowUpCircle } from 'lucide-react';
 import { generateLedgerSchedules } from '../utils/ledgerGenerator';
 import { useAppContext } from '../context/AppContext';
 import moment from 'moment-hijri';
 import { calculateRent } from '../utils/rentCalculator';
+import ExtendContractModal from '../components/ExtendContractModal';
+
 
 const TenantContractPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +19,8 @@ const TenantContractPage: React.FC = () => {
   
   const [tenant, setTenant] = useState<TenantType | null>(null);
   const [property, setProperty] = useState<Property | null>(null);
+  const [extendingContract, setExtendingContract] = useState<{ tenant: TenantType; property: Property } | null>(null);
+
 
   useEffect(() => {
     const loadData = async () => {
@@ -35,68 +39,62 @@ const TenantContractPage: React.FC = () => {
   const handleExtendContract = async () => {
     if (!tenant || !property) return;
 
-    // Fetch all tenants to find historical contracts for the same person
+    // Fetch all tenants to find historical contracts for the same person to find the LATEST period
     const allTenants = await getTenants();
     const history = allTenants.filter(t => t.tenantName === tenant.tenantName);
+    const latestContract = history.sort((a, b) => (b.endDate || '').localeCompare(a.endDate || ''))[0] || tenant;
+
+    setExtendingContract({ tenant: latestContract, property });
+  };
+
+  const handleConfirmExtension = async (data: { 
+    newRent: number; 
+    updateMaster: boolean; 
+    paymentPlan: 'Monthly' | '3 Month' | '6 Month' | 'Yearly';
+    startDate: string;
+    endDate: string;
+  }) => {
+    if (!extendingContract || !property) return;
+    const { tenant: tnt } = extendingContract;
     
-    // Sort by endDate to find the latest contract
-    //endDate format: "YYYY/MM/DD" or "iYYYY/iMM/iDD"
-    const latestContract = history.sort((a, b) => b.endDate.localeCompare(a.endDate))[0] || tenant;
+    setExtendingContract(null);
+    try {
+      if (data.updateMaster) {
+        await updateProperty({ ...property, annualRent: data.newRent });
+      }
 
-    // Helper to increment year in YYYY/MM/DD format
-    const incrementYear = (dateStr: string) => {
-      const parts = dateStr.split('/');
-      if (parts.length !== 3) return dateStr;
-      const year = parseInt(parts[0], 10);
-      return `${year + 1}/${parts[1]}/${parts[2]}`;
-    };
+      const newTenant = await saveTenant({
+        tenantName: tnt.tenantName,
+        propertyId: tnt.propertyId,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        calendarMode: tnt.calendarMode,
+        paymentPlan: data.paymentPlan,
+        iqamaNumber: tnt.iqamaNumber || '',
+        sponsorName: tnt.sponsorName || '',
+        mobileNumber: tnt.mobileNumber || '',
+        isActive: true
+      });
 
-    // Actually, user said "increment the year". If last was 1445-01-01 to 1445-12-30.
-    // Next should be 1446-01-01 to 1446-12-30.
-    
-    // Let's see: if last endDate was YYYY/MM/DD, next startDate should be YYYY+1/MM/DD ? 
-    // No, if last ends 1445/12/30, next starts 1446/01/01. 
-    // Wait, the user said "detect last updated contract year then extend for the next year".
-    // If last was 1 year, next is 1 year.
-    
-    // Let's use a simpler approach: increment both start and end dates of the LATEST contract by 1 year.
-    const calculatedStartDate = incrementYear(latestContract.startDate);
-    const calculatedEndDate = incrementYear(latestContract.endDate);
-
-    if (!confirm(
-      `${t('extend_contract_confirm') || 'Extend contract based on historical data?'} \n` +
-      `${t('tenant_name')}: ${tenant.tenantName}\n` +
-      `${t('payment_plan')}: ${tenant.paymentPlan}\n` +
-      `${t('start_date')}: ${calculatedStartDate}  →  ${t('end_date')}: ${calculatedEndDate}`
-    )) return;
-
-    const newTenant = await saveTenant({
-      tenantName: latestContract.tenantName,
-      propertyId: latestContract.propertyId,
-      startDate: calculatedStartDate,
-      endDate: calculatedEndDate,
-      calendarMode: latestContract.calendarMode,
-      paymentPlan: latestContract.paymentPlan || 'Monthly',
-      iqamaNumber: latestContract.iqamaNumber || '',
-      sponsorName: latestContract.sponsorName || '',
-      mobileNumber: latestContract.mobileNumber || '',
-      isActive: true
-    });
-
-    if (newTenant) {
-      const ledgers = generateLedgerSchedules(
-        newTenant.id,
-        property.annualRent,
-        calculatedStartDate,
-        calculatedEndDate,
-        tenant.paymentPlan || 'Monthly',
-        'hijri'
-      );
-      await saveLedgers(ledgers);
-      alert(`${t('contract_extended_success') || 'Contract extended successfully!'}`);
-      navigate(`/dashboard/tenants`);
+      if (newTenant) {
+        const ledgers = generateLedgerSchedules(
+          newTenant.id,
+          data.newRent,
+          data.startDate,
+          data.endDate,
+          data.paymentPlan,
+          tnt.calendarMode
+        );
+        await saveLedgers(ledgers);
+        alert(`${t('contract_extended_success') || 'Contract extended successfully!'}`);
+        navigate(`/dashboard/tenants`);
+      }
+    } catch (err) {
+      console.error('Error extending:', err);
+      alert(`${t('contract_extend_failed') || 'Failed to extend.'}`);
     }
   };
+
 
   if (!tenant || !property) return <div className="p-8 text-center" style={{ color: 'var(--text-main)' }}>{t('loading_contract')}</div>;
 
@@ -133,7 +131,7 @@ const TenantContractPage: React.FC = () => {
         
         <div style={{ background: 'rgba(128,128,128,0.1)', padding: '1rem', marginTop: '1.5rem', borderRadius: '8px', borderLeft: '4px solid var(--primary)' }}>
           <p style={{ margin: '0.25rem 0', fontSize: '1.125rem' }}><strong>{t('actual_utilized_days')}</strong> {rentResult.totalContractDays}</p>
-          <p style={{ margin: '0.25rem 0', fontSize: '1.125rem' }}><strong>{t('net_rent_settlement')}</strong> {rentResult.expectedContractRent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {currency}</p>
+          <p style={{ margin: '0.25rem 0', fontSize: '1.125rem' }}><strong>{t('net_rent_settlement')}</strong> {Math.round(rentResult.expectedContractRent).toLocaleString()} {currency}</p>
         </div>
 
         <p style={{ marginTop: '2.5rem', fontSize: '1rem', color: '#555', fontStyle: 'italic' }}>
@@ -165,7 +163,18 @@ const TenantContractPage: React.FC = () => {
           }
         }
       `}</style>
+
+      {extendingContract && (
+        <ExtendContractModal 
+          isOpen={!!extendingContract}
+          onClose={() => setExtendingContract(null)}
+          onConfirm={handleConfirmExtension}
+          tenant={extendingContract.tenant}
+          property={extendingContract.property}
+        />
+      )}
     </div>
+
   );
 };
 

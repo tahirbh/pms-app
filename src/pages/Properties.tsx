@@ -5,6 +5,7 @@ import { getProperties, saveProperty, updateProperty, deleteProperty, importProp
 import type { Property } from '../utils/store';
 import { useAppContext } from '../context/AppContext';
 import { exportCSV, parseCSV, readFileAsText } from '../utils/exportUtils';
+import ConfirmModal from '../components/ConfirmModal';
 
 const Properties: React.FC = () => {
   const { t } = useTranslation();
@@ -13,6 +14,7 @@ const Properties: React.FC = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; id: string } | null>(null);
   
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
@@ -82,12 +84,16 @@ const Properties: React.FC = () => {
     setShowForm(false);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm(t('confirm_delete') || 'Are you sure?')) {
-      const ok = await deleteProperty(id);
-      if (!ok) alert(t('failed_delete_property'));
-      await loadData();
-    }
+  const handleDelete = (id: string) => {
+    setConfirmModal({ isOpen: true, id });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmModal) return;
+    setConfirmModal(null);
+    const ok = await deleteProperty(confirmModal.id);
+    if (!ok) alert(t('failed_delete_property'));
+    await loadData();
   };
 
   const importRef = useRef<HTMLInputElement>(null);
@@ -195,7 +201,7 @@ const Properties: React.FC = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem', marginTop: 'auto' }}>
                   <span style={{ fontSize: '0.875rem' }}>{t('annual_rent')}:</span>
                   <span style={{ fontWeight: 600, fontSize: '1.125rem', color: 'var(--text-main)' }}>
-                    {p.annualRent.toLocaleString()} {currency}
+                    {Math.round(p.annualRent).toLocaleString()} {currency}
                   </span>
                 </div>
               </div>
@@ -203,6 +209,15 @@ const Properties: React.FC = () => {
           ))}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!confirmModal?.isOpen}
+        title={t('confirm_delete') || 'Confirm Deletion'}
+        message={t('confirm_delete_property_msg') || 'Are you sure you want to delete this property? This action cannot be undone.'}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmModal(null)}
+        variant="danger"
+      />
     </div>
   );
 };

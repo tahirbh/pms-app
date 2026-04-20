@@ -5,6 +5,7 @@ import { getExpenses, saveExpense, updateExpense, deleteExpense, importExpenses 
 import type { Expense } from '../utils/store';
 import { useAppContext } from '../context/AppContext';
 import { exportCSV, parseCSV, readFileAsText } from '../utils/exportUtils';
+import ConfirmModal from '../components/ConfirmModal';
 import DatePickerModule from "react-multi-date-picker";
 const DatePicker = (DatePickerModule as any).default || DatePickerModule;
 import arabic from "react-date-object/calendars/arabic";
@@ -21,6 +22,7 @@ const Expenses: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; id: string } | null>(null);
   
   const [category, setCategory] = useState('');
   const [amount, setAmount] = useState('');
@@ -86,12 +88,16 @@ const Expenses: React.FC = () => {
     setShowForm(false);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm(t('confirm_delete') || 'Are you sure?')) {
-      const ok = await deleteExpense(id);
-      if (!ok) alert(t('failed_delete_expense'));
-      await loadData();
-    }
+  const handleDelete = (id: string) => {
+    setConfirmModal({ isOpen: true, id });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmModal) return;
+    setConfirmModal(null);
+    const ok = await deleteExpense(confirmModal.id);
+    if (!ok) alert(t('failed_delete_expense'));
+    await loadData();
   };
 
   const importRef = useRef<HTMLInputElement>(null);
@@ -211,13 +217,22 @@ const Expenses: React.FC = () => {
                   <span><strong style={{ opacity: 0.8 }}>{t('date_label')}:</strong> {exp.date}</span>
                 </div>
                 <div style={{ fontWeight: 600, fontSize: '1.25rem', color: 'var(--danger)', marginTop: '0.5rem' }}>
-                  - {exp.amount.toLocaleString()} {currency}
+                  - {Math.round(exp.amount).toLocaleString()} {currency}
                 </div>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!confirmModal?.isOpen}
+        title={t('confirm_delete') || 'Confirm Deletion'}
+        message={t('confirm_delete_expense_msg') || 'Are you sure you want to delete this expense entry?'}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmModal(null)}
+        variant="danger"
+      />
     </div>
   );
 };

@@ -5,6 +5,7 @@ import { getTenants, getProperties, getLedgersByTenant, deleteLedger, updateLedg
 import type { TenantContract, Property, ContractLedger } from '../utils/store';
 import { ArrowLeft, CheckCircle2, Clock, CalendarDays, KeyRound, Building2, Trash2, Edit3, CheckCircle } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import ConfirmModal from '../components/ConfirmModal';
 import DatePickerModule from "react-multi-date-picker";
 const DatePicker = (DatePickerModule as any).default || DatePickerModule;
 import arabic from "react-date-object/calendars/arabic";
@@ -36,6 +37,7 @@ const TenantLedger: React.FC = () => {
   const [isMarkingAll, setIsMarkingAll] = useState(false);
   const [batchMode, setBatchMode] = useState<'Cash' | 'Bank' | 'Online'>('Cash');
   const [batchDate, setBatchDate] = useState(calendarMode === 'hijri' ? moment().format('iYYYY/iMM/iDD') : new Date().toISOString().split('T')[0]);
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; ledgerId: string } | null>(null);
 
   const loadData = async () => {
     if (!id) return;
@@ -87,11 +89,15 @@ const TenantLedger: React.FC = () => {
     await loadData();
   };
 
-  const executeDelete = async (ledgerId: string) => {
-    if (confirm(t('confirm_delete_ledger'))) {
-      await deleteLedger(ledgerId);
-      await loadData();
-    }
+  const executeDelete = (ledgerId: string) => {
+    setDeleteModal({ isOpen: true, ledgerId });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteModal) return;
+    setDeleteModal(null);
+    await deleteLedger(deleteModal.ledgerId);
+    await loadData();
   };
 
   if (!tenant || !property) return <div className="p-8 text-center" style={{ color: 'var(--text-muted)' }}>{t('loading_ledger')}</div>;
@@ -205,7 +211,7 @@ const TenantLedger: React.FC = () => {
                   
                   <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>
-                      {ledger.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
+                      {Math.round(ledger.amount).toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
                     </div>
 
                     {!isPaying && (
@@ -298,6 +304,15 @@ const TenantLedger: React.FC = () => {
           })}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!deleteModal?.isOpen}
+        title={t('delete_invoice')}
+        message={t('confirm_delete_ledger')}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteModal(null)}
+        variant="danger"
+      />
     </div>
   );
 };
