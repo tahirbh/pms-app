@@ -73,6 +73,7 @@ const TenantContractPage: React.FC = () => {
         iqamaNumber: tnt.iqamaNumber || '',
         sponsorName: tnt.sponsorName || '',
         mobileNumber: tnt.mobileNumber || '',
+        annualRent: data.newRent,
         isActive: true
       });
 
@@ -99,7 +100,8 @@ const TenantContractPage: React.FC = () => {
   if (!tenant || !property) return <div className="p-8 text-center" style={{ color: 'var(--text-main)' }}>{t('loading_contract')}</div>;
 
   const printDate = calendarMode === 'hijri' ? moment().format('iYYYY/iMM/iDD') : new Date().toLocaleDateString();
-  const rentResult = calculateRent(property.annualRent, tenant.startDate, tenant.endDate, tenant.calendarMode as 'gregorian' | 'hijri');
+  const contractRentAmount = tenant.annualRent || property.annualRent;
+  const rentResult = calculateRent(contractRentAmount, tenant.startDate, tenant.endDate, tenant.calendarMode as 'gregorian' | 'hijri');
 
   return (
     <div className="glass-panel p-8 animate-slide-in" style={{ maxWidth: '800px', margin: '0 auto', background: 'var(--bg-main)', color: 'var(--text-main)' }}>
@@ -127,7 +129,7 @@ const TenantContractPage: React.FC = () => {
         
         <h2 style={{ fontSize: '1.5rem', marginTop: '2.5rem', marginBottom: '0.75rem', fontWeight: 700 }}>{t('term_and_rent')}</h2>
         <p style={{ margin: '0.5rem 0', fontSize: '1.125rem' }}><strong>{t('lease_term_col')}</strong> {t('from_to_dates', { start: tenant.startDate, end: tenant.endDate })} ({tenant.calendarMode.toUpperCase()})</p>
-        <p style={{ margin: '0.5rem 0', fontSize: '1.125rem' }}><strong>{t('annual_rent')}:</strong> {property.annualRent.toLocaleString()} {currency}</p>
+        <p style={{ margin: '0.5rem 0', fontSize: '1.125rem' }}><strong>{t('annual_rent')}:</strong> {contractRentAmount.toLocaleString()} {currency}</p>
         
         <div style={{ background: 'rgba(128,128,128,0.1)', padding: '1rem', marginTop: '1.5rem', borderRadius: '8px', borderLeft: '4px solid var(--primary)' }}>
           <p style={{ margin: '0.25rem 0', fontSize: '1.125rem' }}><strong>{t('actual_utilized_days')}</strong> {rentResult.totalContractDays}</p>

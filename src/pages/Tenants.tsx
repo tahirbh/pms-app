@@ -98,7 +98,8 @@ const Tenants: React.FC = () => {
           paymentPlan,
           iqamaNumber,
           sponsorName,
-          mobileNumber
+          mobileNumber,
+          annualRent: existing.annualRent || properties.find(p => p.id === propertyId)?.annualRent
         };
         await updateTenant(updated);
         
@@ -127,6 +128,7 @@ const Tenants: React.FC = () => {
         iqamaNumber,
         sponsorName,
         mobileNumber,
+        annualRent: properties.find(p => p.id === propertyId)?.annualRent,
         isActive: true
       });
       
@@ -221,6 +223,7 @@ const Tenants: React.FC = () => {
         iqamaNumber: tnt.iqamaNumber || '',
         sponsorName: tnt.sponsorName || '',
         mobileNumber: tnt.mobileNumber || '',
+        annualRent: data.newRent,
         isActive: true
       });
 
@@ -342,7 +345,8 @@ const Tenants: React.FC = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
           {tenants.map(tnt => {
             const prop = properties.find(p => p.id === tnt.propertyId);
-              const res = prop ? calculateRent(prop.annualRent, tnt.startDate, tnt.endDate, tnt.calendarMode) : null;
+            const contractRentAmount = tnt.annualRent || prop?.annualRent || 0;
+            const res = contractRentAmount > 0 ? calculateRent(contractRentAmount, tnt.startDate, tnt.endDate, tnt.calendarMode) : null;
               
               return (
                 <div key={tnt.id} className="glass-panel" style={{ padding: '1.5rem', borderLeft: tnt.isActive ? '4px solid var(--success)' : '4px solid var(--text-muted)' }}>

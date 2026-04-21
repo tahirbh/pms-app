@@ -28,6 +28,7 @@ export type TenantContract = {
   iqamaNumber?: string;
   sponsorName?: string;
   mobileNumber?: string;
+  annualRent?: number;
   user_id?: string;
   created_at?: string;
 };
