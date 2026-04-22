@@ -79,7 +79,10 @@ const DashboardHome = () => {
   const [historicalDataPerYear, setHistoricalDataPerYear] = useState<Record<string, { contractedRent: number, collectedRent: number, totalExpenses: number, transferredAmount: number }>>({});
 
   // ── Charts & notifications ──
-  const [utilizationData, setUtilizationData] = useState<{ name: string, potential: number, contracted: number, collected: number }[]>([]);
+  const [currentUtilizationData, setCurrentUtilizationData] = useState<{ name: string, potential: number, contracted: number, collected: number }[]>([]);
+  const [allProperties, setAllProperties] = useState<any[]>([]);
+  const [allTenants, setAllTenants] = useState<any[]>([]);
+  const [allLedgersData, setAllLedgersData] = useState<any[]>([]);
   const [ledgerStats, setLedgerStats] = useState({ paid: 0, overdue: 0, upcoming: 0 });
   const [notifications, setNotifications] = useState<{ id: string, tenantId: string, name: string, type: 'overdue' | 'upcoming', amount: number, date: string }[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -93,6 +96,10 @@ const DashboardHome = () => {
       const tenants = await getTenants();
       const expenses = await getExpenses();
       const allLedgers = await getAllLedgers();
+
+      setAllProperties(props);
+      setAllTenants(tenants);
+      setAllLedgersData(allLedgers);
 
       // ── Determine current year key ──
       const cyKey = getCurrentYearKey(calendarMode);
@@ -245,18 +252,28 @@ const DashboardHome = () => {
       setLedgerStats({ paid: currentMonthPaid, overdue: totalOverdue, upcoming: upcomingRent });
       setNotifications(notifs.sort((a: any, b: any) => a.type === 'overdue' ? -1 : (b.type === 'overdue' ? 1 : 0)));
 
-      // ── Building utilization chart ──
-      const buildUtil = props.map(p => {
+      // ── Current Year Building utilization chart ──
+      const currentBuildUtil = props.map(p => {
         const pTenants = tenants.filter(t => t.propertyId === p.id);
-        const activeTenants = pTenants.filter(t => t.isActive);
-
+        
         let contracted = 0;
         let collected = 0;
 
-        activeTenants.forEach(activeTenant => {
-          const tenantLedgers = allLedgers.filter(l => l.tenantId === activeTenant.id);
-          contracted += tenantLedgers.reduce((acc, curr) => acc + curr.amount, 0);
-          collected += tenantLedgers.filter(l => l.status === 'Paid').reduce((acc, curr) => acc + curr.amount, 0);
+        pTenants.forEach(tnt => {
+          const tenantLedgers = allLedgers.filter(l => l.tenantId === tnt.id);
+          tenantLedgers.forEach(L => {
+            let yearStr: string;
+            if (tnt.calendarMode === 'hijri') {
+              yearStr = moment(L.dueDate, 'iYYYY/iMM/iDD').format('iYYYY') + ' (H)';
+            } else {
+              yearStr = new Date(L.dueDate).getFullYear().toString();
+            }
+
+            if (yearStr === cyKey) {
+              contracted += L.amount;
+              if (L.status === 'Paid') collected += L.amount;
+            }
+          });
         });
 
         return {
@@ -266,7 +283,7 @@ const DashboardHome = () => {
           collected
         };
       });
-      setUtilizationData(buildUtil);
+      setCurrentUtilizationData(currentBuildUtil);
     };
 
     loadAll();
@@ -296,6 +313,46 @@ const DashboardHome = () => {
       unpaidRent: Math.max(0, c - col),
     };
   }, [startYear, endYear, availableHistYears, historicalDataPerYear]);
+
+  // ── Historical Utilization Memo ──
+  const historicalUtilizationData = React.useMemo(() => {
+    if (!startYear || !endYear || availableHistYears.length === 0 || allProperties.length === 0) return [];
+    
+    const startIndex = availableHistYears.indexOf(startYear);
+    const endIndex = availableHistYears.indexOf(endYear);
+    const selectedYears = availableHistYears.slice(startIndex, endIndex + 1);
+    const yearsCount = selectedYears.length;
+
+    return allProperties.map(p => {
+      const pTenants = allTenants.filter(t => t.propertyId === p.id);
+      let contracted = 0;
+      let collected = 0;
+
+      pTenants.forEach(tnt => {
+        const tenantLedgers = allLedgersData.filter(l => l.tenantId === tnt.id);
+        tenantLedgers.forEach(L => {
+          let yearStr: string;
+          if (tnt.calendarMode === 'hijri') {
+            yearStr = moment(L.dueDate, 'iYYYY/iMM/iDD').format('iYYYY') + ' (H)';
+          } else {
+            yearStr = new Date(L.dueDate).getFullYear().toString();
+          }
+
+          if (selectedYears.includes(yearStr)) {
+            contracted += L.amount;
+            if (L.status === 'Paid') collected += L.amount;
+          }
+        });
+      });
+
+      return {
+        name: p.name,
+        potential: p.annualRent * yearsCount,
+        contracted,
+        collected
+      };
+    });
+  }, [startYear, endYear, availableHistYears, allProperties, allTenants, allLedgersData]);
 
   // ── Click handlers: navigate with correct filter ──
   const handleCardClick = (type: string, isHistorical: boolean) => {
@@ -602,16 +659,16 @@ const DashboardHome = () => {
           </div>
         </div>
 
-        {/* Building Utilization Bar Chart */}
+        {/* Current Building Utilization Bar Chart */}
         <div className="glass-panel" style={{ padding: '1.5rem', gridColumn: '1 / -1' }}>
-          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 0.3rem 0' }}>{t('building_utilization')}</h4>
+          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 0.3rem 0' }}>{t('building_utilization')} ({currentYearKey})</h4>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{t('building_utilization_sub')}</p>
           <div style={{ width: '100%', height: 320 }}>
-            {utilizationData.length === 0 ? (
+            {currentUtilizationData.length === 0 ? (
               <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>{t('no_data')}</div>
             ) : (
               <ResponsiveContainer>
-                <BarChart data={utilizationData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <BarChart data={currentUtilizationData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip formatter={(value) => `${Math.round(Number(value)).toLocaleString()} ${currency}`} />
@@ -623,6 +680,30 @@ const DashboardHome = () => {
             )}
           </div>
         </div>
+
+        {/* Historical Building Utilization Bar Chart */}
+        {availableHistYears.length > 0 && (
+          <div className="glass-panel" style={{ padding: '1.5rem', gridColumn: '1 / -1' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 0.3rem 0' }}>{t('historical_utilization') || 'Historical Building Utilization'} ({startYear} - {endYear})</h4>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{t('historical_utilization_sub') || 'Comparison of potential, contracted, and collected rent for the selected historical period.'}</p>
+            <div style={{ width: '100%', height: 320 }}>
+              {historicalUtilizationData.length === 0 ? (
+                <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>{t('no_data')}</div>
+              ) : (
+                <ResponsiveContainer>
+                  <BarChart data={historicalUtilizationData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => `${Math.round(Number(value)).toLocaleString()} ${currency}`} />
+                    <Bar dataKey="potential" name={t('potential_rent_annual') || 'Expected Total'} fill="var(--text-muted)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="contracted" name={t('actual_contracted_rent') || 'Contracted Total'} fill="var(--secondary)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="collected" name={t('collected_rent') || 'Collected Total'} fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

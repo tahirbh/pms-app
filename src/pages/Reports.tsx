@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getExpenses, getAllLedgers, getTenants } from '../utils/store';
+import { getExpenses, getAllLedgers, getTenants, getProperties } from '../utils/store';
 import type { Expense, ContractLedger } from '../utils/store';
 import { useAppContext } from '../context/AppContext';
 import { useLocation } from 'react-router-dom';
@@ -73,6 +73,7 @@ const Reports: React.FC = () => {
       const allLedgers = await getAllLedgers();
       const allExpenses = await getExpenses();
       const tenants = await getTenants();
+      const properties = await getProperties();
 
       const safeStartDate = toEnglishDigits(startDate);
       const safeEndDate = toEnglishDigits(endDate);
@@ -117,7 +118,9 @@ const Reports: React.FC = () => {
 
       setIncomes(filteredIncomes.map(L => {
         const tnt = tenants.find(t => t.id === L.tenantId);
-        return { ...L, tenantName: tnt?.tenantName };
+        const prop = properties.find(p => p.id === tnt?.propertyId);
+        const combined = tnt ? `${tnt.tenantName}${prop ? ` (${prop.name})` : ''}` : '';
+        return { ...L, tenantName: combined };
       }));
       setExpenses(filteredExpenses);
     };
