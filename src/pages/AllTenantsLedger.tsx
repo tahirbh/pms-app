@@ -244,8 +244,9 @@ const AllTenantsLedger: React.FC = () => {
               {t('tenant_ledgers')}
             </h4>
             <div className="print-hide" style={{ display: 'flex', gap: '0.5rem' }}>
-              <button className="btn" style={{ padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', fontSize: '0.9rem' }} onClick={handleExport}>
-                <Download size={16} /> {t('export_csv')}
+              <button className="btn" style={{ padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={handleExport}>
+                <Download size={16} />
+                {t('export')}
               </button>
             </div>
           </div>
@@ -287,10 +288,11 @@ const AllTenantsLedger: React.FC = () => {
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end' }}>
                         <button 
                           className="btn" 
-                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', background: 'transparent', border: '1px solid var(--primary)', color: 'var(--primary)' }}
+                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', background: 'transparent', border: '1px solid var(--primary)', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                           onClick={() => navigate(`/dashboard/ledger/${txn.tenantId}`)}
                         >
-                          <Eye size={14} style={{ marginRight: '0.25rem' }} /> {t('details')}
+                          <Eye size={14} />
+                          {t('view')}
                         </button>
                       </td>
                     </tr>

@@ -144,14 +144,14 @@ const Settings: React.FC = () => {
                 style={{ flex: 1, background: calendarMode === 'gregorian' ? 'var(--primary)' : 'rgba(0,0,0,0.05)', color: calendarMode === 'gregorian' ? 'white' : 'var(--text-main)', border: '1px solid var(--glass-border)' }}
                 onClick={() => setCalendarMode('gregorian')}
               >
-                {t('gregorian_calendar')}
+                {t('gregorian')}
               </button>
               <button 
                 className={`btn ${calendarMode === 'hijri' ? 'btn-primary' : ''}`}
                 style={{ flex: 1, background: calendarMode === 'hijri' ? 'var(--primary)' : 'rgba(0,0,0,0.05)', color: calendarMode === 'hijri' ? 'white' : 'var(--text-main)', border: '1px solid var(--glass-border)' }}
                 onClick={() => setCalendarMode('hijri')}
               >
-                {t('hijri_calendar')}
+                {t('hijri')}
               </button>
             </div>
         </div>
@@ -167,14 +167,14 @@ const Settings: React.FC = () => {
                 style={{ flex: 1, background: theme === 'light' ? 'var(--primary)' : 'rgba(0,0,0,0.05)', color: theme === 'light' ? 'white' : 'var(--text-main)', border: '1px solid var(--glass-border)' }}
                 onClick={() => setTheme('light')}
               >
-                <Sun size={18} /> {t('light_theme') || 'Light'}
+                {t('light')}
               </button>
               <button 
                 className={`btn ${theme === 'dark' ? 'btn-primary' : ''}`}
                 style={{ flex: 1, background: theme === 'dark' ? 'var(--primary)' : 'rgba(0,0,0,0.05)', color: theme === 'dark' ? 'white' : 'var(--text-main)', border: '1px solid var(--glass-border)' }}
                 onClick={() => setTheme('dark')}
               >
-                <Moon size={18} /> {t('dark_theme') || 'Dark'}
+                {t('dark')}
               </button>
             </div>
         </div>
@@ -201,7 +201,7 @@ const Settings: React.FC = () => {
               />
             </div>
             <button type="submit" className="btn btn-primary" disabled={inviteLoading} style={{ whiteSpace: 'nowrap' }}>
-              {inviteLoading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : 'Send Invite'}
+              {inviteLoading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : t('invite')}
             </button>
           </form>
 
@@ -231,14 +231,15 @@ const Settings: React.FC = () => {
                     <span style={{ fontWeight: 500 }}>{inv.invitee_email}</span>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>— {statusLabel(inv.status)}</span>
                     {(inv.status === 'accepted' || inv.status === 'pending') && (
-                      <button 
-                        className="btn" 
-                        title={t('revoke_access')} 
-                        style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--danger)', padding: '0.5rem', borderRadius: '8px' }}
-                        onClick={() => handleRevoke(inv.id, inv.invitee_email)}
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                        <button 
+                          className="btn" 
+                          title={t('revoke_access')} 
+                          style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--danger)', padding: '0.4rem 1rem', borderRadius: '8px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                          onClick={() => handleRevoke(inv.id, inv.invitee_email)}
+                        >
+                          <Trash2 size={16} />
+                          {t('revoke')}
+                        </button>
                     )}</div>
                 </div>
               ))}
@@ -252,9 +253,9 @@ const Settings: React.FC = () => {
 
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1rem', marginBottom: '4rem' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Account</h2>
-          <button className="btn" style={{ background: 'var(--danger)', color: 'white', display: 'flex', gap: '0.5rem', alignItems: 'center', padding: '0.75rem 2rem' }} onClick={signOut}>
-            <LogOut size={20} />
-            Sign Out
+          <button className="btn" style={{ background: 'var(--danger)', color: 'white', padding: '0.75rem 2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={signOut}>
+            <LogOut size={18} />
+            {t('sign_out')}
           </button>
         </div>
 

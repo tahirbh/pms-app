@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, Edit, Trash2, Printer, Receipt, UserCircle, Calculator, Download, ArrowUpCircle } from 'lucide-react';
+import { UserPlus, Edit, Trash2, Printer, Receipt, UserCircle, Calculator, Download, ArrowUpCircle, XCircle } from 'lucide-react';
 import { getTenants, getProperties, saveTenant, updateTenant, deleteTenant, endTenantContract, saveLedgers, deleteLedgersByTenant } from '../utils/store';
 import type { TenantContract, Property } from '../utils/store';
 import { calculateRent } from '../utils/rentCalculator';
@@ -255,12 +255,13 @@ const Tenants: React.FC = () => {
           <UserCircle /> {t('tenants')}
         </h2>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <button className="btn action-btn" onClick={() => exportCSV(tenants, 'tenants.csv')} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }} title={t('export_csv_btn')}>
-            <Download size={16} /> <span className="btn-text">{t('export_csv_btn')}</span>
+          <button className="btn action-btn" onClick={() => exportCSV(tenants, 'tenants.csv')} style={{ background: 'var(--glass-border)' }} title={t('export_csv_btn')}>
+            <Download size={18} />
+            <span className="btn-text">{t('export')}</span>
           </button>
           <button className="btn btn-primary action-btn" onClick={() => handleOpenForm()} title={t('register_tenant')}>
-            <UserPlus size={20} />
-            <span className="btn-text">{t('register_tenant')}</span>
+            <UserPlus size={18} />
+            <span className="btn-text">{t('add')}</span>
           </button>
         </div>
       </div>
@@ -357,21 +358,26 @@ const Tenants: React.FC = () => {
                   
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                       {tnt.isActive && (
-                        <button type="button" onClick={() => handleExtendContract(tnt)} className="btn" style={{ padding: '0.5rem', background: 'var(--accent)', color: 'white' }} title={t('extend_contract') || 'Extend Contract (Next Hijri Year)'}>
+                        <button type="button" onClick={() => handleExtendContract(tnt)} className="btn action-btn" style={{ background: 'var(--accent)', color: 'white' }} title={t('extend_contract')}>
                           <ArrowUpCircle size={16} />
+                          <span className="btn-text">{t('extend')}</span>
                         </button>
                       )}
-                      <button type="button" onClick={() => navigate(`/dashboard/ledger/${tnt.id}`)} className="btn" style={{ padding: '0.5rem', background: 'var(--success)', color: 'white' }} title="View Ledger Account">
+                      <button type="button" onClick={() => navigate(`/dashboard/ledger/${tnt.id}`)} className="btn action-btn" style={{ background: 'var(--success)', color: 'white' }} title={t('view_payments')}>
                         <Receipt size={16} />
+                        <span className="btn-text">{t('view')}</span>
                       </button>
-                      <button type="button" onClick={() => navigate(`/dashboard/contract/${tnt.id}`)} className="btn" style={{ padding: '0.5rem', background: 'var(--secondary)', color: 'white' }} title="View Contract">
+                      <button type="button" onClick={() => navigate(`/dashboard/contract/${tnt.id}`)} className="btn action-btn" style={{ background: 'var(--secondary)', color: 'white' }} title={t('print_contract')}>
                         <Printer size={16} />
+                        <span className="btn-text">{t('print')}</span>
                       </button>
-                      <button type="button" onClick={() => handleOpenForm(tnt)} className="btn" style={{ padding: '0.5rem', background: 'var(--primary)', color: 'white' }}>
+                      <button type="button" onClick={() => handleOpenForm(tnt)} className="btn action-btn" style={{ background: 'var(--primary)', color: 'white' }} title={t('edit_tenant')}>
                         <Edit size={16} />
+                        <span className="btn-text">{t('edit')}</span>
                       </button>
-                      <button type="button" onClick={() => handleDelete(tnt.id)} className="btn" style={{ padding: '0.5rem', background: 'var(--danger)', color: 'white' }}>
+                      <button type="button" onClick={() => handleDelete(tnt.id)} className="btn action-btn" style={{ background: 'var(--danger)', color: 'white' }} title={t('confirm_delete')}>
                         <Trash2 size={16} />
+                        <span className="btn-text">{t('delete')}</span>
                       </button>
                     </div>
                   </div>
@@ -403,7 +409,7 @@ const Tenants: React.FC = () => {
                           portal
                         />
                         <button type="button" className="btn btn-primary" onClick={() => handleCalculateRent(tnt)} style={{ padding: '0 1rem', height: '100%' }}>
-                          <Calculator size={20} />
+                          <span className="btn-text">{t('calculate')}</span>
                         </button>
                       </div>
 
@@ -412,14 +418,6 @@ const Tenants: React.FC = () => {
                           <p><strong>{t('monthly_rent') || 'Monthly Rent'}:</strong> {Math.round(res?.monthlyRent || 0).toLocaleString()} {currency}</p>
                           <p>{t('active_days_leaving')} {res?.activeDays || 0}</p>
                           <p>{t('daily_rate')} {Math.round(res?.dailyRate || 0).toLocaleString()} {currency}</p>
-                          <button 
-                            type="button" 
-                            className="btn" 
-                            style={{ background: 'var(--danger)', color: 'white', marginTop: '0.5rem', width: '100%', fontSize: '0.875rem', padding: '0.5rem' }}
-                            onClick={() => handleEndContract(tnt)}
-                          >
-                            {t('end_contract_now')}
-                          </button>
                         </div>
                       )}
                     </div>

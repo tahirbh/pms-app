@@ -105,8 +105,9 @@ const TenantLedger: React.FC = () => {
   return (
     <div className="glass-panel p-8 animate-slide-in">
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', alignItems: 'center' }}>
-        <button className="btn" onClick={() => navigate(-1)} style={{ background: 'var(--glass-border)', padding: '0.5rem 1rem' }}>
-          <ArrowLeft size={20}/> {t('back')}
+        <button className="btn" onClick={() => navigate(-1)} style={{ background: 'var(--glass-border)', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <ArrowLeft size={18} />
+          {t('back')}
         </button>
         <h2 style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--primary)', margin: 0 }}>{t('payment_ledger')}</h2>
       </div>
@@ -134,7 +135,8 @@ const TenantLedger: React.FC = () => {
         <h3 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0 }}>{t('automated_installments')}</h3>
         {ledgers.some(l => l.status === 'Pending') && (
           <button className="btn btn-primary" onClick={() => setIsMarkingAll(true)} style={{ background: 'var(--success)', color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <CheckCircle size={18} /> {t('mark_all_paid') || 'Mark All as Paid'}
+            <CheckCircle size={18} />
+            {t('pay_all')}
           </button>
         )}
       </div>
@@ -218,32 +220,35 @@ const TenantLedger: React.FC = () => {
                       <>
                         {isPaid ? (
                           <button 
-                            className="btn" 
-                            style={{ padding: '0.5rem', background: 'var(--glass-border)', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                            className="btn action-btn" 
+                            style={{ padding: '0.4rem 1rem', background: 'var(--glass-border)' }}
                             onClick={() => startEditing(ledger)}
                             title={t('edit_ledger') || 'Edit Entry'}
                           >
                             <Edit3 size={16} />
+                            <span className="btn-text">{t('edit')}</span>
                           </button>
                         ) : (
                           <button 
                             className="btn btn-primary" 
-                            style={{ padding: '0.5rem 1.5rem', background: 'var(--text-main)', borderRadius: '50px' }}
+                            style={{ padding: '0.5rem 1.5rem', background: 'var(--text-main)', borderRadius: '50px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                             onClick={() => startEditing(ledger, 'Paid')}
                           >
-                            {t('mark_as_paid')}
+                            <CheckCircle size={18} />
+                            {t('pay')}
                           </button>
                         )}
                       </>
                     )}
                     
                     <button 
-                      className="btn" 
-                      style={{ padding: '0.5rem', background: 'var(--danger)', color: 'white', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                      className="btn action-btn" 
+                      style={{ padding: '0.4rem 1rem', background: 'var(--danger)', color: 'white' }}
                       onClick={() => executeDelete(ledger.id)}
                       title={t('delete_invoice')}
                     >
                       <Trash2 size={16} />
+                      <span className="btn-text">{t('delete')}</span>
                     </button>
                   </div>
                 </div>

@@ -85,8 +85,9 @@ const ExtendContractModal: React.FC<ExtendContractModalProps> = ({
           <h3 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: 'var(--primary)' }}>
             {t('extend_contract_dialog_title')}
           </h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
-            <X size={24} />
+          <button onClick={onClose} style={{ background: 'rgba(128,128,128,0.1)', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <X size={16} />
+            {t('edit_short', 'Close')}
           </button>
         </div>
 
@@ -217,9 +218,9 @@ const ExtendContractModal: React.FC<ExtendContractModalProps> = ({
             <button className="btn" onClick={onClose} style={{ flex: 1 }}>
               {t('cancel')}
             </button>
-            <button className="btn btn-primary" onClick={handleConfirm} style={{ flex: 2, background: 'var(--success)' }}>
-              <CheckCircle2 size={20} />
-              {t('confirm_extension')}
+            <button className="btn btn-primary" onClick={handleConfirm} style={{ flex: 2, background: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+              <CheckCircle2 size={18} />
+              {t('confirm')}
             </button>
           </div>
         </div>

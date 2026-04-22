@@ -390,6 +390,8 @@ const DashboardHome = () => {
           onClick={() => setShowNotifications(!showNotifications)}
         >
           <Bell size={24} color="var(--primary)" />
+          <span className="btn-text">{t('notifications')}</span>
+
           {notifications.length > 0 && (
             <span style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'var(--danger)', color: 'white', borderRadius: '50%', width: '20px', height: '20px', fontSize: '0.75rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               {notifications.length}
@@ -644,9 +646,8 @@ const Dashboard: React.FC = () => {
     { path: '/dashboard/properties', label: t('properties'), icon: Home },
     { path: '/dashboard/tenants', label: t('tenants'), icon: Users },
     { path: '/dashboard/expenses', label: t('expenses'), icon: Receipt },
-    { path: '/dashboard/all-ledgers', label: t('tenant_ledgers') || 'Tenant Ledgers', icon: Users },
+    { path: '/dashboard/all-ledgers', label: t('ledgers'), icon: Users },
     { path: '/dashboard/report', label: t('reports'), icon: FileText },
-    { path: '/dashboard/pivot', label: t('pivot_reports') || 'Pivot', icon: FileText },
     { path: '/dashboard/settings', label: t('settings'), icon: SettingsIcon },
   ];
 
@@ -668,7 +669,7 @@ const Dashboard: React.FC = () => {
               end={item.exact}
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
             >
-              <item.icon size={20} />
+              {item.icon && <item.icon size={20} />}
               <span className="sidebar-label">{item.label}</span>
             </NavLink>
           ))}
@@ -690,13 +691,9 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           )}
-          <button
-            className="btn"
-            style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--danger)', background: 'transparent' }}
-            onClick={handleSignOut}
-          >
+          <button onClick={handleSignOut} className="btn" style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--danger)', background: 'transparent' }}>
             <LogOut size={20} />
-            <span className="sidebar-label">{t('sign_out')}</span>
+            <span className="sidebar-label">{t('logout')}</span>
           </button>
         </div>
       </aside>

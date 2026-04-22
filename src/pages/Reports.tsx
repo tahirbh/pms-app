@@ -310,8 +310,9 @@ const Reports: React.FC = () => {
               {t('transaction_detail')} ( {t('recent_transactions_title')} )
             </h4>
             <div className="print-hide" style={{ display: 'flex', gap: '0.5rem' }}>
-              <button className="btn" style={{ padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', fontSize: '0.9rem' }} onClick={handleExportLedger}>
-                <Download size={16} /> {t('export_csv')}
+              <button className="btn" style={{ padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={handleExportLedger}>
+                <Download size={16} />
+                {t('export')}
               </button>
             </div>
           </div>

@@ -126,16 +126,18 @@ const Expenses: React.FC = () => {
           <Receipt /> {t('expenses_management')}
         </h2>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <button className="btn action-btn" onClick={() => exportCSV(expenses, 'expenses.csv')} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }} title="Export CSV">
-            <Download size={16} /> <span className="btn-text">Export CSV</span>
+          <button className="btn action-btn" onClick={() => exportCSV(expenses, 'expenses.csv')} style={{ background: 'var(--glass-border)' }} title={t('export_csv')}>
+            <Download size={18} />
+            <span className="btn-text">{t('export')}</span>
           </button>
-          <button className="btn action-btn" onClick={() => importRef.current?.click()} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }} title="Import CSV">
-            <Upload size={16} /> <span className="btn-text">Import CSV</span>
+          <button className="btn action-btn" onClick={() => importRef.current?.click()} style={{ background: 'var(--glass-border)' }} title={t('import_csv')}>
+            <Upload size={18} />
+            <span className="btn-text">{t('import')}</span>
           </button>
           <input ref={importRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={handleImport} />
           <button className="btn btn-primary action-btn" onClick={() => handleOpenForm()} title={t('add_expense')}>
-            <Plus size={20} />
-            <span className="btn-text">{t('add_expense')}</span>
+            <Plus size={18} />
+            <span className="btn-text">{t('add')}</span>
           </button>
         </div>
       </div>
@@ -183,7 +185,7 @@ const Expenses: React.FC = () => {
           <input className="input-field" placeholder={t('description_optional')} value={description} onChange={e => setDescription(e.target.value)} />
           <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
             <button type="submit" className="btn btn-primary" style={{ background: 'var(--success)' }}>
-              <CheckCircle2 size={20} /> {editingId ? t('update_expense') : t('save_expense')}
+               {editingId ? t('update_expense') : t('save_expense')}
             </button>
             <button type="button" className="btn" onClick={() => setShowForm(false)}>{t('cancel')}</button>
           </div>
@@ -201,11 +203,13 @@ const Expenses: React.FC = () => {
                   <Receipt size={20} color="var(--primary)"/> {exp.category === 'Transfer to Owner' ? t('cat_transfer_owner') : exp.category}
                 </h3>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  <button type="button" onClick={() => handleOpenForm(exp)} className="btn" style={{ padding: '0.5rem', background: 'var(--primary)', color: 'white' }}>
+                  <button type="button" onClick={() => handleOpenForm(exp)} className="btn action-btn" style={{ background: 'var(--primary)', color: 'white' }} title={t('edit_expense')}>
                     <Edit size={16} />
+                    <span className="btn-text">{t('edit')}</span>
                   </button>
-                  <button type="button" onClick={() => handleDelete(exp.id)} className="btn" style={{ padding: '0.5rem', background: 'var(--danger)', color: 'white' }}>
+                  <button type="button" onClick={() => handleDelete(exp.id)} className="btn action-btn" style={{ background: 'var(--danger)', color: 'white' }} title={t('confirm_delete')}>
                     <Trash2 size={16} />
+                    <span className="btn-text">{t('delete')}</span>
                   </button>
                 </div>
               </div>

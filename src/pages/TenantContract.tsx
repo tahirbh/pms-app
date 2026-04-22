@@ -106,11 +106,18 @@ const TenantContractPage: React.FC = () => {
   return (
     <div className="glass-panel p-8 animate-slide-in" style={{ maxWidth: '800px', margin: '0 auto', background: 'var(--bg-main)', color: 'var(--text-main)' }}>
       <div className="no-print" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-        <button className="btn" onClick={() => navigate(-1)}><ArrowLeft size={20}/> {t('back_btn')}</button>
-        <button className="btn btn-primary" onClick={() => window.print()}><Printer size={20}/> {t('print_contract_action')}</button>
+        <button className="btn" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => navigate(-1)}>
+          <ArrowLeft size={18} />
+          {t('back')}
+        </button>
+        <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => window.print()}>
+          <Printer size={18} />
+          {t('print')}
+        </button>
         {tenant.isActive && (
-          <button className="btn" onClick={handleExtendContract} style={{ background: 'var(--accent)', color: 'white' }}>
-            <ArrowUpCircle size={20}/> {t('extend_contract') || 'Extend Contract'}
+          <button className="btn" onClick={handleExtendContract} style={{ background: 'var(--accent)', color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <ArrowUpCircle size={18} />
+            {t('extend_contract')}
           </button>
         )}
       </div>

@@ -123,16 +123,18 @@ const Properties: React.FC = () => {
           <Building2 /> {t('properties')}
         </h2>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <button className="btn action-btn" onClick={handleExport} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }} title={t('export_csv')}>
-            <Download size={16} /> <span className="btn-text">{t('export_csv')}</span>
+          <button className="btn action-btn" onClick={handleExport} style={{ background: 'var(--glass-border)' }} title={t('export_csv')}>
+            <Download size={18} />
+            <span className="btn-text">{t('export')}</span>
           </button>
-          <button className="btn action-btn" onClick={() => importRef.current?.click()} style={{ background: 'var(--glass-border)', display: 'flex', alignItems: 'center', gap: '0.4rem' }} title={t('import_csv')}>
-            <Upload size={16} /> <span className="btn-text">{t('import_csv')}</span>
+          <button className="btn action-btn" onClick={() => importRef.current?.click()} style={{ background: 'var(--glass-border)' }} title={t('import_csv')}>
+            <Upload size={18} />
+            <span className="btn-text">{t('import')}</span>
           </button>
           <input ref={importRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={handleImport} />
           <button className="btn btn-primary action-btn" onClick={() => handleOpenForm()} title={t('add_property')}>
-            <Plus size={20} />
-            <span className="btn-text">{t('add_property')}</span>
+            <Plus size={18} />
+            <span className="btn-text">{t('add')}</span>
           </button>
         </div>
       </div>
@@ -161,7 +163,7 @@ const Properties: React.FC = () => {
           
           <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
             <button type="submit" className="btn btn-primary" style={{ background: 'var(--success)' }}>
-              <CheckCircle2 size={20} /> {editingId ? t('update_property') : t('save_property')}
+               {editingId ? t('update_property') : t('save_property')}
             </button>
             <button type="button" className="btn" onClick={() => setShowForm(false)}>{t('cancel')}</button>
           </div>
@@ -181,11 +183,13 @@ const Properties: React.FC = () => {
                   </h3>
                   
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <button type="button" onClick={() => handleOpenForm(p)} className="btn" style={{ padding: '0.5rem', background: 'var(--primary)', color: 'white' }}>
+                    <button type="button" onClick={() => handleOpenForm(p)} className="btn action-btn" style={{ background: 'var(--primary)', color: 'white' }} title={t('edit_property')}>
                       <Edit size={16} />
+                      <span className="btn-text">{t('edit')}</span>
                     </button>
-                    <button type="button" onClick={() => handleDelete(p.id)} className="btn" style={{ padding: '0.5rem', background: 'var(--danger)', color: 'white' }}>
+                    <button type="button" onClick={() => handleDelete(p.id)} className="btn action-btn" style={{ background: 'var(--danger)', color: 'white' }} title={t('confirm_delete')}>
                       <Trash2 size={16} />
+                      <span className="btn-text">{t('delete')}</span>
                     </button>
                   </div>
                 </div>

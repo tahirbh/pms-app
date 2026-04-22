@@ -118,12 +118,12 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
               background: 'rgba(255,255,255,0.05)',
               color: '#fff',
               border: '1px solid rgba(255,255,255,0.1)',
+              fontWeight: 600,
+              padding: '0.75rem',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '0.5rem',
-              fontWeight: 600,
-              padding: '0.75rem'
+              gap: '0.5rem'
             }}
           >
             <X size={18} />
@@ -139,13 +139,12 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
               background: getVariantColor(),
               color: '#fff',
               border: 'none',
+              fontWeight: 600,
+              padding: '0.75rem',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '0.5rem',
-              fontWeight: 600,
-              padding: '0.75rem',
-              boxShadow: `0 4px 14px 0 ${getVariantColor()}40`
+              gap: '0.5rem'
             }}
           >
             <Check size={18} />
