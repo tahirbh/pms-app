@@ -41,7 +41,7 @@ const AllTenantsLedger: React.FC = () => {
   });
   
   const [searchTerm, setSearchTerm] = useState('');
-  const [ledgers, setLedgers] = useState<(ContractLedger & { tenantName: string, propertyName: string })[]>([]);
+  const [ledgers, setLedgers] = useState<(ContractLedger & { tenantName: string, propertyName: string, tenantPaid: number, tenantUnpaid: number })[]>([]);
 
   const toEnglishDigits = (str: string) => {
     if (!str) return '';
@@ -91,16 +91,26 @@ const AllTenantsLedger: React.FC = () => {
         endBoundMs = ed.getTime();
       }
 
+      const tenantSummaries = allLedgers.reduce((acc, curr) => {
+        if (!acc[curr.tenantId]) acc[curr.tenantId] = { paid: 0, unpaid: 0 };
+        if (curr.status === 'Paid') acc[curr.tenantId].paid += curr.amount;
+        else acc[curr.tenantId].unpaid += curr.amount;
+        return acc;
+      }, {} as Record<string, { paid: number, unpaid: number }>);
+
       const filtered = allLedgers.filter(L => {
         const dTs = parseGenericDate(L.dueDate);
         return dTs >= startBoundMs && dTs <= endBoundMs;
       }).map(L => {
         const tnt = tenants.find(t => t.id === L.tenantId);
         const prop = properties.find(p => p.id === tnt?.propertyId);
+        const summary = tenantSummaries[L.tenantId] || { paid: 0, unpaid: 0 };
         return {
           ...L,
           tenantName: tnt?.tenantName || 'Unknown',
-          propertyName: prop?.name || 'Unknown'
+          propertyName: prop?.name || 'Unknown',
+          tenantPaid: summary.paid,
+          tenantUnpaid: summary.unpaid
         };
       }).sort((a, b) => parseGenericDate(a.dueDate) - parseGenericDate(b.dueDate));
 
@@ -135,7 +145,9 @@ const AllTenantsLedger: React.FC = () => {
       DueDate: displayDate(l.dueDate),
       Amount: l.amount,
       Status: l.status,
-      PaidDate: displayDate(l.paidDate || '')
+      PaidDate: displayDate(l.paidDate || ''),
+      TenantTotalPaid: l.tenantPaid,
+      TenantTotalUnpaid: l.tenantUnpaid
     })), 'All_Tenants_Ledger.csv');
   };
 
@@ -263,6 +275,8 @@ const AllTenantsLedger: React.FC = () => {
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('due_date')}</th>
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('amount_due') || 'Amount'}</th>
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('status')}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('paid_rent') || 'Paid'} (T)</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('unpaid_rent') || 'Unpaid'} (T)</th>
                     <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('actions')}</th>
                   </tr>
                 </thead>
@@ -285,6 +299,8 @@ const AllTenantsLedger: React.FC = () => {
                           {txn.status === 'Paid' ? t('paid') : t('pending')}
                         </span>
                       </td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start', color: 'var(--success)', fontWeight: 600 }}>{txn.tenantPaid.toLocaleString()}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start', color: 'var(--danger)', fontWeight: 600 }}>{txn.tenantUnpaid.toLocaleString()}</td>
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end' }}>
                         <button 
                           className="btn" 

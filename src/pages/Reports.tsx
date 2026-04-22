@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getExpenses, getAllLedgers } from '../utils/store';
+import { getExpenses, getAllLedgers, getTenants } from '../utils/store';
 import type { Expense, ContractLedger } from '../utils/store';
 import { useAppContext } from '../context/AppContext';
 import { useLocation } from 'react-router-dom';
@@ -41,7 +41,7 @@ const Reports: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
 
-  const [incomes, setIncomes] = useState<ContractLedger[]>([]);
+  const [incomes, setIncomes] = useState<(ContractLedger & { tenantName?: string })[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
   const toEnglishDigits = (str: string) => {
@@ -72,6 +72,7 @@ const Reports: React.FC = () => {
     const fetchReport = async () => {
       const allLedgers = await getAllLedgers();
       const allExpenses = await getExpenses();
+      const tenants = await getTenants();
 
       const safeStartDate = toEnglishDigits(startDate);
       const safeEndDate = toEnglishDigits(endDate);
@@ -114,7 +115,10 @@ const Reports: React.FC = () => {
         return edTs >= startBoundMs && edTs <= endBoundMs;
       });
 
-      setIncomes(filteredIncomes);
+      setIncomes(filteredIncomes.map(L => {
+        const tnt = tenants.find(t => t.id === L.tenantId);
+        return { ...L, tenantName: tnt?.tenantName };
+      }));
       setExpenses(filteredExpenses);
     };
 
@@ -126,6 +130,7 @@ const Reports: React.FC = () => {
       id: inc.id,
       date: inc.paidDate || inc.dueDate,
       description: t('income_ledger_title'),
+      tenantName: inc.tenantName,
       income: inc.amount,
       expense: 0,
       transferred: 0,
@@ -137,6 +142,7 @@ const Reports: React.FC = () => {
         id: exp.id,
         date: exp.date,
         description: isTransfer ? t('cat_transfer_owner') : exp.category,
+        tenantName: '',
         income: 0,
         expense: isTransfer ? 0 : exp.amount,
         transferred: isTransfer ? exp.amount : 0,
@@ -155,6 +161,7 @@ const Reports: React.FC = () => {
     return (
       txn.description.toLowerCase().includes(term) ||
       txn.date.toLowerCase().includes(term) ||
+      (txn.tenantName || '').toLowerCase().includes(term) ||
       txn.income.toString().includes(term) ||
       txn.expense.toString().includes(term) ||
       txn.transferred.toString().includes(term)
@@ -176,6 +183,7 @@ const Reports: React.FC = () => {
     exportCSV(ledgerData.map(l => ({
       Date: displayDate(l.date),
       Description: l.description,
+      Tenant: l.tenantName || '',
       Income: l.income,
       Expense: l.expense,
       Transferred: l.transferred,
@@ -326,6 +334,7 @@ const Reports: React.FC = () => {
                   <tr style={{ borderBottom: '2px solid var(--glass-border)', color: 'var(--text-muted)' }}>
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('date_label')}</th>
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('description_col')}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('tenant_name')}</th>
                     <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('income')}</th>
                     <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('expense_label')}</th>
                     <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('transferred_col')}</th>
@@ -337,6 +346,7 @@ const Reports: React.FC = () => {
                     <tr key={txn.id + idx} className="print-break-inside-avoid" style={{ borderBottom: '1px solid var(--glass-border)', background: txn.transferred > 0 ? 'rgba(59, 130, 246, 0.05)' : txn.expense > 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)' }}>
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start' }}>{displayDate(txn.date)}</td>
                       <td style={{ padding: '0.75rem 0.5rem', fontWeight: 500, textAlign: 'start' }}>{txn.description}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start', color: 'var(--text-muted)' }}>{txn.tenantName}</td>
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', color: txn.income > 0 ? 'var(--success)' : 'inherit' }}>{txn.income > 0 ? `+${txn.income.toLocaleString()}` : '-'}</td>
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', color: txn.expense > 0 ? 'var(--danger)' : 'inherit' }}>{txn.expense > 0 ? `-${txn.expense.toLocaleString()}` : '-'}</td>
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', color: txn.transferred > 0 ? 'var(--secondary)' : 'inherit' }}>{txn.transferred > 0 ? `-${txn.transferred.toLocaleString()}` : '-'}</td>
