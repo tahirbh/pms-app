@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Building2, CheckCircle2, Edit, Trash2, Home, Download, Upload } from 'lucide-react';
+import { Plus, Building2, Edit, Trash2, Home, Download, Upload } from 'lucide-react';
 import { getProperties, saveProperty, updateProperty, deleteProperty, importProperties } from '../utils/store';
 import type { Property } from '../utils/store';
 import { useAppContext } from '../context/AppContext';
