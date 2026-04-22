@@ -26,6 +26,7 @@ const AllTenantsLedger: React.FC = () => {
   const qStart = searchParams.get('start');
   const qEnd = searchParams.get('end');
   const qStatus = searchParams.get('status');
+  const qProperty = searchParams.get('property');
 
   const [startDate, setStartDate] = useState(() => {
     if (qStart) return qStart;
@@ -124,6 +125,7 @@ const AllTenantsLedger: React.FC = () => {
     // Status filter from URL (e.g. ?status=unpaid)
     if (qStatus === 'unpaid' && txn.status === 'Paid') return false;
     if (qStatus === 'paid' && txn.status !== 'Paid') return false;
+    if (qProperty && txn.propertyName !== qProperty) return false;
 
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();

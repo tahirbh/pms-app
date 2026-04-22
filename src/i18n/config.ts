@@ -80,6 +80,7 @@ const resources = {
       "building_income_by_year": "Building Income by Year", "year": "Year",
       "row_total": "Row Total", "column_total": "Column Total",
       "financial_totals_by_year": "Financial Breakdown by Year", "unpaid_rent": "Unpaid / Overdue Rent",
+      "pending_rent": "Pending (Unpaid)", "vacant_rent": "Vacant / Potential Loss",
       "tenant_ledgers": "All Tenant Ledgers", "amount_due": "Amount Due",
 
       // Properties
@@ -275,6 +276,7 @@ const resources = {
       "building_income_by_year": "دخل المباني حسب السنة", "year": "السنة",
       "row_total": "إجمالي الصف", "column_total": "إجمالي العمود",
       "financial_totals_by_year": "التفصيل المالي حسب السنة", "unpaid_rent": "الإيجار غير المدفوع / المتأخر",
+      "pending_rent": "معلق (غير مدفوع)", "vacant_rent": "شاغر / خسارة محتملة",
       "tenant_ledgers": "سجلات جميع المستأجرين", "amount_due": "المبلغ المستحق",
       "add_property": "إضافة عقار", "edit_property": "تعديل العقار",
       "new_property": "تفاصيل العقار الجديد", "edit_property_details": "تعديل تفاصيل العقار",
@@ -450,6 +452,7 @@ const resources = {
       "building_income_by_year": "سال کے لحاظ سے عمارت کی آمدنی", "year": "سال",
       "row_total": "قطار کا کل", "column_total": "کالم کا کل",
       "financial_totals_by_year": "سال کے لحاظ سے مالی تفصیلات", "unpaid_rent": "غیر ادا شدہ / واجب الادا کرایہ",
+      "pending_rent": "زیر التواء (غیر ادا شدہ)", "vacant_rent": "خالی / ممکنہ نقصان",
       "tenant_ledgers": "تمام کرایہ داروں کے کھاتے", "amount_due": "واجب الادا رقم",
       "add_property": "جائیداد شامل کریں", "edit_property": "جائیداد ترمیم کریں",
       "new_property": "نئی جائیداد کی تفصیلات", "edit_property_details": "جائیداد کی تفصیلات ترمیم کریں",

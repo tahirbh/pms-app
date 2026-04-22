@@ -79,7 +79,8 @@ const DashboardHome = () => {
   const [historicalDataPerYear, setHistoricalDataPerYear] = useState<Record<string, { contractedRent: number, collectedRent: number, totalExpenses: number, transferredAmount: number }>>({});
 
   // ── Charts & notifications ──
-  const [currentUtilizationData, setCurrentUtilizationData] = useState<{ name: string, potential: number, contracted: number, collected: number }[]>([]);
+  // ── Charts & notifications ──
+  const [currentUtilizationData, setCurrentUtilizationData] = useState<{ name: string, potential: number, contracted: number, collected: number, pending: number, vacant: number }[]>([]);
   const [allProperties, setAllProperties] = useState<any[]>([]);
   const [allTenants, setAllTenants] = useState<any[]>([]);
   const [allLedgersData, setAllLedgersData] = useState<any[]>([]);
@@ -280,7 +281,9 @@ const DashboardHome = () => {
           name: p.name,
           potential: p.annualRent,
           contracted,
-          collected
+          collected,
+          pending: Math.max(0, contracted - collected),
+          vacant: Math.max(0, p.annualRent - contracted)
         };
       });
       setCurrentUtilizationData(currentBuildUtil);
@@ -349,7 +352,9 @@ const DashboardHome = () => {
         name: p.name,
         potential: p.annualRent * yearsCount,
         contracted,
-        collected
+        collected,
+        pending: Math.max(0, contracted - collected),
+        vacant: Math.max(0, (p.annualRent * yearsCount) - contracted)
       };
     });
   }, [startYear, endYear, availableHistYears, allProperties, allTenants, allLedgersData]);
@@ -419,6 +424,50 @@ const DashboardHome = () => {
     else if (type === 'transferred_amount') params.append('filter', 'transfer');
 
     navigate(`/dashboard/report?${params.toString()}`);
+  };
+
+  const handleUtilizationClick = (entry: any, type: string, isHistorical: boolean) => {
+    const prop = allProperties.find(p => p.name === entry.name);
+    if (!prop) return;
+
+    let qStart = '';
+    let qEnd = '';
+
+    if (isHistorical) {
+      if (startYear && endYear) {
+        qStart = startYear.includes('(H)') ? `${startYear.split(' ')[0]}/01/01` : `${startYear}/01/01`;
+        qEnd = endYear.includes('(H)') ? `${endYear.split(' ')[0]}/12/30` : `${endYear}/12/31`;
+      }
+    } else {
+      if (calendarMode === 'hijri') {
+        const cy = moment().format('iYYYY');
+        qStart = `${cy}/01/01`;
+        qEnd = `${cy}/12/30`;
+      } else {
+        const cy = new Date().getFullYear();
+        qStart = `${cy}/01/01`;
+        qEnd = `${cy}/12/31`;
+      }
+    }
+
+    const params = new URLSearchParams();
+    if (qStart) params.append('start', qStart);
+    if (qEnd) params.append('end', qEnd);
+    params.append('property', prop.name);
+
+    if (type === 'potential') {
+      navigate(`/dashboard/all-ledgers?${params.toString()}`);
+    } else if (type === 'contracted') {
+      navigate(`/dashboard/all-ledgers?${params.toString()}`);
+    } else if (type === 'collected') {
+      params.append('status', 'paid');
+      navigate(`/dashboard/all-ledgers?${params.toString()}`);
+    } else if (type === 'pending') {
+      params.append('status', 'unpaid');
+      navigate(`/dashboard/all-ledgers?${params.toString()}`);
+    } else if (type === 'vacant') {
+      navigate(`/dashboard/properties?search=${prop.name}`);
+    }
   };
 
   // ── Chart data ──
@@ -672,9 +721,11 @@ const DashboardHome = () => {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip formatter={(value) => `${Math.round(Number(value)).toLocaleString()} ${currency}`} />
-                  <Bar dataKey="potential" name={t('potential_rent_annual') || 'Annual Expected'} fill="var(--text-muted)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="contracted" name={t('actual_contracted_rent') || 'Contracted Amount'} fill="var(--secondary)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="collected" name={t('collected_rent') || 'Collected Amount'} fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="potential" name={t('potential_rent_annual') || 'Annual Potential'} fill="var(--text-muted)" radius={[4, 4, 0, 0]} onClick={(data) => handleUtilizationClick(data, 'potential', false)} cursor="pointer" />
+                  <Bar dataKey="contracted" name={t('actual_contracted_rent') || 'Contracted'} fill="var(--secondary)" radius={[4, 4, 0, 0]} onClick={(data) => handleUtilizationClick(data, 'contracted', false)} cursor="pointer" />
+                  <Bar dataKey="collected" name={t('collected_rent') || 'Collected'} fill="var(--primary)" radius={[4, 4, 0, 0]} onClick={(data) => handleUtilizationClick(data, 'collected', false)} cursor="pointer" />
+                  <Bar dataKey="pending" name={t('pending_rent') || 'Pending'} fill="var(--danger)" radius={[4, 4, 0, 0]} onClick={(data) => handleUtilizationClick(data, 'pending', false)} cursor="pointer" />
+                  <Bar dataKey="vacant" name={t('vacant_rent') || 'Vacant'} fill="#ffc107" radius={[4, 4, 0, 0]} onClick={(data) => handleUtilizationClick(data, 'vacant', false)} cursor="pointer" />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -695,9 +746,11 @@ const DashboardHome = () => {
                     <XAxis dataKey="name" />
                     <YAxis />
                     <Tooltip formatter={(value) => `${Math.round(Number(value)).toLocaleString()} ${currency}`} />
-                    <Bar dataKey="potential" name={t('potential_rent_annual') || 'Expected Total'} fill="var(--text-muted)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="contracted" name={t('actual_contracted_rent') || 'Contracted Total'} fill="var(--secondary)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="collected" name={t('collected_rent') || 'Collected Total'} fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="potential" name={t('potential_rent_annual') || 'Potential Total'} fill="var(--text-muted)" radius={[4, 4, 0, 0]} onClick={(data) => handleUtilizationClick(data, 'potential', true)} cursor="pointer" />
+                    <Bar dataKey="contracted" name={t('actual_contracted_rent') || 'Contracted Total'} fill="var(--secondary)" radius={[4, 4, 0, 0]} onClick={(data) => handleUtilizationClick(data, 'contracted', true)} cursor="pointer" />
+                    <Bar dataKey="collected" name={t('collected_rent') || 'Collected Total'} fill="var(--primary)" radius={[4, 4, 0, 0]} onClick={(data) => handleUtilizationClick(data, 'collected', true)} cursor="pointer" />
+                    <Bar dataKey="pending" name={t('pending_rent') || 'Pending Total'} fill="var(--danger)" radius={[4, 4, 0, 0]} onClick={(data) => handleUtilizationClick(data, 'pending', true)} cursor="pointer" />
+                    <Bar dataKey="vacant" name={t('vacant_rent') || 'Vacant Total'} fill="#ffc107" radius={[4, 4, 0, 0]} onClick={(data) => handleUtilizationClick(data, 'vacant', true)} cursor="pointer" />
                   </BarChart>
                 </ResponsiveContainer>
               )}
