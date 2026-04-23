@@ -46,9 +46,15 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
 
 
 
+/** Normalize Arabic numerals to English numerals for robust year comparison */
+const normalizeYear = (yearStr: string): string => {
+  const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  return yearStr.replace(/[٠-٩]/g, w => arabicNumbers.indexOf(w).toString());
+};
+
 /** Get the current year key dynamically. */
 const getCurrentYearKey = (calMode: 'gregorian' | 'hijri'): string => {
-  if (calMode === 'hijri') return moment().format('iYYYY') + ' (H)';
+  if (calMode === 'hijri') return normalizeYear(moment().format('iYYYY')) + ' (H)';
   return new Date().getFullYear().toString();
 };
 
@@ -119,13 +125,13 @@ const DashboardHome = () => {
       // ── Process expenses ──
       expenses.forEach(exp => {
         let yearStr = '';
-        const rawYear = exp.date.split(/[\/-]/)[0];
+        const rawYear = normalizeYear(exp.date.split(/[\/-]/)[0]);
         const isGregorianString = parseInt(rawYear) > 1900 && parseInt(rawYear) < 2100;
 
         if (calendarMode === 'hijri') {
           if (isGregorianString) {
             // Convert Gregorian to Hijri
-            yearStr = moment(exp.date, ['YYYY/MM/DD', 'YYYY-MM-DD']).format('iYYYY') + ' (H)';
+            yearStr = normalizeYear(moment(exp.date, ['YYYY/MM/DD', 'YYYY-MM-DD']).format('iYYYY')) + ' (H)';
           } else {
             // Already Hijri
             yearStr = rawYear + ' (H)';
@@ -170,9 +176,11 @@ const DashboardHome = () => {
         let ledgerDate: Date;
         let yearStr: string;
         if (tnt.calendarMode === 'hijri') {
-          const m = moment(L.dueDate, 'iYYYY/iMM/iDD');
+          // Normalize the input just in case
+          const normDueDate = normalizeYear(L.dueDate);
+          const m = moment(normDueDate, 'iYYYY/iMM/iDD');
           ledgerDate = m.toDate();
-          yearStr = m.format('iYYYY') + ' (H)';
+          yearStr = normalizeYear(m.format('iYYYY')) + ' (H)';
         } else {
           ledgerDate = new Date(L.dueDate);
           yearStr = ledgerDate.getFullYear().toString();
@@ -342,7 +350,8 @@ const DashboardHome = () => {
         tenantLedgers.forEach(L => {
           let yearStr: string;
           if (tnt.calendarMode === 'hijri') {
-            yearStr = moment(L.dueDate, 'iYYYY/iMM/iDD').format('iYYYY') + ' (H)';
+            const normDueDate = normalizeYear(L.dueDate);
+            yearStr = normalizeYear(moment(normDueDate, 'iYYYY/iMM/iDD').format('iYYYY')) + ' (H)';
           } else {
             yearStr = new Date(L.dueDate).getFullYear().toString();
           }
