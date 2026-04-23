@@ -201,7 +201,16 @@ const resources = {
       "calculated_period": "Calculated Extension Period",
       "confirm_extension": "Confirm Extension",
       "previous_end": "Previous End Date",
-      "extension_tip": "Defaults to 12-month extension from previous end date."
+      "extension_tip": "Defaults to 12-month extension from previous end date.",
+      "whats_new_title": "What's New",
+      "version_status": "Version",
+      "got_it": "Got it!",
+      "features": "Features",
+      "bug_fixes": "Bug Fixes",
+      "search_tenants_placeholder": "Search by name, property, mobile, or iqama...",
+      "search_properties_placeholder": "Search by property name or address...",
+      "continue_as_guest": "Continue as Guest",
+      "guest_mode_note": "Note: Guest data is stored locally and will be cleared if you clear your browser cache."
     }
   },
   ar: {
@@ -377,7 +386,16 @@ const resources = {
       "calculated_period": "فترة التمديد المحسوبة",
       "confirm_extension": "تأكيد التمديد",
       "previous_end": "تاريخ الانتهاء السابق",
-      "extension_tip": "افتراضيًا يتم التمديد لمدة ١٢ شهرًا من تاريخ الانتهاء السابق."
+      "extension_tip": "افتراضيًا يتم التمديد لمدة ١٢ شهرًا من تاريخ الانتهاء السابق.",
+      "whats_new_title": "ما الجديد",
+      "version_status": "الإصدار",
+      "got_it": "حسناً!",
+      "features": "الميزات",
+      "bug_fixes": "إصلاحات",
+      "search_tenants_placeholder": "ابحث بالاسم، العقار، الجوال، أو الإقامة...",
+      "search_properties_placeholder": "ابحث باسم العقار أو العنوان...",
+      "continue_as_guest": "المتابعة كضيف",
+      "guest_mode_note": "ملاحظة: يتم تخزين بيانات الضيف محلياً وسيتم مسحها إذا قمت بمسح ذاكرة التخزين المؤقت للمتصفح."
     }
   },
   ur: {
@@ -553,7 +571,16 @@ const resources = {
       "calculated_period": "توسیع کی مدت",
       "confirm_extension": "توسیع کی تصدیق کریں",
       "previous_end": "پچھلی آخری تاریخ",
-      "extension_tip": "سسٹم پچھلی رجسٹریشن کی تاریخ سے ۱۲ ماہ کی توسیع کرتا ہے۔"
+      "extension_tip": "سسٹم پچھلی رجسٹریشن کی تاریخ سے ۱۲ ماہ کی توسیع کرتا ہے۔",
+      "whats_new_title": "نیا کیا ہے",
+      "version_status": "ورژن",
+      "got_it": "سمجھ گیا!",
+      "features": "خصوصیات",
+      "bug_fixes": "بگز فکس",
+      "search_tenants_placeholder": "نام، جائیداد، موبائل، یا اقامہ کے ذریعے تلاش کریں...",
+      "search_properties_placeholder": "جائیداد کا نام یا پتہ تلاش کریں...",
+      "continue_as_guest": "بطور مہمان جاری رکھیں",
+      "guest_mode_note": "نوٹ: مہمان کا ڈیٹا مقامی طور پر محفوظ کیا جاتا ہے اور اگر آپ براؤزر کیشے صاف کرتے ہیں تو اسے صاف کر دیا جائے گا۔"
     }
   }
 };

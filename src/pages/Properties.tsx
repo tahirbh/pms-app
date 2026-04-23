@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Building2, Edit, Trash2, Home, Download, Upload } from 'lucide-react';
+import { Plus, Building2, Edit, Trash2, Home, Download, Upload, Search } from 'lucide-react';
 import { getProperties, saveProperty, updateProperty, deleteProperty, importProperties } from '../utils/store';
 import type { Property } from '../utils/store';
 import { useAppContext } from '../context/AppContext';
+import { useLocation } from 'react-router-dom';
 import { exportCSV, parseCSV, readFileAsText } from '../utils/exportUtils';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -20,6 +21,15 @@ const Properties: React.FC = () => {
   const [address, setAddress] = useState('');
   const [annualRent, setAnnualRent] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const qSearch = searchParams.get('search');
+  const [searchTerm, setSearchTerm] = useState(qSearch || '');
+
+  useEffect(() => {
+    if (qSearch) setSearchTerm(qSearch);
+  }, [qSearch]);
 
   const loadData = async () => {
     const data = await getProperties();
@@ -139,6 +149,18 @@ const Properties: React.FC = () => {
         </div>
       </div>
 
+      <div className="glass-panel" style={{ padding: '1.25rem 1.5rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <Search size={20} color="var(--text-muted)" />
+        <input 
+          type="text" 
+          className="input-field" 
+          placeholder={t('search_properties_placeholder') || "Search by property name or address..."}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ border: 'none', padding: '0', background: 'transparent', flex: 1 }}
+        />
+      </div>
+
       {showForm && (
         <form onSubmit={handleSaveProperty} className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>
@@ -174,7 +196,11 @@ const Properties: React.FC = () => {
         <p style={{ color: 'var(--text-muted)' }}>{t('no_properties')}</p>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
-          {properties.map(p => (
+          {properties.filter(p => {
+            if (!searchTerm) return true;
+            const term = searchTerm.toLowerCase();
+            return p.name.toLowerCase().includes(term) || p.address.toLowerCase().includes(term);
+          }).map(p => (
             <div key={p.id} className="glass-panel" style={{ padding: 0, overflow: 'hidden', transition: 'var(--transition)', display: 'flex', flexDirection: 'column' }}>
               <div style={{ padding: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>

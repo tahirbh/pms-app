@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 type AuthMode = 'signin' | 'signup';
 
 const Login: React.FC = () => {
-  const { user, signIn, signUp, signInWithGoogle } = useAuth();
+  const { user, signIn, signUp, signInWithGoogle, signInAsGuest } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -199,6 +199,33 @@ const Login: React.FC = () => {
                 </>
               )}
             </button>
+            
+            <button 
+              onClick={signInAsGuest} 
+              className="btn"
+              style={{ 
+                width: '100%', 
+                padding: '0.8rem', 
+                borderRadius: '12px', 
+                border: '1px solid var(--glass-border)', 
+                background: 'rgba(255,255,255,0.1)', 
+                cursor: 'pointer', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '0.75rem', 
+                fontSize: '1rem', 
+                fontWeight: 500, 
+                color: 'var(--text-main)', 
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <User size={18} />
+              <span>{t('continue_as_guest')}</span>
+            </button>
+            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '-0.5rem', fontStyle: 'italic' }}>
+              {t('guest_mode_note')}
+            </p>
           </>
         )}
 

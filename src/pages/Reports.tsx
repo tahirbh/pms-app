@@ -44,6 +44,11 @@ const Reports: React.FC = () => {
   const [incomes, setIncomes] = useState<(ContractLedger & { tenantName?: string })[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
+  useEffect(() => {
+    if (qStart) setStartDate(qStart);
+    if (qEnd) setEndDate(qEnd);
+  }, [qStart, qEnd]);
+
   const toEnglishDigits = (str: string) => {
     if (!str) return '';
     const arabicNum = '٠١٢٣٤٥٦٧٨٩';
@@ -62,7 +67,8 @@ const Reports: React.FC = () => {
   const parseGenericDate = (dateStr: string) => {
     if (!dateStr) return 0;
     const safeStr = toEnglishDigits(dateStr);
-    if (safeStr.includes('144')) {
+    // Robust detection: Hijri years usually start with 14 or we check if calendar mode is Hijri and it's not a 20xx year
+    if (safeStr.startsWith('14') || (calendarMode === 'hijri' && !safeStr.startsWith('20'))) {
       return moment(safeStr, 'iYYYY/iMM/iDD').toDate().getTime();
     }
     return new Date(safeStr).getTime();
@@ -81,13 +87,17 @@ const Reports: React.FC = () => {
       let startBoundMs: number;
       let endBoundMs: number;
 
-      if (calendarMode === 'hijri') {
+      if (safeStartDate.startsWith('14') || (calendarMode === 'hijri' && !safeStartDate.startsWith('20'))) {
         startBoundMs = moment(safeStartDate, 'iYYYY/iMM/iDD').toDate().getTime();
+      } else {
+        startBoundMs = new Date(safeStartDate).getTime();
+      }
+
+      if (safeEndDate.startsWith('14') || (calendarMode === 'hijri' && !safeEndDate.startsWith('20'))) {
         const ed = moment(safeEndDate, 'iYYYY/iMM/iDD').toDate();
         ed.setHours(23, 59, 59, 999);
         endBoundMs = ed.getTime();
       } else {
-        startBoundMs = new Date(safeStartDate).getTime();
         const ed = new Date(safeEndDate);
         ed.setHours(23, 59, 59, 999);
         endBoundMs = ed.getTime();
@@ -97,17 +107,12 @@ const Reports: React.FC = () => {
       const filteredIncomes = allLedgers.filter(L => {
         if (L.status !== 'Paid') return false;
 
-        // Determination strategy: 
-        // 1. If we have a paidDate, check it first (Standard Cash Basis).
-        // 2. If it falls outside or is missing, check dueDate (Fallback for historical back-filling).
         const pdTs = L.paidDate ? parseGenericDate(L.paidDate) : 0;
         const ddTs = parseGenericDate(L.dueDate);
 
         const isPaidInWindow = pdTs >= startBoundMs && pdTs <= endBoundMs;
         const isDueInWindow = ddTs >= startBoundMs && ddTs <= endBoundMs;
 
-        // If filtering for a specific historical year (e.g. from Dashboard), 
-        // we prioritize the Due Date association to that year.
         return isPaidInWindow || isDueInWindow;
       });
 
@@ -126,7 +131,7 @@ const Reports: React.FC = () => {
     };
 
     fetchReport();
-  }, [startDate, endDate, calendarMode]);
+  }, [startDate, endDate, calendarMode, qStart, qEnd]);
 
   const transactions = [
     ...incomes.map(inc => ({

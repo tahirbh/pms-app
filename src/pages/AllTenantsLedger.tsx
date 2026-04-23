@@ -44,6 +44,11 @@ const AllTenantsLedger: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [ledgers, setLedgers] = useState<(ContractLedger & { tenantName: string, propertyName: string, tenantPaid: number, tenantUnpaid: number })[]>([]);
 
+  useEffect(() => {
+    if (qStart) setStartDate(qStart);
+    if (qEnd) setEndDate(qEnd);
+  }, [qStart, qEnd]);
+
   const toEnglishDigits = (str: string) => {
     if (!str) return '';
     const arabicNum = '٠١٢٣٤٥٦٧٨٩';
@@ -62,7 +67,7 @@ const AllTenantsLedger: React.FC = () => {
   const parseGenericDate = (dateStr: string) => {
     if (!dateStr) return 0;
     const safeStr = toEnglishDigits(dateStr);
-    if (safeStr.includes('144')) {
+    if (safeStr.startsWith('14') || (calendarMode === 'hijri' && !safeStr.startsWith('20'))) {
       return moment(safeStr, 'iYYYY/iMM/iDD').toDate().getTime();
     }
     return new Date(safeStr).getTime();
@@ -80,13 +85,17 @@ const AllTenantsLedger: React.FC = () => {
       let startBoundMs: number;
       let endBoundMs: number;
       
-      if (calendarMode === 'hijri') {
+      if (safeStartDate.startsWith('14') || (calendarMode === 'hijri' && !safeStartDate.startsWith('20'))) {
         startBoundMs = moment(safeStartDate, 'iYYYY/iMM/iDD').toDate().getTime();
+      } else {
+        startBoundMs = new Date(safeStartDate).getTime();
+      }
+
+      if (safeEndDate.startsWith('14') || (calendarMode === 'hijri' && !safeEndDate.startsWith('20'))) {
         const ed = moment(safeEndDate, 'iYYYY/iMM/iDD').toDate();
         ed.setHours(23, 59, 59, 999);
         endBoundMs = ed.getTime();
       } else {
-        startBoundMs = new Date(safeStartDate).getTime();
         const ed = new Date(safeEndDate);
         ed.setHours(23, 59, 59, 999);
         endBoundMs = ed.getTime();
@@ -119,7 +128,7 @@ const AllTenantsLedger: React.FC = () => {
     };
 
     fetchData();
-  }, [startDate, endDate, calendarMode]);
+  }, [startDate, endDate, calendarMode, qStart, qEnd]);
 
   const filteredLedgers = ledgers.filter(txn => {
     // Status filter from URL (e.g. ?status=unpaid)

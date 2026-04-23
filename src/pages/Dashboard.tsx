@@ -17,6 +17,9 @@ import TenantLedger from './TenantLedger';
 import Reports from './Reports';
 import Pivot from './Pivot';
 import { getProperties, getTenants, getExpenses, getAllLedgers } from '../utils/store';
+import WhatsNewModal from '../components/WhatsNewModal';
+
+declare const __APP_VERSION__: string;
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: Error | null }> {
   constructor(props: any) {
@@ -770,6 +773,20 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
+
+  useEffect(() => {
+    const lastSeen = localStorage.getItem('last_seen_version');
+    if (lastSeen !== __APP_VERSION__) {
+      setShowWhatsNew(true);
+    }
+  }, []);
+
+  const handleCloseWhatsNew = () => {
+    setShowWhatsNew(false);
+    localStorage.setItem('last_seen_version', __APP_VERSION__);
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/', { replace: true });
@@ -792,7 +809,7 @@ const Dashboard: React.FC = () => {
       <aside className="glass-panel sidebar">
         <div className="app-title" style={{ padding: '2rem 1.5rem', fontWeight: 700, fontSize: '1.5rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
           <span className="app-title-glow">{t('app_title')}</span>
-          <span className="version-badge">v1.0.0</span>
+          <span className="version-badge">v{__APP_VERSION__}</span>
         </div>
 
         <nav className="sidebar-nav">
@@ -849,6 +866,11 @@ const Dashboard: React.FC = () => {
           </Routes>
         </ErrorBoundary>
       </div>
+      <WhatsNewModal 
+        isOpen={showWhatsNew} 
+        onClose={handleCloseWhatsNew} 
+        currentVersion={__APP_VERSION__} 
+      />
     </div>
   );
 };

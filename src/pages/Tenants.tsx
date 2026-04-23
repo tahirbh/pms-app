@@ -33,6 +33,7 @@ const Tenants: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void } | null>(null);
   const [extendingContract, setExtendingContract] = useState<{ tenant: TenantContract; property: Property } | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   
   const [tenantName, setTenantName] = useState('');
@@ -266,6 +267,16 @@ const Tenants: React.FC = () => {
         </div>
       </div>
 
+      <div className="glass-panel" style={{ padding: '1.25rem 1.5rem', marginBottom: '2rem' }}>
+        <input 
+          type="text" 
+          className="input-field" 
+          placeholder={t('search_tenants_placeholder') || "Search by name, property, mobile, or iqama..."}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
       {showForm && (
         <form onSubmit={handleSaveTenant} className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>
@@ -344,7 +355,18 @@ const Tenants: React.FC = () => {
         <p style={{ color: 'var(--text-muted)' }}>{t('no_tenants')}</p>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
-          {tenants.map(tnt => {
+          {tenants.filter(tnt => {
+            if (!searchTerm) return true;
+            const term = searchTerm.toLowerCase();
+            const prop = properties.find(p => p.id === tnt.propertyId);
+            return (
+              tnt.tenantName.toLowerCase().includes(term) ||
+              (prop?.name || '').toLowerCase().includes(term) ||
+              (tnt.mobileNumber || '').toLowerCase().includes(term) ||
+              (tnt.iqamaNumber || '').toLowerCase().includes(term) ||
+              (tnt.sponsorName || '').toLowerCase().includes(term)
+            );
+          }).map(tnt => {
             const prop = properties.find(p => p.id === tnt.propertyId);
             const contractRentAmount = tnt.annualRent || prop?.annualRent || 0;
             const res = contractRentAmount > 0 ? calculateRent(contractRentAmount, tnt.startDate, tnt.endDate, tnt.calendarMode) : null;
