@@ -23,7 +23,7 @@ export const changelog: ChangeLogEntry[] = [
     version: "1.0.5",
     date: "2026-03-31",
     features: [
-      "Antigravity dark theme mode toggle in settings",
+      "Dark theme mode toggle in settings",
       "Search filter added to Reports ledger",
       "Glassmorphism UI refinements",
       "Iqama number and Sponsor name fields for tenants",
