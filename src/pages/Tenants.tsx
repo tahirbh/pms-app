@@ -182,6 +182,18 @@ const Tenants: React.FC = () => {
     }
   };
 
+  const handleEndContract = async (tnt: TenantContract) => {
+    const leaveStr = leaveDateInput[tnt.id];
+    if (!leaveStr) return;
+    
+    if (window.confirm(t('confirm_delete'))) {
+      await endTenantContract(tnt.id, leaveStr);
+      // Refresh data
+      const updated = await getTenants();
+      setTenants(updated);
+    }
+  };
+
 
   const handleExtendContract = (tnt: TenantContract) => {
     const prop = properties.find(p => p.id === tnt.propertyId);
@@ -433,6 +445,14 @@ const Tenants: React.FC = () => {
                           <p><strong>{t('monthly_rent') || 'Monthly Rent'}:</strong> {Math.round(res?.monthlyRent || 0).toLocaleString()} {currency}</p>
                           <p>{t('active_days_leaving')} {res?.activeDays || 0}</p>
                           <p>{t('daily_rate')} {Math.round(res?.dailyRate || 0).toLocaleString()} {currency}</p>
+                          <button 
+                            type="button" 
+                            className="btn btn-primary" 
+                            onClick={() => handleEndContract(tnt)} 
+                            style={{ marginTop: '0.5rem', width: '100%', background: 'var(--danger)' }}
+                          >
+                            {t('end_contract_now')}
+                          </button>
                         </div>
                       )}
                     </div>
