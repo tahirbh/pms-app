@@ -3,7 +3,7 @@ import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Home, Users, Settings as SettingsIcon, LogOut, Receipt, Bell, AlertCircle, FileText } from 'lucide-react';
+import { LayoutDashboard, Home, Users, Settings as SettingsIcon, LogOut, Receipt, Bell, AlertCircle, FileText, Sparkles } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import moment from 'moment-hijri';
 
@@ -809,7 +809,14 @@ const Dashboard: React.FC = () => {
       <aside className="glass-panel sidebar">
         <div className="app-title" style={{ padding: '2rem 1.5rem', fontWeight: 700, fontSize: '1.5rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
           <span className="app-title-glow">{t('app_title')}</span>
-          <span className="version-badge">v{__APP_VERSION__}</span>
+          <button 
+            onClick={() => setShowWhatsNew(true)}
+            className="version-badge" 
+            style={{ cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+            title={t('whats_new_title')}
+          >
+            v{__APP_VERSION__} <Sparkles size={10} />
+          </button>
         </div>
 
         <nav className="sidebar-nav">
