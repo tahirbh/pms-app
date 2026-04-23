@@ -4,7 +4,7 @@ import { getExpenses, getAllLedgers, getTenants, getProperties } from '../utils/
 import type { Expense, ContractLedger } from '../utils/store';
 import { useAppContext } from '../context/AppContext';
 import { useLocation } from 'react-router-dom';
-import DatePickerModule, { DateObject } from "react-multi-date-picker";
+import DatePickerModule from "react-multi-date-picker";
 const DatePicker = (DatePickerModule as any).default || DatePickerModule;
 import arabic from "react-date-object/calendars/arabic";
 import arabic_ar from "react-date-object/locales/arabic_ar";
