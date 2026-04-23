@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, Edit, Trash2, Printer, Receipt, UserCircle, Calculator, Download, ArrowUpCircle, XCircle } from 'lucide-react';
+import { UserPlus, Edit, Trash2, Printer, Receipt, UserCircle, Download, ArrowUpCircle } from 'lucide-react';
 import { getTenants, getProperties, saveTenant, updateTenant, deleteTenant, endTenantContract, saveLedgers, deleteLedgersByTenant } from '../utils/store';
 import type { TenantContract, Property } from '../utils/store';
 import { calculateRent } from '../utils/rentCalculator';
@@ -182,13 +182,6 @@ const Tenants: React.FC = () => {
     }
   };
 
-  const handleEndContract = async (tnt: TenantContract) => {
-    const leaveStr = leaveDateInput[tnt.id];
-    if (!leaveStr) return;
-    
-    await endTenantContract(tnt.id, leaveStr);
-    await loadData();
-  };
 
   const handleExtendContract = (tnt: TenantContract) => {
     const prop = properties.find(p => p.id === tnt.propertyId);

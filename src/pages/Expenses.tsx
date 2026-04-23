@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Receipt, Edit, Trash2, CheckCircle2, Download, Upload } from 'lucide-react';
+import { Plus, Receipt, Edit, Trash2, Download, Upload } from 'lucide-react';
 import { getExpenses, saveExpense, updateExpense, deleteExpense, importExpenses } from '../utils/store';
 import type { Expense } from '../utils/store';
 import { useAppContext } from '../context/AppContext';
