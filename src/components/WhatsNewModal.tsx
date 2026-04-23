@@ -118,7 +118,7 @@ const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ isOpen, onClose, currentV
                     {entry.features.map((feat, i) => (
                       <li key={i} style={{ fontSize: '0.9rem', display: 'flex', gap: '0.75rem', color: 'var(--text-main)' }}>
                         <CheckCircle2 size={16} color="var(--success)" style={{ flexShrink: 0, marginTop: '2px' }} />
-                        {feat}
+                        {t(feat) || feat}
                       </li>
                     ))}
                   </ul>
@@ -134,7 +134,7 @@ const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ isOpen, onClose, currentV
                     {entry.fixes.map((fix, i) => (
                       <li key={i} style={{ fontSize: '0.9rem', display: 'flex', gap: '0.75rem', color: 'var(--text-main)' }}>
                         <CheckCircle2 size={16} color="var(--primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
-                        {fix}
+                        {t(fix) || fix}
                       </li>
                     ))}
                   </ul>

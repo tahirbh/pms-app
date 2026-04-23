@@ -210,7 +210,22 @@ const resources = {
       "search_tenants_placeholder": "Search by name, property, mobile, or iqama...",
       "search_properties_placeholder": "Search by property name or address...",
       "continue_as_guest": "Continue as Guest",
-      "guest_mode_note": "Note: Guest data is stored locally and will be cleared if you clear your browser cache."
+      "guest_mode_note": "Note: Guest data is stored locally and will be cleared if you clear your browser cache.",
+      
+      // Changelog
+      "feat_auto_versioning": "Auto-versioning system on build",
+      "feat_whats_new": "New 'What's New' notification modal on login",
+      "feat_report_sync": "Enhanced report filtering with URL sync",
+      "fix_dashboard_filters": "Fixed expense card filtering on Dashboard",
+      "fix_date_parsing": "Improved date parsing for mixed Hijri/Gregorian modes",
+      "feat_dark_mode": "Dark theme mode toggle in settings",
+      "feat_search_ledger": "Search filter added to Reports ledger",
+      "feat_glass_ui": "Glassmorphism UI refinements",
+      "feat_tenant_fields": "Iqama number and Sponsor name fields for tenants",
+      "feat_transfer_tracking": "Transfer to owner tracking",
+      "fix_normalized_dates": "Normalized date strings to prevent Local Time discrepancies",
+      "fix_hijri_picker": "Fixed date picker parsing for Arabic numerals",
+      "fix_rtl_alignment": "RTL table column alignment improvements"
     }
   },
   ar: {
@@ -395,7 +410,22 @@ const resources = {
       "search_tenants_placeholder": "ابحث بالاسم، العقار، الجوال، أو الإقامة...",
       "search_properties_placeholder": "ابحث باسم العقار أو العنوان...",
       "continue_as_guest": "المتابعة كضيف",
-      "guest_mode_note": "ملاحظة: يتم تخزين بيانات الضيف محلياً وسيتم مسحها إذا قمت بمسح ذاكرة التخزين المؤقت للمتصفح."
+      "guest_mode_note": "ملاحظة: يتم تخزين بيانات الضيف محلياً وسيتم مسحها إذا قمت بمسح ذاكرة التخزين المؤقت للمتصفح.",
+
+      // Changelog
+      "feat_auto_versioning": "نظام الترقيم التلقائي للإصدارات عند البناء",
+      "feat_whats_new": "نافذة 'ما الجديد' عند تسجيل الدخول",
+      "feat_report_sync": "تحسين تصفية التقارير مع مزامنة الروابط",
+      "fix_dashboard_filters": "إصلاح تصفية بطاقات المصروفات في لوحة التحكم",
+      "fix_date_parsing": "تحسين تحليل التاريخ للأنماط الهجرية والميلادية المختلطة",
+      "feat_dark_mode": "تبديل وضع المظهر الداكن في الإعدادات",
+      "feat_search_ledger": "إضافة فلتر البحث إلى سجل التقارير",
+      "feat_glass_ui": "تحسينات واجهة المستخدم بنمط Glassmorphism",
+      "feat_tenant_fields": "حقول رقم الإقامة واسم الكفيل للمستأجرين",
+      "feat_transfer_tracking": "تتبع التحويل للمالك",
+      "fix_normalized_dates": "توحيد سلاسل التاريخ لمنع تضارب التوقيت المحلي",
+      "fix_hijri_picker": "إصلاح تحليل منتقي التاريخ للأرقام العربية",
+      "fix_rtl_alignment": "تحسينات محاذاة أعمدة الجدول (RTL)"
     }
   },
   ur: {
@@ -580,7 +610,22 @@ const resources = {
       "search_tenants_placeholder": "نام، جائیداد، موبائل، یا اقامہ کے ذریعے تلاش کریں...",
       "search_properties_placeholder": "جائیداد کا نام یا پتہ تلاش کریں...",
       "continue_as_guest": "بطور مہمان جاری رکھیں",
-      "guest_mode_note": "نوٹ: مہمان کا ڈیٹا مقامی طور پر محفوظ کیا جاتا ہے اور اگر آپ براؤزر کیشے صاف کرتے ہیں تو اسے صاف کر دیا جائے گا۔"
+      "guest_mode_note": "نوٹ: مہمان کا ڈیٹا مقامی طور پر محفوظ کیا جاتا ہے اور اگر آپ براؤزر کیشے صاف کرتے ہیں تو اسے صاف کر دیا جائے گا۔",
+
+      // Changelog
+      "feat_auto_versioning": "بلڈ پر خودکار ورژننگ سسٹم",
+      "feat_whats_new": "لاگ ان پر نئی 'کیا نیا ہے' اطلاع",
+      "feat_report_sync": "URL مطابقت پذیری کے ساتھ بہتر رپورٹ فلٹرنگ",
+      "fix_dashboard_filters": "ڈیش بورڈ پر اخراجات کے کارڈ کی فلٹرنگ کو ٹھیک کیا گیا",
+      "fix_date_parsing": "ہجری اور عیسوی تاریخوں کے لیے بہتر تجزیہ",
+      "feat_dark_mode": "سیٹنگز میں ڈارک تھیم موڈ ٹوگل",
+      "feat_search_ledger": "رپورٹس لیجر میں سرچ فلٹر شامل کیا گیا",
+      "feat_glass_ui": "گلاسمورفزم UI میں بہتری",
+      "feat_tenant_fields": "ٹیننٹ کے لیے اقامہ نمبر اور کفیل کے نام کے فیلڈز",
+      "feat_transfer_tracking": "مالک کو رقم کی منتقلی کی ٹریکنگ",
+      "fix_normalized_dates": "لوکل ٹائم کے فرق کو روکنے کے لیے تاریخ کو نارملائز کیا گیا",
+      "fix_hijri_picker": "عربی ہندسوں کے لیے تاریخ کے انتخاب کو درست کیا گیا",
+      "fix_rtl_alignment": "آر ٹی ایل ٹیبل کالم الائنمنٹ میں بہتری"
     }
   }
 };
