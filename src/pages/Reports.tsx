@@ -4,7 +4,7 @@ import { getExpenses, getAllLedgers, getTenants, getProperties } from '../utils/
 import type { Expense, ContractLedger } from '../utils/store';
 import { useAppContext } from '../context/AppContext';
 import { useLocation } from 'react-router-dom';
-import DatePickerModule from "react-multi-date-picker";
+import DatePickerModule, { DateObject } from "react-multi-date-picker";
 const DatePicker = (DatePickerModule as any).default || DatePickerModule;
 import arabic from "react-date-object/calendars/arabic";
 import arabic_ar from "react-date-object/locales/arabic_ar";
@@ -66,12 +66,22 @@ const Reports: React.FC = () => {
 
   const parseGenericDate = (dateStr: string) => {
     if (!dateStr) return 0;
-    const safeStr = toEnglishDigits(dateStr);
-    // Robust detection: Hijri years usually start with 14 or we check if calendar mode is Hijri and it's not a 20xx year
-    if (safeStr.startsWith('14') || (calendarMode === 'hijri' && !safeStr.startsWith('20'))) {
-      return moment(safeStr, 'iYYYY/iMM/iDD').toDate().getTime();
+    const safeStr = toEnglishDigits(dateStr).replace(/-/g, '/');
+    
+    // Check if it's a Hijri year (starts with 14xx or we are in hijri mode and it's not 20xx)
+    const isLikelyHijri = safeStr.startsWith('14') || (calendarMode === 'hijri' && !safeStr.startsWith('20'));
+    
+    if (isLikelyHijri) {
+      try {
+        const m = moment(safeStr, 'iYYYY/iMM/iDD');
+        if (m.isValid()) return m.toDate().getTime();
+      } catch (e) {
+        console.warn('Failed to parse Hijri date:', safeStr);
+      }
     }
-    return new Date(safeStr).getTime();
+    
+    const d = new Date(safeStr);
+    return isNaN(d.getTime()) ? 0 : d.getTime();
   };
 
   useEffect(() => {

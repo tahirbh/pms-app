@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { Users, Mail, Trash2, Loader2, CheckCircle2, Clock, XCircle, Languages, Calendar, LogOut, Sun, Moon } from 'lucide-react';
-import { getMyInvitations, sendInvitation, revokeInvitation } from '../utils/store';
+import { getMyInvitations, sendInvitation, revokeInvitation, isAuthorizedAdmin, setImpersonation, getActualUserId } from '../utils/store';
 import type { Invitation } from '../utils/store';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -17,13 +17,20 @@ const Settings: React.FC = () => {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteMsg, setInviteMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; id: string; email: string } | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [impersonateId, setImpersonateId] = useState(localStorage.getItem('impersonated_user_id') || '');
+  const [actualUser, setActualUser] = useState<string | null>(null);
 
   const loadInvitations = async () => {
     const data = await getMyInvitations();
     setInvitations(data);
   };
 
-  useEffect(() => { loadInvitations(); }, []);
+  useEffect(() => { 
+    loadInvitations(); 
+    isAuthorizedAdmin().then(setIsAdmin);
+    getActualUserId().then(setActualUser);
+  }, []);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -251,13 +258,52 @@ const Settings: React.FC = () => {
           </p>
         </div>
 
-        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1rem', marginBottom: '4rem' }}>
+        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1rem', marginBottom: '2rem' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Account</h2>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Logged in as: {actualUser || '...'}</p>
           <button className="btn" style={{ background: 'var(--danger)', color: 'white', padding: '0.75rem 2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={signOut}>
             <LogOut size={18} />
             {t('sign_out')}
           </button>
         </div>
+
+        {/* --- ADMIN SUPPORT PANEL --- */}
+        {isAdmin && (
+          <div className="glass-panel" style={{ padding: '2rem', border: '2px solid var(--accent)', marginBottom: '4rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--accent)' }}>
+              🛠️ Support & Verification
+            </h2>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+              Admin mode enabled. Enter a User ID to impersonate their view and verify reported glitches.
+            </p>
+            
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <input 
+                type="text" 
+                className="input-field" 
+                placeholder="Paste User ID here..." 
+                value={impersonateId}
+                onChange={e => setImpersonateId(e.target.value)}
+              />
+              <button 
+                className="btn btn-primary" 
+                style={{ background: 'var(--accent)', color: 'white' }}
+                onClick={() => {
+                  setImpersonation(impersonateId || null);
+                  window.location.reload();
+                }}
+              >
+                {impersonateId ? 'Switch View' : 'Reset View'}
+              </button>
+            </div>
+            
+            {localStorage.getItem('impersonated_user_id') && (
+              <p style={{ marginTop: '1rem', color: 'var(--danger)', fontWeight: 600 }}>
+                ⚠️ WARNING: You are currently viewing data for User ID: {localStorage.getItem('impersonated_user_id')}
+              </p>
+            )}
+          </div>
+        )}
 
       </div>
 

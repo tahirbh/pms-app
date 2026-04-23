@@ -3,8 +3,42 @@ import { supabase } from './supabase';
 // Helper — get the current logged-in user's ID
 export const getCurrentUserId = async (): Promise<string | null> => {
   if (localStorage.getItem('is_guest') === 'true') return 'guest-user';
+  
+  // Check for impersonation (for admin verification)
+  const impersonated = localStorage.getItem('impersonated_user_id');
+  
+  const { data: { user } } = await supabase.auth.getUser();
+  const actualId = user?.id ?? null;
+
+  if (impersonated) {
+    console.log('[DEBUG] Impersonating:', impersonated, '| Actual User:', actualId);
+    return impersonated;
+  }
+
+  return actualId;
+};
+
+/** Get the ACTUAL logged in user (ignoring impersonation) */
+export const getActualUserId = async (): Promise<string | null> => {
+  if (localStorage.getItem('is_guest') === 'true') return 'guest-user';
   const { data: { user } } = await supabase.auth.getUser();
   return user?.id ?? null;
+};
+
+export const ADMIN_ID = 'be641cfa-a6d2-4e92-bd52-22668655bb2a';
+
+export const isAuthorizedAdmin = async (): Promise<boolean> => {
+  const actualId = await getActualUserId();
+  return actualId === ADMIN_ID;
+};
+
+export const setImpersonation = (userId: string | null) => {
+  if (userId) localStorage.setItem('impersonated_user_id', userId);
+  else localStorage.removeItem('impersonated_user_id');
+};
+
+export const getImpersonatedId = (): string | null => {
+  return localStorage.getItem('impersonated_user_id');
 };
 
 const isGuest = () => localStorage.getItem('is_guest') === 'true';
@@ -93,8 +127,16 @@ export type Expense = {
 // SELECT: RLS automatically filters by auth.uid() = user_id once policies are enabled
 export const getProperties = async (): Promise<Property[]> => {
   if (isGuest()) return localDB.get('properties');
-  const { data, error } = await supabase.from('properties').select('*').order('created_at', { ascending: false });
-  if (error) { console.error('Error fetching properties', error); return []; }
+  const userId = await getCurrentUserId();
+  let query = supabase.from('properties').select('*');
+  if (userId) query = query.eq('user_id', userId);
+
+  const { data, error } = await query.order('created_at', { ascending: false });
+  if (error) { 
+    console.error('Error fetching properties', error); 
+    alert(`DB Error (properties): ${error.message || JSON.stringify(error)}`);
+    return []; 
+  }
   return data as Property[];
 };
 
@@ -123,8 +165,16 @@ export const deleteProperty = async (id: string): Promise<boolean> => {
 // --- TENANTS ---
 export const getTenants = async (): Promise<TenantContract[]> => {
   if (isGuest()) return localDB.get('tenants');
-  const { data, error } = await supabase.from('tenants').select('*').order('created_at', { ascending: false });
-  if (error) { console.error('Error fetching tenants', error); return []; }
+  const userId = await getCurrentUserId();
+  let query = supabase.from('tenants').select('*');
+  if (userId) query = query.eq('user_id', userId);
+
+  const { data, error } = await query.order('created_at', { ascending: false });
+  if (error) { 
+    console.error('Error fetching tenants', error); 
+    alert(`DB Error (tenants): ${error.message || JSON.stringify(error)}`);
+    return []; 
+  }
   return data as TenantContract[];
 };
 
@@ -169,15 +219,31 @@ export const endTenantContract = async (id: string, leaveDate: string): Promise<
 // --- CONTRACT LEDGERS ---
 export const getLedgersByTenant = async (tenantId: string): Promise<ContractLedger[]> => {
   if (isGuest()) return localDB.get('contract_ledger').filter((x: any) => x.tenantId === tenantId);
-  const { data, error } = await supabase.from('contract_ledger').select('*').eq('tenantId', tenantId).order('dueDate', { ascending: true });
-  if (error) { console.error('Error fetching ledgers', error); return []; }
+  const userId = await getCurrentUserId();
+  let query = supabase.from('contract_ledger').select('*').eq('tenantId', tenantId);
+  if (userId) query = query.eq('user_id', userId);
+
+  const { data, error } = await query.order('dueDate', { ascending: true });
+  if (error) { 
+    console.error('Error fetching ledgers', error); 
+    alert(`DB Error (ledgers): ${error.code} - ${error.message} - ${error.details || ''}`);
+    return []; 
+  }
   return data || [];
 };
 
 export const getAllLedgers = async (): Promise<ContractLedger[]> => {
   if (isGuest()) return localDB.get('contract_ledger');
-  const { data, error } = await supabase.from('contract_ledger').select('*').order('dueDate', { ascending: true });
-  if (error) { console.error('Error fetching all ledgers', error); return []; }
+  const userId = await getCurrentUserId();
+  let query = supabase.from('contract_ledger').select('*');
+  if (userId) query = query.eq('user_id', userId);
+
+  const { data, error } = await query.order('dueDate', { ascending: true });
+  if (error) { 
+    console.error('Error fetching all ledgers', error); 
+    alert(`DB Error (all ledgers): ${error.code} - ${error.message} - ${error.details || ''}`);
+    return []; 
+  }
   return data || [];
 };
 
@@ -256,7 +322,11 @@ export const deleteLedgersByTenant = async (tenantId: string): Promise<boolean> 
 // --- EXPENSES ---
 export const getExpenses = async (): Promise<Expense[]> => {
   if (isGuest()) return localDB.get('expenses');
-  const { data, error } = await supabase.from('expenses').select('*').order('created_at', { ascending: false });
+  const userId = await getCurrentUserId();
+  let query = supabase.from('expenses').select('*');
+  if (userId) query = query.eq('user_id', userId);
+
+  const { data, error } = await query.order('created_at', { ascending: false });
   if (error) { console.error('Error fetching expenses', error); return []; }
   return data as Expense[];
 };

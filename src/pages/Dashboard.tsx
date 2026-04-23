@@ -16,7 +16,8 @@ import TenantContractPage from './TenantContract';
 import TenantLedger from './TenantLedger';
 import Reports from './Reports';
 import Pivot from './Pivot';
-import { getProperties, getTenants, getExpenses, getAllLedgers } from '../utils/store';
+import { getProperties, getTenants, getExpenses, getAllLedgers, getImpersonatedId, setImpersonation } from '../utils/store';
+import { ShieldAlert, X } from 'lucide-react';
 import WhatsNewModal from '../components/WhatsNewModal';
 
 declare const __APP_VERSION__: string;
@@ -61,6 +62,7 @@ const DashboardHome = () => {
   const { t } = useTranslation();
   const { currency, calendarMode } = useAppContext();
   const navigate = useNavigate();
+  const impersonatedId = getImpersonatedId();
 
   // ── Current year metrics (top cards) ──
   const [currentYearMetrics, setCurrentYearMetrics] = useState({
@@ -116,13 +118,32 @@ const DashboardHome = () => {
 
       // ── Process expenses ──
       expenses.forEach(exp => {
-        const d = new Date(exp.date);
-        if (isNaN(d.getTime())) return;
-        // Expenses are always Gregorian-dated in this app
-        const yearStr = d.getFullYear().toString();
+        let yearStr = '';
+        const rawYear = exp.date.split(/[\/-]/)[0];
+        const isGregorianString = parseInt(rawYear) > 1900 && parseInt(rawYear) < 2100;
+
+        if (calendarMode === 'hijri') {
+          if (isGregorianString) {
+            // Convert Gregorian to Hijri
+            yearStr = moment(exp.date, ['YYYY/MM/DD', 'YYYY-MM-DD']).format('iYYYY') + ' (H)';
+          } else {
+            // Already Hijri
+            yearStr = rawYear + ' (H)';
+          }
+        } else {
+          if (!isGregorianString) {
+            // Convert Hijri to Gregorian
+            yearStr = moment(exp.date, ['iYYYY/iMM/iDD', 'iYYYY-iMM-iDD']).format('YYYY');
+          } else {
+            // Already Gregorian
+            yearStr = rawYear;
+          }
+        }
+
         ensureYear(yearStr);
 
-        const isTransfer = (exp.category === 'Transfer to Owner' || exp.category === 'Transferred to Owner');
+        const cat = exp.category.toLowerCase();
+        const isTransfer = cat.includes('transfer') && cat.includes('owner');
         if (isTransfer) {
           yearData[yearStr].transferredAmount += exp.amount;
         } else {
@@ -206,24 +227,6 @@ const DashboardHome = () => {
         }
         // Years AFTER current are ignored in both sections
       });
-
-      // Also add Hijri-year equivalent for expenses that were stored Gregorian 
-      // if calendar mode is Hijri — the current year key might be "1447 (H)" 
-      // but expense dates are Gregorian. Map Gregorian expense year to the Hijri current year.
-      if (calendarMode === 'hijri') {
-        const gregYear = new Date().getFullYear().toString();
-        if (yearData[gregYear]) {
-          // These Gregorian-keyed expenses should map into the current Hijri year for top cards  
-          cyExpenses += yearData[gregYear].totalExpenses;
-          cyTransferred += yearData[gregYear].transferredAmount;
-          // Also remove from historical if it was accidentally added
-          if (histPerYear[gregYear]) {
-            hExpenses -= yearData[gregYear].totalExpenses;
-            hTransferred -= yearData[gregYear].transferredAmount;
-            delete histPerYear[gregYear];
-          }
-        }
-      }
 
       // Projected/potential rent from properties
       let projectedRent = 0;
@@ -492,6 +495,45 @@ const DashboardHome = () => {
 
   return (
     <div className="glass-panel p-6 animate-slide-in relative">
+      {impersonatedId && (
+        <div style={{ 
+          background: 'var(--accent)', 
+          color: 'white', 
+          padding: '1rem 2rem', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          borderRadius: '12px',
+          marginBottom: '2rem',
+          boxShadow: '0 4px 12px rgba(255, 107, 107, 0.3)',
+          border: '2px solid rgba(255,255,255,0.2)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <ShieldAlert size={24} />
+            <div>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: '1.1rem' }}>SUPPORT MODE ACTIVE</p>
+              <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.9 }}>Viewing data for User ID: <code style={{ background: 'rgba(0,0,0,0.2)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>{impersonatedId}</code></p>
+            </div>
+          </div>
+          <button 
+            onClick={() => { setImpersonation(null); window.location.reload(); }}
+            style={{ 
+              background: 'white', 
+              color: 'var(--accent)', 
+              border: 'none', 
+              padding: '0.5rem 1rem', 
+              borderRadius: '8px', 
+              fontWeight: 700, 
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            <X size={16} /> Exit
+          </button>
+        </div>
+      )}
       <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem' }}>
         <button
           className="btn"

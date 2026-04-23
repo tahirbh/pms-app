@@ -6,7 +6,7 @@ import moment from 'moment-hijri';
 
 const Pivot = () => {
   const { t } = useTranslation();
-  const { currency } = useAppContext();
+  const { currency, calendarMode } = useAppContext();
   
   const [loading, setLoading] = useState(true);
   const [properties, setProperties] = useState<any[]>([]);
@@ -58,14 +58,22 @@ const Pivot = () => {
 
       // Process Expenses
       expenses.forEach(exp => {
-        const d = new Date(exp.date);
-        if (isNaN(d.getTime())) return;
-        const yearStr = d.getFullYear().toString();
+        let yearStr = '';
+        if (calendarMode === 'hijri') {
+          yearStr = moment(exp.date).format('iYYYY') + ' (H)';
+        } else {
+          const d = new Date(exp.date);
+          if (isNaN(d.getTime())) return;
+          yearStr = d.getFullYear().toString();
+        }
+        
         allYears.add(yearStr);
         
         if (!p2[yearStr]) p2[yearStr] = { collectedRent: 0, unpaidRent: 0, expense: 0, transfer: 0 };
 
-        if (exp.category === 'Transfer to Owner' || exp.category === 'Transferred to Owner') {
+        const cat = exp.category.toLowerCase();
+        const isTransfer = cat.includes('transfer') && cat.includes('owner');
+        if (isTransfer) {
           p2[yearStr].transfer += exp.amount;
         } else {
           p2[yearStr].expense += exp.amount;

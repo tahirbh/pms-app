@@ -225,7 +225,11 @@ const resources = {
       "feat_transfer_tracking": "Transfer to owner tracking",
       "fix_normalized_dates": "Normalized date strings to prevent Local Time discrepancies",
       "fix_hijri_picker": "Fixed date picker parsing for Arabic numerals",
-      "fix_rtl_alignment": "RTL table column alignment improvements"
+      "fix_rtl_alignment": "RTL table column alignment improvements",
+      "feat_admin_support_mode": "Admin Support Mode for secure remote troubleshooting",
+      "fix_admin_data_mixing": "Fixed admin impersonation data isolation and mixing issues",
+      "fix_historical_expenses": "Fixed historical expense categorization and date parsing",
+      "fix_rls_security_definer": "Overhauled RLS security policies using SECURITY DEFINER"
     }
   },
   ar: {
@@ -425,7 +429,11 @@ const resources = {
       "feat_transfer_tracking": "تتبع التحويل للمالك",
       "fix_normalized_dates": "توحيد سلاسل التاريخ لمنع تضارب التوقيت المحلي",
       "fix_hijri_picker": "إصلاح تحليل منتقي التاريخ للأرقام العربية",
-      "fix_rtl_alignment": "تحسينات محاذاة أعمدة الجدول (RTL)"
+      "fix_rtl_alignment": "تحسينات محاذاة أعمدة الجدول (RTL)",
+      "feat_admin_support_mode": "وضع الدعم الإداري لاستكشاف الأخطاء عن بُعد بأمان",
+      "fix_admin_data_mixing": "إصلاح مشاكل عزل ودمج بيانات انتحال شخصية المشرف",
+      "fix_historical_expenses": "إصلاح تصنيف المصروفات التاريخية وتحليل التواريخ",
+      "fix_rls_security_definer": "إعادة هيكلة سياسات الأمان RLS باستخدام SECURITY DEFINER"
     }
   },
   ur: {
@@ -625,7 +633,11 @@ const resources = {
       "feat_transfer_tracking": "مالک کو رقم کی منتقلی کی ٹریکنگ",
       "fix_normalized_dates": "لوکل ٹائم کے فرق کو روکنے کے لیے تاریخ کو نارملائز کیا گیا",
       "fix_hijri_picker": "عربی ہندسوں کے لیے تاریخ کے انتخاب کو درست کیا گیا",
-      "fix_rtl_alignment": "آر ٹی ایل ٹیبل کالم الائنمنٹ میں بہتری"
+      "fix_rtl_alignment": "آر ٹی ایل ٹیبل کالم الائنمنٹ میں بہتری",
+      "feat_admin_support_mode": "محفوظ ریموٹ ٹربل شوٹنگ کے لیے ایڈمن سپورٹ موڈ",
+      "fix_admin_data_mixing": "ایڈمن ڈیٹا کی تنہائی اور مکسنگ کے مسائل کو حل کیا گیا",
+      "fix_historical_expenses": "تاریخی اخراجات کی درجہ بندی اور تاریخ کے تجزیے کو ٹھیک کیا گیا",
+      "fix_rls_security_definer": "SECURITY DEFINER کے ساتھ RLS سیکیورٹی پالیسیوں کی تجدید کی گئی"
     }
   }
 };

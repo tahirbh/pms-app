@@ -5,7 +5,7 @@ import { UserPlus, Edit, Trash2, Printer, Receipt, UserCircle, Download, ArrowUp
 import { getTenants, getProperties, saveTenant, updateTenant, deleteTenant, endTenantContract, saveLedgers, deleteLedgersByTenant } from '../utils/store';
 import type { TenantContract, Property } from '../utils/store';
 import { calculateRent } from '../utils/rentCalculator';
-import DatePickerModule from "react-multi-date-picker";
+import DatePickerModule, { DateObject } from "react-multi-date-picker";
 const DatePicker = (DatePickerModule as any).default || DatePickerModule;
 import arabic from "react-date-object/calendars/arabic";
 import arabic_ar from "react-date-object/locales/arabic_ar";

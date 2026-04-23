@@ -42,7 +42,7 @@ const AllTenantsLedger: React.FC = () => {
   });
   
   const [searchTerm, setSearchTerm] = useState('');
-  const [ledgers, setLedgers] = useState<(ContractLedger & { tenantName: string, propertyName: string, tenantPaid: number, tenantUnpaid: number })[]>([]);
+  const [ledgers, setLedgers] = useState<(ContractLedger & { tenantName: string, propertyName: string, tenantPaid: number, tenantUnpaid: number, annualRent: number })[]>([]);
 
   useEffect(() => {
     if (qStart) setStartDate(qStart);
@@ -120,7 +120,8 @@ const AllTenantsLedger: React.FC = () => {
           tenantName: tnt?.tenantName || 'Unknown',
           propertyName: prop?.name || 'Unknown',
           tenantPaid: summary.paid,
-          tenantUnpaid: summary.unpaid
+          tenantUnpaid: summary.unpaid,
+          annualRent: tnt?.annualRent || prop?.annualRent || 0
         };
       }).sort((a, b) => parseGenericDate(a.dueDate) - parseGenericDate(b.dueDate));
 
@@ -284,8 +285,9 @@ const AllTenantsLedger: React.FC = () => {
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('tenant_name')}</th>
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('property')}</th>
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('due_date')}</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('amount_due') || 'Amount'}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('installment_amount') || 'Installment'}</th>
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('status')}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('annual_rent') || 'Annual Rent'}</th>
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('paid_rent') || 'Paid'} (T)</th>
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('unpaid_rent') || 'Unpaid'} (T)</th>
                     <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('actions')}</th>
@@ -310,6 +312,7 @@ const AllTenantsLedger: React.FC = () => {
                           {txn.status === 'Paid' ? t('paid') : t('pending')}
                         </span>
                       </td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start', color: 'var(--text-muted)' }}>{txn.annualRent.toLocaleString()}</td>
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start', color: 'var(--success)', fontWeight: 600 }}>{txn.tenantPaid.toLocaleString()}</td>
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start', color: 'var(--danger)', fontWeight: 600 }}>{txn.tenantUnpaid.toLocaleString()}</td>
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end' }}>

@@ -7,6 +7,18 @@ export interface ChangeLogEntry {
 
 export const changelog: ChangeLogEntry[] = [
   {
+    version: "1.0.11",
+    date: "2026-04-23",
+    features: [
+      "feat_admin_support_mode"
+    ],
+    fixes: [
+      "fix_admin_data_mixing",
+      "fix_historical_expenses",
+      "fix_rls_security_definer"
+    ]
+  },
+  {
     version: "1.0.6",
     date: "2026-04-23",
     features: [
