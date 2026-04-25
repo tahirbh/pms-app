@@ -229,7 +229,11 @@ const resources = {
       "feat_admin_support_mode": "Admin Support Mode for secure remote troubleshooting",
       "fix_admin_data_mixing": "Fixed admin impersonation data isolation and mixing issues",
       "fix_historical_expenses": "Fixed historical expense categorization and date parsing",
-      "fix_rls_security_definer": "Overhauled RLS security policies using SECURITY DEFINER"
+      "fix_rls_security_definer": "Overhauled RLS security policies using SECURITY DEFINER",
+      "feat_drilldown_reporting": "Advanced dashboard drill-down reporting and filter synchronization",
+      "feat_tenant_detail_btn": "Tenant Contract Detail fast-navigation button in reports",
+      "fix_hijri_date_bounds": "Fixed Hijri current year date boundaries and Arabic numeral parsing",
+      "fix_historical_card_order": "Reordered and aligned Historical Data Dashboard metrics"
     }
   },
   ar: {
@@ -433,7 +437,11 @@ const resources = {
       "feat_admin_support_mode": "وضع الدعم الإداري لاستكشاف الأخطاء عن بُعد بأمان",
       "fix_admin_data_mixing": "إصلاح مشاكل عزل ودمج بيانات انتحال شخصية المشرف",
       "fix_historical_expenses": "إصلاح تصنيف المصروفات التاريخية وتحليل التواريخ",
-      "fix_rls_security_definer": "إعادة هيكلة سياسات الأمان RLS باستخدام SECURITY DEFINER"
+      "fix_rls_security_definer": "إعادة هيكلة سياسات الأمان RLS باستخدام SECURITY DEFINER",
+      "feat_drilldown_reporting": "تقارير لوحة القيادة المتقدمة مع مزامنة الفلاتر",
+      "feat_tenant_detail_btn": "زر التنقل السريع لتفاصيل عقد المستأجر في التقارير",
+      "fix_hijri_date_bounds": "إصلاح حدود السنة الهجرية الحالية وتحليل الأرقام العربية",
+      "fix_historical_card_order": "إعادة ترتيب ومحاذاة مقاييس البيانات التاريخية في لوحة القيادة"
     }
   },
   ur: {
@@ -637,7 +645,11 @@ const resources = {
       "feat_admin_support_mode": "محفوظ ریموٹ ٹربل شوٹنگ کے لیے ایڈمن سپورٹ موڈ",
       "fix_admin_data_mixing": "ایڈمن ڈیٹا کی تنہائی اور مکسنگ کے مسائل کو حل کیا گیا",
       "fix_historical_expenses": "تاریخی اخراجات کی درجہ بندی اور تاریخ کے تجزیے کو ٹھیک کیا گیا",
-      "fix_rls_security_definer": "SECURITY DEFINER کے ساتھ RLS سیکیورٹی پالیسیوں کی تجدید کی گئی"
+      "fix_rls_security_definer": "SECURITY DEFINER کے ساتھ RLS سیکیورٹی پالیسیوں کی تجدید کی گئی",
+      "feat_drilldown_reporting": "ڈیش بورڈ رپورٹنگ اور فلٹر کی مطابقت پذیری",
+      "feat_tenant_detail_btn": "رپورٹس میں کرایہ دار کے معاہدے کی تفصیل کا بٹن",
+      "fix_hijri_date_bounds": "ہجری تاریخ کی حدود اور عربی ہندسوں کی خرابی کو درست کیا گیا",
+      "fix_historical_card_order": "تاریخی ڈیٹا ڈیش بورڈ میٹرکس کی ترتیب درست کی گئی"
     }
   }
 };
