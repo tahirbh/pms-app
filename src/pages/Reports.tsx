@@ -42,6 +42,14 @@ const Reports: React.FC = () => {
 
   const [incomes, setIncomes] = useState<(ContractLedger & { tenantName?: string })[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [periodTotals, setPeriodTotals] = useState({
+    contracted: 0,
+    income: 0,
+    unpaid: 0,
+    expense: 0,
+    transferred: 0,
+    netRevenue: 0
+  });
 
   useEffect(() => {
     if (qStart) setStartDate(qStart);
@@ -175,6 +183,38 @@ const Reports: React.FC = () => {
         return { ...L, tenantName: combined, tenantId: L.tenantId };
       }));
       setExpenses(filteredExpenses);
+
+      // Compute raw overall totals for the selected period
+      let pContracted = 0;
+      let pIncome = 0;
+      let pUnpaid = 0;
+      let pExpense = 0;
+      let pTransferred = 0;
+
+      allLedgers.forEach(L => {
+        if (isDateInRange(L.dueDate || '')) {
+          pContracted += L.amount;
+          if (L.status === 'Paid') pIncome += L.amount;
+          if (L.status === 'Pending') pUnpaid += L.amount;
+        }
+      });
+
+      allExpenses.forEach(E => {
+        if (isDateInRange(E.date)) {
+          const isTransfer = E.category.toLowerCase().includes('transfer') && E.category.toLowerCase().includes('owner');
+          if (isTransfer) pTransferred += E.amount;
+          else pExpense += E.amount;
+        }
+      });
+
+      setPeriodTotals({
+        contracted: pContracted,
+        income: pIncome,
+        unpaid: pUnpaid,
+        expense: pExpense,
+        transferred: pTransferred,
+        netRevenue: pIncome - pExpense
+      });
     };
 
     fetchReport();
@@ -195,7 +235,7 @@ const Reports: React.FC = () => {
       rawDate: inc.dueDate
     })),
     ...expenses.map(exp => {
-      const isTransfer = exp.category === 'Transfer to Owner' || exp.category === 'Transferred to Owner';
+      const isTransfer = exp.category.toLowerCase().includes('transfer') && exp.category.toLowerCase().includes('owner');
       return {
         id: exp.id,
         date: exp.date,
@@ -222,12 +262,13 @@ const Reports: React.FC = () => {
     return true;
   });
 
-  const totalContracted = filteredTransactions.reduce((acc, curr) => acc + curr.contracted, 0);
-  const totalIncome = filteredTransactions.reduce((acc, curr) => acc + curr.income, 0);
-  const totalUnpaid = filteredTransactions.reduce((acc, curr) => acc + curr.unpaid, 0);
-  const totalExpense = filteredTransactions.reduce((acc, curr) => acc + curr.expense, 0);
-  const amountTransferredToOwner = filteredTransactions.reduce((acc, curr) => acc + curr.transferred, 0);
-  const netRevenue = totalIncome - totalExpense;
+  // Replace standard summary totals with the overall period totals.
+  const totalContracted = periodTotals.contracted;
+  const totalIncome = periodTotals.income;
+  const totalUnpaid = periodTotals.unpaid;
+  const totalExpense = periodTotals.expense;
+  const amountTransferredToOwner = periodTotals.transferred;
+  const netRevenue = periodTotals.netRevenue;
 
   let runningBalance = 0;
   const ledgerData = filteredTransactions.map(txn => {
