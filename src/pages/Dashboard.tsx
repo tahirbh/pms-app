@@ -406,9 +406,9 @@ const DashboardHome = () => {
     } else {
       // Current year only
       if (calendarMode === 'hijri') {
-        const cy = moment().format('iYYYY');
-        qStart = `${cy}/01/01`;
-        const mEnd = moment(cy, 'iYYYY').endOf('iYear');
+        const cyMoment = moment();
+        qStart = `${cyMoment.iYear()}/01/01`;
+        const mEnd = cyMoment.clone().endOf('iYear');
         qEnd = `${mEnd.iYear()}/${String(mEnd.iMonth() + 1).padStart(2, '0')}/${String(mEnd.iDate()).padStart(2, '0')}`;
       } else {
         const cy = new Date().getFullYear();
@@ -469,9 +469,9 @@ const DashboardHome = () => {
       }
     } else {
       if (calendarMode === 'hijri') {
-        const cy = moment().format('iYYYY');
-        qStart = `${cy}/01/01`;
-        const mEnd = moment(cy, 'iYYYY').endOf('iYear');
+        const cyMoment = moment();
+        qStart = `${cyMoment.iYear()}/01/01`;
+        const mEnd = cyMoment.clone().endOf('iYear');
         qEnd = `${mEnd.iYear()}/${String(mEnd.iMonth() + 1).padStart(2, '0')}/${String(mEnd.iDate()).padStart(2, '0')}`;
       } else {
         const cy = new Date().getFullYear();
