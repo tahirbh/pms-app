@@ -107,41 +107,65 @@ const Reports: React.FC = () => {
         ed.setHours(23, 59, 59, 999);
         endBoundMs = ed.getTime();
         
-        // BUFFER FOR HIJRI CALENDAR LEAP DISCREPANCIES
-        // If the filter date is 12/29 or 12/30, we extend the internal boundary by 1 day (86400000 ms)
-        // to safely encompass 12/30 transactions without forcing the UI DatePicker to overflow.
-        if (safeEndDate.includes('/12/29') || safeEndDate.includes('/12/30')) {
-          endBoundMs += 24 * 60 * 60 * 1000;
-        }
       } else {
         const ed = new Date(safeEndDate);
         ed.setHours(23, 59, 59, 999);
         endBoundMs = ed.getTime();
       }
 
+      const isDateInRange = (dateStr: string) => {
+        if (!dateStr) return false;
+        
+        if (calendarMode === 'hijri') {
+          let eStr = safeEndDate;
+          // Expand UI-safe 12/29 to 12/30 for internal inclusive filtering
+          if (eStr.includes('/12/29')) eStr = eStr.replace('/12/29', '/12/30');
+          
+          let expStr = '';
+          const safeExpDate = toEnglishDigits(dateStr).replace(/-/g, '/');
+          if (safeExpDate.startsWith('14')) {
+             expStr = safeExpDate;
+          } else {
+             const m = moment(safeExpDate, ['YYYY/MM/DD', 'YYYY-MM-DD']);
+             if (m.isValid()) expStr = toEnglishDigits(m.format('iYYYY/iMM/iDD'));
+          }
+
+          if (expStr) {
+            const pad = (s: string) => s.split('/').map((p, i) => i > 0 ? p.padStart(2, '0') : p).join('/');
+            const pStart = pad(safeStartDate);
+            const pEnd = pad(eStr);
+            const pExp = pad(expStr);
+            return pExp >= pStart && pExp <= pEnd;
+          }
+        }
+        
+        // Fallback to strict timestamp checking for Gregorian
+        const ts = parseGenericDate(dateStr);
+        return ts >= startBoundMs && ts <= endBoundMs;
+      };
+
       // Filter Incomes
       const filteredIncomes = allLedgers.filter(L => {
-        const ddTs = parseGenericDate(L.dueDate);
+        const inRange = isDateInRange(L.dueDate || '');
 
         if (qFilter === 'contracted') {
-          return ddTs >= startBoundMs && ddTs <= endBoundMs;
+          return inRange;
         }
 
         if (qFilter === 'unpaid') {
           if (L.status !== 'Pending') return false;
-          return ddTs >= startBoundMs && ddTs <= endBoundMs;
+          return inRange;
         }
 
         if (L.status !== 'Paid') return false;
 
         // Dashboard categorizes collected rent strictly by the installment's due date.
         // To match exact details from the clicked card, we must filter strictly by dueDate.
-        return ddTs >= startBoundMs && ddTs <= endBoundMs;
+        return inRange;
       });
 
       const filteredExpenses = allExpenses.filter(E => {
-        const edTs = parseGenericDate(E.date);
-        return edTs >= startBoundMs && edTs <= endBoundMs;
+        return isDateInRange(E.date);
       });
 
       setIncomes(filteredIncomes.map(L => {
