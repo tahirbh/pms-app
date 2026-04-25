@@ -662,7 +662,7 @@ const DashboardHome = () => {
           { key: 'total_expenses', label: t('total_expenses'), value: filteredHistMetrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
           { key: 'transferred_amount', label: t('transferred_amount'), value: filteredHistMetrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
           { key: 'unpaid_rent', label: t('unpaid_rent') || 'Unpaid Rent', value: filteredHistMetrics.unpaidRent, color: filteredHistMetrics.unpaidRent > 0 ? 'var(--danger)' : 'var(--success)', icon: '⚠️' },
-          { key: 'cash_in_hand', label: t('cash_in_hand') || 'Net Revenue', value: filteredHistMetrics.collectedRent - filteredHistMetrics.totalExpenses, color: 'var(--success)', icon: '💰' },
+          { key: 'cash_in_hand', label: t('cash_in_hand') || 'Net Revenue', value: filteredHistMetrics.collectedRent - filteredHistMetrics.totalExpenses - filteredHistMetrics.transferredAmount, color: 'var(--success)', icon: '💰' },
         ].map((card) => (
           <div
             key={`hist-${card.key}`}

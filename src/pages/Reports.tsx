@@ -213,7 +213,7 @@ const Reports: React.FC = () => {
         unpaid: pUnpaid,
         expense: pExpense,
         transferred: pTransferred,
-        netRevenue: pIncome - pExpense
+        netRevenue: pIncome - pExpense - pTransferred
       });
     };
 
