@@ -106,6 +106,13 @@ const Reports: React.FC = () => {
         const ed = moment(safeEndDate, 'iYYYY/iMM/iDD').toDate();
         ed.setHours(23, 59, 59, 999);
         endBoundMs = ed.getTime();
+        
+        // BUFFER FOR HIJRI CALENDAR LEAP DISCREPANCIES
+        // If the filter date is 12/29 or 12/30, we extend the internal boundary by 1 day (86400000 ms)
+        // to safely encompass 12/30 transactions without forcing the UI DatePicker to overflow.
+        if (safeEndDate.includes('/12/29') || safeEndDate.includes('/12/30')) {
+          endBoundMs += 24 * 60 * 60 * 1000;
+        }
       } else {
         const ed = new Date(safeEndDate);
         ed.setHours(23, 59, 59, 999);
