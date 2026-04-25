@@ -231,6 +231,13 @@ const Reports: React.FC = () => {
 
   const displayDate = (rawDate: string) => {
     if (!rawDate) return '';
+    
+    // If it's already a Hijri date string and we are in Hijri mode, just return it (sanitized)!
+    // This prevents 12/30 overflowing to 01/01 visually.
+    if (calendarMode === 'hijri' && (rawDate.startsWith('14') || rawDate.includes('/'))) {
+      return formatDigits(rawDate);
+    }
+
     const ts = parseGenericDate(rawDate);
     if (!ts) return formatDigits(rawDate);
 

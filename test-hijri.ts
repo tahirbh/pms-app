@@ -1,8 +1,7 @@
 import moment from 'moment-hijri';
 
-const cy = '١٤٤٦';
-const mEnd = moment(cy, 'iYYYY').endOf('iYear');
-console.log('IsValid:', mEnd.isValid());
-console.log('iYear:', mEnd.iYear());
-console.log('iMonth:', mEnd.iMonth());
-console.log('iDate:', mEnd.iDate());
+const m = moment('1447/12/30', 'iYYYY/iMM/iDD');
+console.log('Parsed Date:', m.format('iYYYY/iMM/iDD'));
+
+const endOfYear = moment('1447', 'iYYYY').endOf('iYear');
+console.log('endOf(iYear):', endOfYear.format('iYYYY/iMM/iDD'));

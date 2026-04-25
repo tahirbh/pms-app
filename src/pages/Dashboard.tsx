@@ -385,8 +385,7 @@ const DashboardHome = () => {
         qStart = startYear.includes('(H)') ? `${startYear.split(' ')[0]}/01/01` : `${startYear}/01/01`;
         if (endYear.includes('(H)')) {
           const y = endYear.split(' ')[0];
-          const mEnd = moment(y, 'iYYYY').endOf('iYear');
-          qEnd = `${mEnd.iYear()}/${String(mEnd.iMonth() + 1).padStart(2, '0')}/${String(mEnd.iDate()).padStart(2, '0')}`;
+          qEnd = `${y}/12/30`;
         } else {
           qEnd = `${endYear}/12/31`;
         }
@@ -395,8 +394,7 @@ const DashboardHome = () => {
         if (calendarMode === 'hijri') {
           const prevYear = parseInt(moment().format('iYYYY')) - 1;
           qStart = "1400/01/01";
-          const mEnd = moment(prevYear.toString(), 'iYYYY').endOf('iYear');
-          qEnd = `${mEnd.iYear()}/${String(mEnd.iMonth() + 1).padStart(2, '0')}/${String(mEnd.iDate()).padStart(2, '0')}`;
+          qEnd = `${prevYear}/12/30`;
         } else {
           const prevYear = new Date().getFullYear() - 1;
           qStart = "2000/01/01";
@@ -408,8 +406,7 @@ const DashboardHome = () => {
       if (calendarMode === 'hijri') {
         const cyMoment = moment();
         qStart = `${cyMoment.iYear()}/01/01`;
-        const mEnd = cyMoment.clone().endOf('iYear');
-        qEnd = `${mEnd.iYear()}/${String(mEnd.iMonth() + 1).padStart(2, '0')}/${String(mEnd.iDate()).padStart(2, '0')}`;
+        qEnd = `${cyMoment.iYear()}/12/30`;
       } else {
         const cy = new Date().getFullYear();
         qStart = `${cy}/01/01`;
@@ -461,8 +458,7 @@ const DashboardHome = () => {
         qStart = startYear.includes('(H)') ? `${startYear.split(' ')[0]}/01/01` : `${startYear}/01/01`;
         if (endYear.includes('(H)')) {
           const y = endYear.split(' ')[0];
-          const mEnd = moment(y, 'iYYYY').endOf('iYear');
-          qEnd = `${mEnd.iYear()}/${String(mEnd.iMonth() + 1).padStart(2, '0')}/${String(mEnd.iDate()).padStart(2, '0')}`;
+          qEnd = `${y}/12/30`;
         } else {
           qEnd = `${endYear}/12/31`;
         }
@@ -471,8 +467,7 @@ const DashboardHome = () => {
       if (calendarMode === 'hijri') {
         const cyMoment = moment();
         qStart = `${cyMoment.iYear()}/01/01`;
-        const mEnd = cyMoment.clone().endOf('iYear');
-        qEnd = `${mEnd.iYear()}/${String(mEnd.iMonth() + 1).padStart(2, '0')}/${String(mEnd.iDate()).padStart(2, '0')}`;
+        qEnd = `${cyMoment.iYear()}/12/30`;
       } else {
         const cy = new Date().getFullYear();
         qStart = `${cy}/01/01`;
