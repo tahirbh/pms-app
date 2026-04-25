@@ -383,13 +383,20 @@ const DashboardHome = () => {
       // Historical: use selected start/end year range or default to "all history"
       if (startYear && endYear) {
         qStart = startYear.includes('(H)') ? `${startYear.split(' ')[0]}/01/01` : `${startYear}/01/01`;
-        qEnd = endYear.includes('(H)') ? `${endYear.split(' ')[0]}/12/30` : `${endYear}/12/31`;
+        if (endYear.includes('(H)')) {
+          const y = endYear.split(' ')[0];
+          const mEnd = moment(y, 'iYYYY').endOf('iYear');
+          qEnd = `${mEnd.iYear()}/${String(mEnd.iMonth() + 1).padStart(2, '0')}/${String(mEnd.iDate()).padStart(2, '0')}`;
+        } else {
+          qEnd = `${endYear}/12/31`;
+        }
       } else {
         // Default historical range: All time up until the END of the previous year
         if (calendarMode === 'hijri') {
           const prevYear = parseInt(moment().format('iYYYY')) - 1;
           qStart = "1400/01/01";
-          qEnd = `${prevYear}/12/30`;
+          const mEnd = moment(prevYear.toString(), 'iYYYY').endOf('iYear');
+          qEnd = `${mEnd.iYear()}/${String(mEnd.iMonth() + 1).padStart(2, '0')}/${String(mEnd.iDate()).padStart(2, '0')}`;
         } else {
           const prevYear = new Date().getFullYear() - 1;
           qStart = "2000/01/01";
@@ -401,7 +408,8 @@ const DashboardHome = () => {
       if (calendarMode === 'hijri') {
         const cy = moment().format('iYYYY');
         qStart = `${cy}/01/01`;
-        qEnd = `${cy}/12/30`;
+        const mEnd = moment(cy, 'iYYYY').endOf('iYear');
+        qEnd = `${mEnd.iYear()}/${String(mEnd.iMonth() + 1).padStart(2, '0')}/${String(mEnd.iDate()).padStart(2, '0')}`;
       } else {
         const cy = new Date().getFullYear();
         qStart = `${cy}/01/01`;
@@ -413,22 +421,22 @@ const DashboardHome = () => {
     if (qStart) params.append('start', qStart);
     if (qEnd) params.append('end', qEnd);
 
-    // Contracted rent → show all contracts in all-ledgers
+    // Contracted rent → show contracted rent in reports
     if (type === 'contracted_rent') {
-      navigate(`/dashboard/all-ledgers?${params.toString()}`);
+      params.append('filter', 'contracted');
+      navigate(`/dashboard/report?${params.toString()}`);
       return;
     }
 
-    // Unpaid rent → show only unpaid ledgers
+    // Unpaid rent → show unpaid rent in reports
     if (type === 'unpaid_rent') {
-      params.append('status', 'unpaid');
-      navigate(`/dashboard/all-ledgers?${params.toString()}`);
+      params.append('filter', 'unpaid');
+      navigate(`/dashboard/report?${params.toString()}`);
       return;
     }
 
-    // Cash in hand → show income report
+    // Cash in hand → show full report to display Net Revenue
     if (type === 'cash_in_hand') {
-      params.append('filter', 'income');
       navigate(`/dashboard/report?${params.toString()}`);
       return;
     }
@@ -451,13 +459,20 @@ const DashboardHome = () => {
     if (isHistorical) {
       if (startYear && endYear) {
         qStart = startYear.includes('(H)') ? `${startYear.split(' ')[0]}/01/01` : `${startYear}/01/01`;
-        qEnd = endYear.includes('(H)') ? `${endYear.split(' ')[0]}/12/30` : `${endYear}/12/31`;
+        if (endYear.includes('(H)')) {
+          const y = endYear.split(' ')[0];
+          const mEnd = moment(y, 'iYYYY').endOf('iYear');
+          qEnd = `${mEnd.iYear()}/${String(mEnd.iMonth() + 1).padStart(2, '0')}/${String(mEnd.iDate()).padStart(2, '0')}`;
+        } else {
+          qEnd = `${endYear}/12/31`;
+        }
       }
     } else {
       if (calendarMode === 'hijri') {
         const cy = moment().format('iYYYY');
         qStart = `${cy}/01/01`;
-        qEnd = `${cy}/12/30`;
+        const mEnd = moment(cy, 'iYYYY').endOf('iYear');
+        qEnd = `${mEnd.iYear()}/${String(mEnd.iMonth() + 1).padStart(2, '0')}/${String(mEnd.iDate()).padStart(2, '0')}`;
       } else {
         const cy = new Date().getFullYear();
         qStart = `${cy}/01/01`;
@@ -473,7 +488,8 @@ const DashboardHome = () => {
     if (type === 'potential') {
       navigate(`/dashboard/all-ledgers?${params.toString()}`);
     } else if (type === 'contracted') {
-      navigate(`/dashboard/all-ledgers?${params.toString()}`);
+      params.append('filter', 'contracted');
+      navigate(`/dashboard/report?${params.toString()}`);
     } else if (type === 'collected') {
       params.append('status', 'paid');
       navigate(`/dashboard/all-ledgers?${params.toString()}`);
@@ -647,6 +663,7 @@ const DashboardHome = () => {
           { key: 'total_expenses', label: t('total_expenses'), value: filteredHistMetrics.totalExpenses, color: 'var(--danger)', icon: '💸' },
           { key: 'transferred_amount', label: t('transferred_amount'), value: filteredHistMetrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
           { key: 'unpaid_rent', label: t('unpaid_rent') || 'Unpaid Rent', value: filteredHistMetrics.unpaidRent, color: filteredHistMetrics.unpaidRent > 0 ? 'var(--danger)' : 'var(--success)', icon: '⚠️' },
+          { key: 'cash_in_hand', label: t('cash_in_hand') || 'Net Revenue', value: filteredHistMetrics.collectedRent - filteredHistMetrics.totalExpenses, color: 'var(--success)', icon: '💰' },
         ].map((card) => (
           <div
             key={`hist-${card.key}`}

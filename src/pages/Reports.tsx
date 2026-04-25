@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { getExpenses, getAllLedgers, getTenants, getProperties } from '../utils/store';
 import type { Expense, ContractLedger } from '../utils/store';
 import { useAppContext } from '../context/AppContext';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import DatePickerModule from "react-multi-date-picker";
 const DatePicker = (DatePickerModule as any).default || DatePickerModule;
 import arabic from "react-date-object/calendars/arabic";
@@ -21,6 +21,7 @@ const Reports: React.FC = () => {
   const { currency, calendarMode, language } = useAppContext();
 
   const location = useLocation();
+  const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const qStart = searchParams.get('start');
   const qEnd = searchParams.get('end');
@@ -38,8 +39,6 @@ const Reports: React.FC = () => {
       ? moment().format('iYYYY/iMM/iDD')
       : new Date().toISOString().split('T')[0];
   });
-
-  const [searchTerm, setSearchTerm] = useState('');
 
   const [incomes, setIncomes] = useState<(ContractLedger & { tenantName?: string })[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -115,15 +114,22 @@ const Reports: React.FC = () => {
 
       // Filter Incomes
       const filteredIncomes = allLedgers.filter(L => {
-        if (L.status !== 'Paid') return false;
-
-        const pdTs = L.paidDate ? parseGenericDate(L.paidDate) : 0;
         const ddTs = parseGenericDate(L.dueDate);
 
-        const isPaidInWindow = pdTs >= startBoundMs && pdTs <= endBoundMs;
-        const isDueInWindow = ddTs >= startBoundMs && ddTs <= endBoundMs;
+        if (qFilter === 'contracted') {
+          return ddTs >= startBoundMs && ddTs <= endBoundMs;
+        }
 
-        return isPaidInWindow || isDueInWindow;
+        if (qFilter === 'unpaid') {
+          if (L.status !== 'Pending') return false;
+          return ddTs >= startBoundMs && ddTs <= endBoundMs;
+        }
+
+        if (L.status !== 'Paid') return false;
+
+        // Dashboard categorizes collected rent strictly by the installment's due date.
+        // To match exact details from the clicked card, we must filter strictly by dueDate.
+        return ddTs >= startBoundMs && ddTs <= endBoundMs;
       });
 
       const filteredExpenses = allExpenses.filter(E => {
@@ -135,7 +141,7 @@ const Reports: React.FC = () => {
         const tnt = tenants.find(t => t.id === L.tenantId);
         const prop = properties.find(p => p.id === tnt?.propertyId);
         const combined = tnt ? `${tnt.tenantName}${prop ? ` (${prop.name})` : ''}` : '';
-        return { ...L, tenantName: combined };
+        return { ...L, tenantName: combined, tenantId: L.tenantId };
       }));
       setExpenses(filteredExpenses);
     };
@@ -146,13 +152,16 @@ const Reports: React.FC = () => {
   const transactions = [
     ...incomes.map(inc => ({
       id: inc.id,
-      date: inc.paidDate || inc.dueDate,
-      description: t('income_ledger_title'),
+      date: inc.dueDate,
+      description: (qFilter === 'contracted' || qFilter === 'unpaid') ? (t('installment_label') || 'Installment') : t('income_ledger_title'),
       tenantName: inc.tenantName,
-      income: inc.amount,
+      contracted: qFilter === 'contracted' ? inc.amount : 0,
+      income: qFilter === 'income' ? inc.amount : (!qFilter ? inc.amount : 0),
+      unpaid: qFilter === 'unpaid' ? inc.amount : 0,
       expense: 0,
       transferred: 0,
-      rawDate: inc.paidDate || inc.dueDate
+      tenantId: inc.tenantId,
+      rawDate: inc.dueDate
     })),
     ...expenses.map(exp => {
       const isTransfer = exp.category === 'Transfer to Owner' || exp.category === 'Transferred to Owner';
@@ -161,52 +170,55 @@ const Reports: React.FC = () => {
         date: exp.date,
         description: isTransfer ? t('cat_transfer_owner') : exp.category,
         tenantName: '',
+        contracted: 0,
         income: 0,
+        unpaid: 0,
         expense: isTransfer ? 0 : exp.amount,
         transferred: isTransfer ? exp.amount : 0,
+        tenantId: '',
         rawDate: exp.date
       };
     })
   ].sort((a, b) => parseGenericDate(a.rawDate || '') - parseGenericDate(b.rawDate || ''));
 
   const filteredTransactions = transactions.filter(txn => {
+    if (qFilter === 'contracted' && txn.contracted === 0) return false;
     if (qFilter === 'income' && txn.income === 0) return false;
+    if (qFilter === 'unpaid' && txn.unpaid === 0) return false;
     if (qFilter === 'expense' && txn.expense === 0) return false;
     if (qFilter === 'transfer' && txn.transferred === 0) return false;
 
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      txn.description.toLowerCase().includes(term) ||
-      txn.date.toLowerCase().includes(term) ||
-      (txn.tenantName || '').toLowerCase().includes(term) ||
-      txn.income.toString().includes(term) ||
-      txn.expense.toString().includes(term) ||
-      txn.transferred.toString().includes(term)
-    );
+    return true;
   });
 
+  const totalContracted = filteredTransactions.reduce((acc, curr) => acc + curr.contracted, 0);
   const totalIncome = filteredTransactions.reduce((acc, curr) => acc + curr.income, 0);
+  const totalUnpaid = filteredTransactions.reduce((acc, curr) => acc + curr.unpaid, 0);
   const totalExpense = filteredTransactions.reduce((acc, curr) => acc + curr.expense, 0);
   const amountTransferredToOwner = filteredTransactions.reduce((acc, curr) => acc + curr.transferred, 0);
   const netRevenue = totalIncome - totalExpense;
 
   let runningBalance = 0;
   const ledgerData = filteredTransactions.map(txn => {
-    runningBalance += txn.income - txn.expense - txn.transferred;
+    runningBalance += (qFilter === 'contracted' ? txn.contracted : (txn.income - txn.expense - txn.transferred));
     return { ...txn, balance: runningBalance };
   });
 
   const handleExportLedger = () => {
-    exportCSV(ledgerData.map(l => ({
-      Date: displayDate(l.date),
-      Description: l.description,
-      Tenant: l.tenantName || '',
-      Income: l.income,
-      Expense: l.expense,
-      Transferred: l.transferred,
-      Balance: l.balance
-    })), 'Report_Ledger.csv');
+    exportCSV(ledgerData.map(l => {
+      const row: any = {
+        Date: displayDate(l.date),
+        Description: l.description,
+        Tenant: l.tenantName || ''
+      };
+      if (!qFilter || qFilter === 'contracted') row.Contracted = l.contracted;
+      if (!qFilter || qFilter === 'income') row.Income = l.income;
+      if (qFilter === 'unpaid') row.Unpaid = l.unpaid;
+      if (!qFilter || qFilter === 'expense') row.Expense = l.expense;
+      if (!qFilter || qFilter === 'transfer') row.Transferred = l.transferred;
+      if (!qFilter) row.Balance = l.balance;
+      return row;
+    }), 'Report_Ledger.csv');
   };
 
   const formatDigits = (str: string) => {
@@ -276,57 +288,102 @@ const Reports: React.FC = () => {
           />
         </div>
         <div style={{ flex: 1, minWidth: '200px' }}>
-          <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>{t('search_placeholder') || 'Search'}</label>
-          <input
-            type="text"
+          <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>{t('filter_by') || 'Filter By'}</label>
+          <select
             className="input-field"
-            placeholder={t('search_placeholder') || "Search any word..."}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+            value={qFilter || ''}
+            onChange={(e) => {
+              const params = new URLSearchParams(location.search);
+              if (e.target.value) {
+                params.set('filter', e.target.value);
+              } else {
+                params.delete('filter');
+              }
+              navigate(`/dashboard/report?${params.toString()}`);
+            }}
+          >
+            <option value="">{t('income_expense_report') || 'Income & Expense Report'}</option>
+            <option value="contracted">{t('actual_contracted_rent') || 'Actual Contracted Rent'}</option>
+            <option value="income">{t('collected_rent') || 'Paid Rent'}</option>
+            <option value="unpaid">{t('unpaid_rent') || 'Unpaid / Overdue Rent'}</option>
+            <option value="expense">{t('total_expenses') || 'Total Expenses'}</option>
+            <option value="transfer">{t('transferred_amount') || 'Amount Transferred'}</option>
+          </select>
         </div>
       </div>
 
       {/* Metrics Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-        <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--success)' }}>
-          <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ArrowUpRight size={16} color="var(--success)" />
-            {t('paid_rent') || 'Total Income'}
+        {(!qFilter || qFilter === 'contracted') && (
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--secondary)' }}>
+            <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <FileText size={16} color="var(--secondary)" />
+              {t('actual_contracted_rent') || 'Contracted Rent'}
+            </div>
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              {(totalContracted || 0).toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
+            </div>
           </div>
-          <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)' }}>
-            {(totalIncome || 0).toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
-          </div>
-        </div>
+        )}
 
-        <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--danger)' }}>
-          <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ArrowDownRight size={16} color="var(--danger)" />
-            {t('expenses') || 'Total Expenses'}
+        {(!qFilter || qFilter === 'income') && (
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--success)' }}>
+            <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <ArrowUpRight size={16} color="var(--success)" />
+              {t('paid_rent') || 'Total Income'}
+            </div>
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              {(totalIncome || 0).toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
+            </div>
           </div>
-          <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)' }}>
-            {(totalExpense || 0).toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
-          </div>
-        </div>
+        )}
 
-        <div className="glass-panel" style={{ padding: '1.5rem', background: 'var(--primary)', color: 'white', border: 'none' }}>
-          <div style={{ fontSize: '0.875rem', opacity: 0.8, marginBottom: '0.5rem' }}>
-            {t('net_revenue') || 'Net Revenue'}
+        {qFilter === 'unpaid' && (
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--danger)' }}>
+            <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <FileText size={16} color="var(--danger)" />
+              {t('unpaid_rent') || 'Unpaid Rent'}
+            </div>
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              {(totalUnpaid || 0).toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
+            </div>
           </div>
-          <div style={{ fontSize: '2rem', fontWeight: 700 }}>
-            {(netRevenue || 0).toLocaleString()} <span style={{ fontSize: '1rem', opacity: 0.8 }}>{currency}</span>
-          </div>
-        </div>
+        )}
 
-        <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--secondary)' }}>
-          <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <FileText size={16} color="var(--secondary)" />
-            {t('amount_transferred_to_owner')}
+        {(!qFilter || qFilter === 'expense') && (
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--danger)' }}>
+            <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <ArrowDownRight size={16} color="var(--danger)" />
+              {t('expenses') || 'Total Expenses'}
+            </div>
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              {(totalExpense || 0).toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
+            </div>
           </div>
-          <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)' }}>
-            {(amountTransferredToOwner || 0).toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
+        )}
+
+        {!qFilter && (
+          <div className="glass-panel" style={{ padding: '1.5rem', background: 'var(--primary)', color: 'white', border: 'none' }}>
+            <div style={{ fontSize: '0.875rem', opacity: 0.8, marginBottom: '0.5rem' }}>
+              {t('net_revenue') || 'Net Revenue'}
+            </div>
+            <div style={{ fontSize: '2rem', fontWeight: 700 }}>
+              {(netRevenue || 0).toLocaleString()} <span style={{ fontSize: '1rem', opacity: 0.8 }}>{currency}</span>
+            </div>
           </div>
-        </div>
+        )}
+
+        {(!qFilter || qFilter === 'transfer') && (
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--secondary)' }}>
+            <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <FileText size={16} color="var(--secondary)" />
+              {t('amount_transferred_to_owner')}
+            </div>
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              {(amountTransferredToOwner || 0).toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div style={{ width: '100%' }}>
@@ -353,10 +410,13 @@ const Reports: React.FC = () => {
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('date_label')}</th>
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('description_col')}</th>
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('tenant_name')}</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('income')}</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('expense_label')}</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('transferred_col')}</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('balance_col')}</th>
+                    {(!qFilter || qFilter === 'contracted') && <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('actual_contracted_rent') || 'Contracted'}</th>}
+                    {(!qFilter || qFilter === 'income') && <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('income')}</th>}
+                    {qFilter === 'unpaid' && <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('unpaid_rent') || 'Unpaid Rent'}</th>}
+                    {(!qFilter || qFilter === 'expense') && <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('expense_label')}</th>}
+                    {(!qFilter || qFilter === 'transfer') && <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('transferred_col')}</th>}
+                    {!qFilter && <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('balance_col')}</th>}
+                    <th style={{ padding: '0.5rem', textAlign: 'center' }}></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -364,11 +424,20 @@ const Reports: React.FC = () => {
                     <tr key={txn.id + idx} className="print-break-inside-avoid" style={{ borderBottom: '1px solid var(--glass-border)', background: txn.transferred > 0 ? 'rgba(59, 130, 246, 0.05)' : txn.expense > 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)' }}>
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start' }}>{displayDate(txn.date)}</td>
                       <td style={{ padding: '0.75rem 0.5rem', fontWeight: 500, textAlign: 'start' }}>{txn.description}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start', color: 'var(--text-muted)' }}>{txn.tenantName}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', color: txn.income > 0 ? 'var(--success)' : 'inherit' }}>{txn.income > 0 ? `+${txn.income.toLocaleString()}` : '-'}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', color: txn.expense > 0 ? 'var(--danger)' : 'inherit' }}>{txn.expense > 0 ? `-${txn.expense.toLocaleString()}` : '-'}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', color: txn.transferred > 0 ? 'var(--secondary)' : 'inherit' }}>{txn.transferred > 0 ? `-${txn.transferred.toLocaleString()}` : '-'}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', fontWeight: 700 }}>{txn.balance.toLocaleString()}</td>
+                      <td style={{ padding: '0.5rem', textAlign: 'start' }}>{txn.tenantName}</td>
+                      {(!qFilter || qFilter === 'contracted') && <td style={{ padding: '0.5rem', textAlign: 'end', color: txn.contracted > 0 ? 'var(--secondary)' : 'inherit' }}>{txn.contracted > 0 ? `+${txn.contracted.toLocaleString()}` : '-'}</td>}
+                      {(!qFilter || qFilter === 'income') && <td style={{ padding: '0.5rem', textAlign: 'end', color: txn.income > 0 ? 'var(--success)' : 'inherit' }}>{txn.income > 0 ? `+${txn.income.toLocaleString()}` : '-'}</td>}
+                      {qFilter === 'unpaid' && <td style={{ padding: '0.5rem', textAlign: 'end', color: txn.unpaid > 0 ? 'var(--danger)' : 'inherit' }}>{txn.unpaid > 0 ? `${txn.unpaid.toLocaleString()}` : '-'}</td>}
+                      {(!qFilter || qFilter === 'expense') && <td style={{ padding: '0.5rem', textAlign: 'end', color: txn.expense > 0 ? 'var(--danger)' : 'inherit' }}>{txn.expense > 0 ? `-${txn.expense.toLocaleString()}` : '-'}</td>}
+                      {(!qFilter || qFilter === 'transfer') && <td style={{ padding: '0.5rem', textAlign: 'end', color: txn.transferred > 0 ? 'var(--accent)' : 'inherit' }}>{txn.transferred > 0 ? `-${txn.transferred.toLocaleString()}` : '-'}</td>}
+                      {!qFilter && <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', fontWeight: 700 }}>{txn.balance.toLocaleString()}</td>}
+                      <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                        {txn.tenantId && (
+                          <button className="btn print-hide" onClick={() => navigate(`/dashboard/ledger/${txn.tenantId}`)} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', background: 'var(--primary)', border: '1px solid var(--glass-border)', color: 'white', display: 'flex', alignItems: 'center', gap: '0.3rem', margin: '0 auto' }}>
+                            {t('transaction_detail') || 'Tenant Detail'}
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
