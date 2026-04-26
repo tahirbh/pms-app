@@ -42,6 +42,7 @@ const Reports: React.FC = () => {
 
   const [incomes, setIncomes] = useState<(ContractLedger & { tenantName?: string })[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [propertiesData, setPropertiesData] = useState<any[]>([]);
   const [periodTotals, setPeriodTotals] = useState({
     contracted: 0,
     income: 0,
@@ -97,6 +98,7 @@ const Reports: React.FC = () => {
       const allExpenses = await getExpenses();
       const tenants = await getTenants();
       const properties = await getProperties();
+      setPropertiesData(properties);
 
       const safeStartDate = toEnglishDigits(startDate);
       const safeEndDate = toEnglishDigits(endDate);
@@ -277,6 +279,15 @@ const Reports: React.FC = () => {
   });
 
   const handleExportLedger = () => {
+    if (qFilter === 'projected') {
+      exportCSV(propertiesData.map(p => ({
+        Property: p.name,
+        Address: p.address || '',
+        'Expected Rent': p.annualRent || 0
+      })), 'Expected_Rent_Report.csv');
+      return;
+    }
+
     exportCSV(ledgerData.map(l => {
       const row: any = {
         Date: displayDate(l.date),
@@ -382,6 +393,7 @@ const Reports: React.FC = () => {
             }}
           >
             <option value="">{t('income_expense_report') || 'Income & Expense Report'}</option>
+            <option value="projected">{t('projected_rent') || 'Projected Rent'}</option>
             <option value="contracted">{t('actual_contracted_rent') || 'Actual Contracted Rent'}</option>
             <option value="income">{t('collected_rent') || 'Paid Rent'}</option>
             <option value="unpaid">{t('unpaid_rent') || 'Unpaid / Overdue Rent'}</option>
@@ -393,6 +405,18 @@ const Reports: React.FC = () => {
 
       {/* Metrics Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+        {qFilter === 'projected' && (
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--text-muted)' }}>
+            <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <FileText size={16} color="var(--text-muted)" />
+              {t('projected_rent') || 'Projected Rent'}
+            </div>
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              {(propertiesData.reduce((sum, p) => sum + (p.annualRent || 0), 0)).toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
+            </div>
+          </div>
+        )}
+
         {(!qFilter || qFilter === 'contracted') && (
           <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--secondary)' }}>
             <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -480,7 +504,26 @@ const Reports: React.FC = () => {
           </div>
 
           <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>
-            {ledgerData.length === 0 ? (
+            {qFilter === 'projected' ? (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid var(--glass-border)', color: 'var(--text-muted)' }}>
+                    <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('property_name') || 'Property'}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('property_address') || 'Address'}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('projected_rent') || 'Projected Rent'}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {propertiesData.map((p, idx) => (
+                    <tr key={p.id || idx} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                      <td style={{ padding: '0.75rem 0.5rem', fontWeight: 500, textAlign: 'start' }}>{p.name}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start' }}>{p.address || t('no_address_provided')}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', fontWeight: 700 }}>{(p.annualRent || 0).toLocaleString()} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{currency}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : ledgerData.length === 0 ? (
               <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem' }}>{t('no_transactions')}</div>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>

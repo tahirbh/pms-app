@@ -420,9 +420,10 @@ const DashboardHome = () => {
     if (qStart) params.append('start', qStart);
     if (qEnd) params.append('end', qEnd);
 
-    // Projected rent → show properties
+    // Projected rent → show properties in reports
     if (type === 'projected_rent') {
-      navigate('/dashboard/properties');
+      params.append('filter', 'projected');
+      navigate(`/dashboard/report?${params.toString()}`);
       return;
     }
 
