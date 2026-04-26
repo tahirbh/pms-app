@@ -233,7 +233,8 @@ const resources = {
       "feat_drilldown_reporting": "Advanced dashboard drill-down reporting and filter synchronization",
       "feat_tenant_detail_btn": "Tenant Contract Detail fast-navigation button in reports",
       "fix_hijri_date_bounds": "Fixed Hijri current year date boundaries and Arabic numeral parsing",
-      "fix_historical_card_order": "Reordered and aligned Historical Data Dashboard metrics"
+      "fix_historical_card_order": "Reordered and aligned Historical Data Dashboard metrics",
+      "feat_dashboard_redirect": "Projected Rent card redirects to Properties"
     }
   },
   ar: {
@@ -441,7 +442,8 @@ const resources = {
       "feat_drilldown_reporting": "تقارير لوحة القيادة المتقدمة مع مزامنة الفلاتر",
       "feat_tenant_detail_btn": "زر التنقل السريع لتفاصيل عقد المستأجر في التقارير",
       "fix_hijri_date_bounds": "إصلاح حدود السنة الهجرية الحالية وتحليل الأرقام العربية",
-      "fix_historical_card_order": "إعادة ترتيب ومحاذاة مقاييس البيانات التاريخية في لوحة القيادة"
+      "fix_historical_card_order": "إعادة ترتيب ومحاذاة مقاييس البيانات التاريخية في لوحة القيادة",
+      "feat_dashboard_redirect": "بطاقة الإيجار المتوقع تعيد التوجيه إلى العقارات"
     }
   },
   ur: {
@@ -649,7 +651,8 @@ const resources = {
       "feat_drilldown_reporting": "ڈیش بورڈ رپورٹنگ اور فلٹر کی مطابقت پذیری",
       "feat_tenant_detail_btn": "رپورٹس میں کرایہ دار کے معاہدے کی تفصیل کا بٹن",
       "fix_hijri_date_bounds": "ہجری تاریخ کی حدود اور عربی ہندسوں کی خرابی کو درست کیا گیا",
-      "fix_historical_card_order": "تاریخی ڈیٹا ڈیش بورڈ میٹرکس کی ترتیب درست کی گئی"
+      "fix_historical_card_order": "تاریخی ڈیٹا ڈیش بورڈ میٹرکس کی ترتیب درست کی گئی",
+      "feat_dashboard_redirect": "متوقع کرایہ کارڈ پراپرٹیز کی طرف ری ڈائریکٹ کرتا ہے"
     }
   }
 };

@@ -7,6 +7,14 @@ export interface ChangeLogEntry {
 
 export const changelog: ChangeLogEntry[] = [
   {
+    version: "1.0.31",
+    date: "2026-04-26",
+    features: [
+      "feat_dashboard_redirect"
+    ],
+    fixes: []
+  },
+  {
     version: "1.0.23",
     date: "2026-04-25",
     features: [
