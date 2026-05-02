@@ -709,10 +709,18 @@ const DashboardHome = () => {
           <div
             key={card.key}
             className="glass-panel"
-            style={{ padding: '1.25rem 1.5rem', borderLeft: `4px solid ${card.color}`, display: 'flex', flexDirection: 'column', gap: '0.4rem', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }}
-            onClick={() => handleCardClick(card.key, false)}
-            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'none'}
+            style={{ 
+              padding: '1.25rem 1.5rem', 
+              borderLeft: `4px solid ${card.color}`, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: '0.4rem', 
+              cursor: card.key === 'cash_in_hand' ? 'default' : 'pointer', 
+              transition: 'transform 0.2s, box-shadow 0.2s' 
+            }}
+            onClick={card.key === 'cash_in_hand' ? undefined : () => handleCardClick(card.key, false)}
+            onMouseEnter={e => { if (card.key !== 'cash_in_hand') e.currentTarget.style.transform = 'translateY(-2px)'; }}
+            onMouseLeave={e => { if (card.key !== 'cash_in_hand') e.currentTarget.style.transform = 'none'; }}
           >
             <div style={{ fontSize: '1.4rem' }}>{card.icon}</div>
             <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{card.label}</div>
@@ -755,10 +763,19 @@ const DashboardHome = () => {
           <div
             key={`hist-${card.key}`}
             className="glass-panel"
-            style={{ padding: '1.25rem 1.5rem', borderLeft: `4px solid ${card.color}`, display: 'flex', flexDirection: 'column', gap: '0.4rem', background: 'rgba(var(--glass-bg), 0.4)', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }}
-            onClick={() => handleCardClick(card.key, true)}
-            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'none'}
+            style={{ 
+              padding: '1.25rem 1.5rem', 
+              borderLeft: `4px solid ${card.color}`, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: '0.4rem', 
+              background: 'rgba(var(--glass-bg), 0.4)', 
+              cursor: card.key === 'cash_in_hand' ? 'default' : 'pointer', 
+              transition: 'transform 0.2s, box-shadow 0.2s' 
+            }}
+            onClick={card.key === 'cash_in_hand' ? undefined : () => handleCardClick(card.key, true)}
+            onMouseEnter={e => { if (card.key !== 'cash_in_hand') e.currentTarget.style.transform = 'translateY(-2px)'; }}
+            onMouseLeave={e => { if (card.key !== 'cash_in_hand') e.currentTarget.style.transform = 'none'; }}
           >
             <div style={{ fontSize: '1.4rem' }}>{card.icon}</div>
             <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{card.label}</div>
