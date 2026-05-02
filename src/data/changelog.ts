@@ -7,6 +7,15 @@ export interface ChangeLogEntry {
 
 export const changelog: ChangeLogEntry[] = [
   {
+    version: "1.0.34",
+    date: "2026-05-03",
+    features: [],
+    fixes: [
+      "fix_dashboard_type_errors",
+      "fix_vercel_deployment_crash"
+    ]
+  },
+  {
     version: "1.0.32",
     date: "2026-05-03",
     features: [

@@ -404,13 +404,13 @@ const DashboardHome = () => {
 
     const startBoundMs = selectedYears.reduce((min, y) => {
       const yr = y.split(' ')[0];
-      const ms = calendarMode === 'hijri' ? moment(yr, 'iYYYY').startOf('iYear').toDate().getTime() : new Date(yr, 0, 1).getTime();
+      const ms = calendarMode === 'hijri' ? moment(yr, 'iYYYY').startOf('iYear').toDate().getTime() : new Date(Number(yr), 0, 1).getTime();
       return Math.min(min, ms);
     }, Infinity);
 
     const endBoundMs = selectedYears.reduce((max, y) => {
       const yr = y.split(' ')[0];
-      const ms = calendarMode === 'hijri' ? moment(yr, 'iYYYY').endOf('iYear').toDate().getTime() : new Date(yr, 11, 31).getTime();
+      const ms = calendarMode === 'hijri' ? moment(yr, 'iYYYY').endOf('iYear').toDate().getTime() : new Date(Number(yr), 11, 31).getTime();
       return Math.max(max, ms);
     }, 0);
 
