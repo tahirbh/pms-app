@@ -7,6 +7,16 @@ export interface ChangeLogEntry {
 
 export const changelog: ChangeLogEntry[] = [
   {
+    version: "1.0.32",
+    date: "2026-05-03",
+    features: [
+      "feat_actual_unpaid_label"
+    ],
+    fixes: [
+      "fix_utilization_chart_stats"
+    ]
+  },
+  {
     version: "1.0.31",
     date: "2026-04-26",
     features: [

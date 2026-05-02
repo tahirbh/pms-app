@@ -3,7 +3,7 @@ import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Home, Users, Settings as SettingsIcon, LogOut, Receipt, Bell, AlertCircle, FileText, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Home, Users, Settings as SettingsIcon, LogOut, Receipt, Bell, AlertCircle, FileText, Sparkles, History } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import moment from 'moment-hijri';
 
@@ -922,6 +922,7 @@ const DashboardHome = () => {
 };
 
 import AllTenantsLedger from './AllTenantsLedger';
+import Changes from './Changes';
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
@@ -954,6 +955,7 @@ const Dashboard: React.FC = () => {
     { path: '/dashboard/expenses', label: t('expenses'), icon: Receipt },
     { path: '/dashboard/all-ledgers', label: t('ledgers'), icon: Users },
     { path: '/dashboard/report', label: t('reports'), icon: FileText },
+    { path: '/dashboard/changes', label: t('version_history') || 'Changes', icon: History },
     { path: '/dashboard/settings', label: t('settings'), icon: SettingsIcon },
   ];
 
@@ -1023,6 +1025,7 @@ const Dashboard: React.FC = () => {
             <Route path="ledger/:id" element={<TenantLedger />} />
             <Route path="all-ledgers" element={<AllTenantsLedger />} />
             <Route path="report" element={<Reports />} />
+            <Route path="changes" element={<Changes />} />
             <Route path="pivot" element={<Pivot />} />
             <Route path="settings" element={<Settings />} />
           </Routes>
