@@ -63,6 +63,32 @@ const AllTenantsLedger: React.FC = () => {
     en = en.replace(/-/g, '/');
     return en.replace(/[^\d/]/g, '');
   };
+
+  const nameMap: Record<string, string> = {
+    'شقة رقم 1': 'Apartment 1',
+    'شقة رقم 2': 'Apartment 2',
+    'شقة رقم 3': 'Apartment 3',
+    'شقة رقم 4': 'Apartment 4',
+    'شقة رقم 5': 'Apartment 5',
+    'شقة رقم 6': 'Apartment 6',
+    'شقة السطح': 'Roof Apartment',
+    'صهيب': 'Sohaib',
+    'صهيب داغستاني': 'Sohaib Daghistani',
+    'عبد المنعم': 'Abdelmonem',
+    'عبدالمنعم': 'Abdelmonem',
+    'وليد المصري': 'Waleed Al-Masri',
+    'عماد': 'Emad',
+    'فوزان البغدادي': 'Fawzan Al-Baghdadi',
+    'مازن شمسي': 'Mazen Shamsi',
+    'مازن ابو البحرين': 'Mazen Abu Bahrain',
+    'أحمد': 'Ahmed',
+    'محمد': 'Mohammed',
+  };
+
+  const translateName = (name: string, lang: string) => {
+    if (lang !== 'en') return name;
+    return nameMap[name] || name.replace('شقة رقم', 'Apartment');
+  };
   
   const parseGenericDate = (dateStr: string) => {
     if (!dateStr) return 0;
@@ -117,8 +143,8 @@ const AllTenantsLedger: React.FC = () => {
         const summary = tenantSummaries[L.tenantId] || { paid: 0, unpaid: 0 };
         return {
           ...L,
-          tenantName: tnt?.tenantName || 'Unknown',
-          propertyName: prop?.name || 'Unknown',
+          tenantName: translateName(tnt?.tenantName || 'Unknown', language),
+          propertyName: translateName(prop?.name || 'Unknown', language),
           tenantPaid: summary.paid,
           tenantUnpaid: summary.unpaid,
           annualRent: tnt?.annualRent || prop?.annualRent || 0
@@ -129,13 +155,13 @@ const AllTenantsLedger: React.FC = () => {
     };
 
     fetchData();
-  }, [startDate, endDate, calendarMode, qStart, qEnd]);
+  }, [startDate, endDate, calendarMode, qStart, qEnd, language]);
 
   const filteredLedgers = ledgers.filter(txn => {
     // Status filter from URL (e.g. ?status=unpaid)
     if (qStatus === 'unpaid' && txn.status === 'Paid') return false;
     if (qStatus === 'paid' && txn.status !== 'Paid') return false;
-    if (qProperty && txn.propertyName !== qProperty) return false;
+    if (qProperty && !txn.propertyName.toLowerCase().includes(qProperty.toLowerCase())) return false;
 
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
@@ -242,23 +268,27 @@ const AllTenantsLedger: React.FC = () => {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-        <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--success)' }}>
-          <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-            {t('paid_rent') || 'Total Paid'}
+        {(qStatus === 'paid' || !qStatus) && (
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--success)', background: qStatus === 'paid' ? 'rgba(16,185,129,0.05)' : 'transparent' }}>
+            <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: 600 }}>
+              {qProperty ? `${t('paid_rent')} - ${translateName(qProperty, language)}` : t('paid_rent')}
+            </div>
+            <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--success)' }}>
+              {(totalPaid || 0).toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
+            </div>
           </div>
-          <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)' }}>
-            {(totalPaid || 0).toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
-          </div>
-        </div>
+        )}
         
-        <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--danger)' }}>
-          <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-            {t('unpaid_rent') || 'Total Pending'}
+        {(qStatus === 'unpaid' || !qStatus) && (
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--danger)', background: qStatus === 'unpaid' ? 'rgba(239,68,68,0.05)' : 'transparent' }}>
+            <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: 600 }}>
+               {qProperty ? `${t('unpaid_rent')} - ${translateName(qProperty, language)}` : t('unpaid_rent')}
+            </div>
+            <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--danger)' }}>
+              {(totalUnpaid || 0).toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
+            </div>
           </div>
-          <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--danger)' }}>
-            {(totalUnpaid || 0).toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>{currency}</span>
-          </div>
-        </div>
+        )}
       </div>
 
       <div style={{ width: '100%' }}>
@@ -287,9 +317,9 @@ const AllTenantsLedger: React.FC = () => {
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('due_date')}</th>
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('installment_amount') || 'Installment'}</th>
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('status')}</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('annual_rent') || 'Annual Rent'}</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('paid_rent') || 'Paid'} (T)</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('unpaid_rent') || 'Unpaid'} (T)</th>
+                    {!qStatus && !qProperty && <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('annual_rent') || 'Annual Rent'}</th>}
+                    {!qStatus && !qProperty && <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('paid_rent') || 'Paid'} (T)</th>}
+                    {!qStatus && !qProperty && <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('unpaid_rent') || 'Unpaid'} (T)</th>}
                     <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('actions')}</th>
                   </tr>
                 </thead>
@@ -312,9 +342,9 @@ const AllTenantsLedger: React.FC = () => {
                           {txn.status === 'Paid' ? t('paid') : t('pending')}
                         </span>
                       </td>
-                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start', color: 'var(--text-muted)' }}>{txn.annualRent.toLocaleString()}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start', color: 'var(--success)', fontWeight: 600 }}>{txn.tenantPaid.toLocaleString()}</td>
-                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start', color: 'var(--danger)', fontWeight: 600 }}>{txn.tenantUnpaid.toLocaleString()}</td>
+                      {!qStatus && !qProperty && <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start', color: 'var(--text-muted)' }}>{txn.annualRent.toLocaleString()}</td>}
+                      {!qStatus && !qProperty && <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start', color: 'var(--success)', fontWeight: 600 }}>{txn.tenantPaid.toLocaleString()}</td>}
+                      {!qStatus && !qProperty && <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start', color: 'var(--danger)', fontWeight: 600 }}>{txn.tenantUnpaid.toLocaleString()}</td>}
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end' }}>
                         <button 
                           className="btn" 

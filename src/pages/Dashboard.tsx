@@ -52,6 +52,32 @@ const normalizeYear = (yearStr: string): string => {
   return yearStr.replace(/[٠-٩]/g, w => arabicNumbers.indexOf(w).toString());
 };
 
+const nameMap: Record<string, string> = {
+  'شقة رقم 1': 'Apartment 1',
+  'شقة رقم 2': 'Apartment 2',
+  'شقة رقم 3': 'Apartment 3',
+  'شقة رقم 4': 'Apartment 4',
+  'شقة رقم 5': 'Apartment 5',
+  'شقة رقم 6': 'Apartment 6',
+  'شقة السطح': 'Roof Apartment',
+  'صهيب': 'Sohaib',
+  'صهيب داغستاني': 'Sohaib Daghistani',
+  'عبد المنعم': 'Abdelmonem',
+  'عبدالمنعم': 'Abdelmonem',
+  'وليد المصري': 'Waleed Al-Masri',
+  'عماد': 'Emad',
+  'فوزان البغدادي': 'Fawzan Al-Baghdadi',
+  'مازن شمسي': 'Mazen Shamsi',
+  'مازن ابو البحرين': 'Mazen Abu Bahrain',
+  'أحمد': 'Ahmed',
+  'محمد': 'Mohammed',
+};
+
+const translateName = (name: string, lang: string) => {
+  if (lang !== 'en') return name;
+  return nameMap[name] || name.replace('شقة رقم', 'Apartment');
+};
+
 /** Get the current year key dynamically. */
 const getCurrentYearKey = (calMode: 'gregorian' | 'hijri'): string => {
   if (calMode === 'hijri') return normalizeYear(moment().format('iYYYY')) + ' (H)';
@@ -66,7 +92,7 @@ const isBeforeCurrentYear = (yearStr: string, currentYearStr: string): boolean =
 
 const DashboardHome = () => {
   const { t } = useTranslation();
-  const { currency, calendarMode } = useAppContext();
+  const { currency, calendarMode, language } = useAppContext();
   const navigate = useNavigate();
   const impersonatedId = getImpersonatedId();
 
@@ -274,6 +300,11 @@ const DashboardHome = () => {
         let contracted = 0;
         let collected = 0;
 
+        // Sync with Reports logic: calculate contracted by occupancy
+        const today = new Date();
+        const startOfYear = calendarMode === 'hijri' ? moment().startOf('iYear').toDate().getTime() : new Date(today.getFullYear(), 0, 1).getTime();
+        const endOfYear = calendarMode === 'hijri' ? moment().endOf('iYear').toDate().getTime() : new Date(today.getFullYear(), 11, 31).getTime();
+
         pTenants.forEach(tnt => {
           const tenantLedgers = allLedgers.filter(l => l.tenantId === tnt.id);
           tenantLedgers.forEach(L => {
@@ -285,19 +316,50 @@ const DashboardHome = () => {
             }
 
             if (yearStr === cyKey) {
-              contracted += L.amount;
               if (L.status === 'Paid') collected += L.amount;
             }
           });
+
+          // Pro-rate contracted rent based on active contract in this year
+          const parseSafeDate = (d: string) => {
+            if (!d) return 0;
+            const cleanD = normalizeYear(d).replace(/-/g, '/');
+            if (cleanD.startsWith('14')) return moment(cleanD, 'iYYYY/iMM/iDD').toDate().getTime();
+            return new Date(cleanD).getTime();
+          };
+
+          const tntStart = parseSafeDate(tnt.startDate);
+          const tntEnd = parseSafeDate(tnt.endDate);
+          
+          const overlapStart = Math.max(startOfYear, tntStart);
+          const overlapEnd = Math.min(endOfYear, tntEnd);
+          
+          if (overlapEnd > overlapStart) {
+            const overlapDays = Math.ceil((overlapEnd - overlapStart) / (1000 * 60 * 60 * 24)) + 1;
+            const yearDays = calendarMode === 'hijri' ? 354.36 : 365.25;
+            
+            // Refined month-based occupancy for precision
+            const avgMonthDays = calendarMode === 'hijri' ? 29.53 : 30.44;
+            const monthsOverlap = overlapDays / avgMonthDays;
+            let occupancyFactor;
+            
+            if (Math.abs(monthsOverlap - Math.round(monthsOverlap)) < 0.1) {
+               occupancyFactor = Math.round(monthsOverlap) / 12;
+            } else {
+               occupancyFactor = overlapDays / yearDays;
+            }
+            
+            contracted += (tnt.annualRent || p.annualRent || 0) * occupancyFactor;
+          }
         });
 
         return {
           name: p.name,
-          potential: p.annualRent,
+          potential: Math.max(p.annualRent, contracted),
           contracted,
           collected,
           pending: Math.max(0, contracted - collected),
-          vacant: Math.max(0, p.annualRent - contracted)
+          vacant: Math.max(0, Math.max(p.annualRent, contracted) - contracted)
         };
       });
       setCurrentUtilizationData(currentBuildUtil);
@@ -340,39 +402,82 @@ const DashboardHome = () => {
     const selectedYears = availableHistYears.slice(startIndex, endIndex + 1);
     const yearsCount = selectedYears.length;
 
+    const startBoundMs = selectedYears.reduce((min, y) => {
+      const yr = y.split(' ')[0];
+      const ms = calendarMode === 'hijri' ? moment(yr, 'iYYYY').startOf('iYear').toDate().getTime() : new Date(yr, 0, 1).getTime();
+      return Math.min(min, ms);
+    }, Infinity);
+
+    const endBoundMs = selectedYears.reduce((max, y) => {
+      const yr = y.split(' ')[0];
+      const ms = calendarMode === 'hijri' ? moment(yr, 'iYYYY').endOf('iYear').toDate().getTime() : new Date(yr, 11, 31).getTime();
+      return Math.max(max, ms);
+    }, 0);
+
     return allProperties.map(p => {
       const pTenants = allTenants.filter(t => t.propertyId === p.id);
       let contracted = 0;
       let collected = 0;
 
-      pTenants.forEach(tnt => {
-        const tenantLedgers = allLedgersData.filter(l => l.tenantId === tnt.id);
-        tenantLedgers.forEach(L => {
-          let yearStr: string;
-          if (tnt.calendarMode === 'hijri') {
-            const normDueDate = normalizeYear(L.dueDate);
-            yearStr = normalizeYear(moment(normDueDate, 'iYYYY/iMM/iDD').format('iYYYY')) + ' (H)';
-          } else {
-            yearStr = new Date(L.dueDate).getFullYear().toString();
-          }
+      // ── Calculate collected from ledger ──
+      allLedgersData.forEach(L => {
+        const tnt = pTenants.find(t => t.id === L.tenantId);
+        if (!tnt) return;
+        
+        let yearStr: string;
+        if (tnt.calendarMode === 'hijri') {
+          const normDueDate = normalizeYear(L.dueDate);
+          yearStr = normalizeYear(moment(normDueDate, 'iYYYY/iMM/iDD').format('iYYYY')) + ' (H)';
+        } else {
+          yearStr = new Date(L.dueDate).getFullYear().toString();
+        }
 
-          if (selectedYears.includes(yearStr)) {
-            contracted += L.amount;
-            if (L.status === 'Paid') collected += L.amount;
+        if (selectedYears.includes(yearStr)) {
+          if (L.status === 'Paid') collected += L.amount;
+        }
+      });
+
+      // ── Calculate contracted from occupancy pro-rating (High Precision) ──
+      pTenants.forEach(tnt => {
+        const parseSafeDate = (d: string) => {
+          if (!d) return 0;
+          const cleanD = normalizeYear(d).replace(/-/g, '/');
+          if (cleanD.startsWith('14')) return moment(cleanD, 'iYYYY/iMM/iDD').toDate().getTime();
+          return new Date(cleanD).getTime();
+        };
+
+        const tntStart = parseSafeDate(tnt.startDate);
+        const tntEnd = parseSafeDate(tnt.endDate);
+        const overlapStart = Math.max(startBoundMs, tntStart);
+        const overlapEnd = Math.min(endBoundMs, tntEnd);
+
+        if (overlapEnd > overlapStart) {
+          const overlapDays = Math.ceil((overlapEnd - overlapStart) / (1000 * 60 * 60 * 24)) + 1;
+          const yearDays = calendarMode === 'hijri' ? 354.36 : 365.25;
+          const avgMonthDays = calendarMode === 'hijri' ? 29.53 : 30.44;
+          const monthsOverlap = overlapDays / avgMonthDays;
+          
+          let occupancyFactor;
+          if (Math.abs(monthsOverlap - Math.round(monthsOverlap)) < 0.1) {
+            occupancyFactor = Math.round(monthsOverlap) / 12;
+          } else {
+            occupancyFactor = overlapDays / yearDays;
           }
-        });
+          
+          contracted += (tnt.annualRent || p.annualRent || 0) * occupancyFactor;
+        }
       });
 
       return {
-        name: p.name,
-        potential: p.annualRent * yearsCount,
+        name: translateName(p.name, language),
+        potential: Math.max(p.annualRent * yearsCount, contracted),
         contracted,
         collected,
         pending: Math.max(0, contracted - collected),
-        vacant: Math.max(0, (p.annualRent * yearsCount) - contracted)
+        vacant: Math.max(0, Math.max(p.annualRent * yearsCount, contracted) - contracted)
       };
     });
-  }, [startYear, endYear, availableHistYears, allProperties, allTenants, allLedgersData]);
+  }, [startYear, endYear, availableHistYears, allProperties, allTenants, allLedgersData, language, calendarMode]);
 
   // ── Click handlers: navigate with correct filter ──
   const handleCardClick = (type: string, isHistorical: boolean) => {
@@ -420,43 +525,25 @@ const DashboardHome = () => {
     if (qStart) params.append('start', qStart);
     if (qEnd) params.append('end', qEnd);
 
-    // Projected rent → show properties in reports
+    // Projected rent → show properties in reports (this one still makes sense in reports)
     if (type === 'projected_rent') {
       params.append('filter', 'projected');
       navigate(`/dashboard/report?${params.toString()}`);
       return;
     }
 
-    // Contracted rent → show contracted rent in reports
-    if (type === 'contracted_rent') {
-      params.append('filter', 'contracted');
-      navigate(`/dashboard/report?${params.toString()}`);
-      return;
-    }
-
-    // Unpaid rent → show unpaid rent in reports
-    if (type === 'unpaid_rent') {
-      params.append('filter', 'unpaid');
-      navigate(`/dashboard/report?${params.toString()}`);
-      return;
-    }
-
-    // Cash in hand → show full report to display Net Revenue
-    if (type === 'cash_in_hand') {
-      navigate(`/dashboard/report?${params.toString()}`);
-      return;
-    }
-
-    // Collected / Expenses / Transferred → Reports page with filter
-    if (type === 'collected_rent') params.append('filter', 'income');
+    if (type === 'contracted_rent') params.append('filter', 'contracted');
+    else if (type === 'collected_rent') params.append('filter', 'income');
+    else if (type === 'unpaid_rent') params.append('filter', 'unpaid');
     else if (type === 'total_expenses') params.append('filter', 'expense');
     else if (type === 'transferred_amount') params.append('filter', 'transfer');
+    else if (type === 'cash_in_hand') params.append('filter', 'all');
 
     navigate(`/dashboard/report?${params.toString()}`);
   };
 
   const handleUtilizationClick = (entry: any, type: string, isHistorical: boolean) => {
-    const prop = allProperties.find(p => p.name === entry.name);
+    const prop = allProperties.find(p => translateName(p.name, language) === entry.name || p.name === entry.name);
     if (!prop) return;
 
     let qStart = '';
@@ -491,19 +578,13 @@ const DashboardHome = () => {
     if (qEnd) params.append('end', qEnd);
     params.append('property', prop.name);
 
-    if (type === 'potential') {
-      navigate(`/dashboard/all-ledgers?${params.toString()}`);
-    } else if (type === 'contracted') {
-      params.append('filter', 'contracted');
+    if (type === 'potential' || type === 'vacant') {
+      params.append('filter', 'utilization');
       navigate(`/dashboard/report?${params.toString()}`);
-    } else if (type === 'collected') {
-      params.append('status', 'paid');
+    } else {
+      if (type === 'collected') params.append('status', 'paid');
+      else if (type === 'pending') params.append('status', 'unpaid');
       navigate(`/dashboard/all-ledgers?${params.toString()}`);
-    } else if (type === 'pending') {
-      params.append('status', 'unpaid');
-      navigate(`/dashboard/all-ledgers?${params.toString()}`);
-    } else if (type === 'vacant') {
-      navigate(`/dashboard/properties?search=${prop.name}`);
     }
   };
 

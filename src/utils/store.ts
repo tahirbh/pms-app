@@ -6,16 +6,12 @@ export const getCurrentUserId = async (): Promise<string | null> => {
   
   // Check for impersonation (for admin verification)
   const impersonated = localStorage.getItem('impersonated_user_id');
+  if (impersonated && impersonated.trim().length > 5) {
+    return impersonated.trim();
+  }
   
   const { data: { user } } = await supabase.auth.getUser();
-  const actualId = user?.id ?? null;
-
-  if (impersonated) {
-    console.log('[DEBUG] Impersonating:', impersonated, '| Actual User:', actualId);
-    return impersonated;
-  }
-
-  return actualId;
+  return user?.id ?? null;
 };
 
 /** Get the ACTUAL logged in user (ignoring impersonation) */
@@ -119,6 +115,7 @@ export type Expense = {
   paymentMode: 'Cash' | 'Bank' | 'Online';
   date: string;
   description: string;
+  propertyId?: string;
   user_id?: string;
   created_at?: string;
 };
@@ -128,8 +125,9 @@ export type Expense = {
 export const getProperties = async (): Promise<Property[]> => {
   if (isGuest()) return localDB.get('properties');
   const userId = await getCurrentUserId();
-  let query = supabase.from('properties').select('*');
-  if (userId) query = query.eq('user_id', userId);
+  if (!userId) return [];
+  
+  let query = supabase.from('properties').select('*').eq('user_id', userId);
 
   const { data, error } = await query.order('created_at', { ascending: false });
   if (error) { 
@@ -166,8 +164,9 @@ export const deleteProperty = async (id: string): Promise<boolean> => {
 export const getTenants = async (): Promise<TenantContract[]> => {
   if (isGuest()) return localDB.get('tenants');
   const userId = await getCurrentUserId();
-  let query = supabase.from('tenants').select('*');
-  if (userId) query = query.eq('user_id', userId);
+  if (!userId) return [];
+  
+  let query = supabase.from('tenants').select('*').eq('user_id', userId);
 
   const { data, error } = await query.order('created_at', { ascending: false });
   if (error) { 
@@ -235,8 +234,9 @@ export const getLedgersByTenant = async (tenantId: string): Promise<ContractLedg
 export const getAllLedgers = async (): Promise<ContractLedger[]> => {
   if (isGuest()) return localDB.get('contract_ledger');
   const userId = await getCurrentUserId();
-  let query = supabase.from('contract_ledger').select('*');
-  if (userId) query = query.eq('user_id', userId);
+  if (!userId) return [];
+  
+  let query = supabase.from('contract_ledger').select('*').eq('user_id', userId);
 
   const { data, error } = await query.order('dueDate', { ascending: true });
   if (error) { 
@@ -323,8 +323,9 @@ export const deleteLedgersByTenant = async (tenantId: string): Promise<boolean> 
 export const getExpenses = async (): Promise<Expense[]> => {
   if (isGuest()) return localDB.get('expenses');
   const userId = await getCurrentUserId();
-  let query = supabase.from('expenses').select('*');
-  if (userId) query = query.eq('user_id', userId);
+  if (!userId) return [];
+  
+  let query = supabase.from('expenses').select('*').eq('user_id', userId);
 
   const { data, error } = await query.order('created_at', { ascending: false });
   if (error) { console.error('Error fetching expenses', error); return []; }

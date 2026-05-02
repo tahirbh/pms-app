@@ -26,6 +26,7 @@ const Reports: React.FC = () => {
   const qStart = searchParams.get('start');
   const qEnd = searchParams.get('end');
   const qFilter = searchParams.get('filter');
+  const qProperty = searchParams.get('property');
 
   const [startDate, setStartDate] = useState(() => {
     if (qStart) return qStart;
@@ -43,6 +44,7 @@ const Reports: React.FC = () => {
   const [incomes, setIncomes] = useState<(ContractLedger & { tenantName?: string })[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [propertiesData, setPropertiesData] = useState<any[]>([]);
+  const [utilizationData, setUtilizationData] = useState<any[]>([]);
   const [periodTotals, setPeriodTotals] = useState({
     contracted: 0,
     income: 0,
@@ -70,6 +72,32 @@ const Reports: React.FC = () => {
     });
     en = en.replace(/-/g, '/');
     return en.replace(/[^\d/]/g, '');
+  };
+
+  const nameMap: Record<string, string> = {
+    'شقة رقم 1': 'Apartment 1',
+    'شقة رقم 2': 'Apartment 2',
+    'شقة رقم 3': 'Apartment 3',
+    'شقة رقم 4': 'Apartment 4',
+    'شقة رقم 5': 'Apartment 5',
+    'شقة رقم 6': 'Apartment 6',
+    'شقة السطح': 'Roof Apartment',
+    'صهيب': 'Sohaib',
+    'صهيب داغستاني': 'Sohaib Daghistani',
+    'عبد المنعم': 'Abdelmonem',
+    'عبدالمنعم': 'Abdelmonem',
+    'وليد المصري': 'Waleed Al-Masri',
+    'عماد': 'Emad',
+    'فوزان البغدادي': 'Fawzan Al-Baghdadi',
+    'مازن شمسي': 'Mazen Shamsi',
+    'مازن ابو البحرين': 'Mazen Abu Bahrain',
+    'أحمد': 'Ahmed',
+    'محمد': 'Mohammed',
+  };
+
+  const translateName = (name: string, lang: string) => {
+    if (lang !== 'en') return name;
+    return nameMap[name] || name.replace('شقة رقم', 'Apartment');
   };
 
   const parseGenericDate = (dateStr: string) => {
@@ -100,8 +128,16 @@ const Reports: React.FC = () => {
       const properties = await getProperties();
       setPropertiesData(properties);
 
-      const safeStartDate = toEnglishDigits(startDate);
-      const safeEndDate = toEnglishDigits(endDate);
+      const urlParams = new URLSearchParams(window.location.search);
+      const startParam = urlParams.get('start');
+      const endParam = urlParams.get('end');
+      const propParam = urlParams.get('property');
+
+      const currentStart = startParam || startDate;
+      const currentEnd = endParam || endDate;
+
+      const safeStartDate = toEnglishDigits(currentStart);
+      const safeEndDate = toEnglishDigits(currentEnd);
 
       let startBoundMs: number;
       let endBoundMs: number;
@@ -157,32 +193,53 @@ const Reports: React.FC = () => {
       // Filter Incomes
       const filteredIncomes = allLedgers.filter(L => {
         const inRange = isDateInRange(L.dueDate || '');
+        if (!inRange) return false;
 
-        if (qFilter === 'contracted') {
-          return inRange;
+        if (propParam) {
+          const tnt = tenants.find(t => t.id === L.tenantId);
+          const prop = properties.find(p => p.id === tnt?.propertyId);
+          if (!prop?.name.toLowerCase().includes(propParam.toLowerCase())) return false;
         }
 
         if (qFilter === 'unpaid') {
-          if (L.status !== 'Pending') return false;
-          return inRange;
+          return L.status === 'Pending';
         }
 
-        if (L.status !== 'Paid') return false;
+        if (qFilter === 'income') {
+          return L.status === 'Paid';
+        }
 
-        // Dashboard categorizes collected rent strictly by the installment's due date.
-        // To match exact details from the clicked card, we must filter strictly by dueDate.
-        return inRange;
+        return true; // For 'contracted' or default
       });
 
       const filteredExpenses = allExpenses.filter(E => {
-        return isDateInRange(E.date);
+        const inRange = isDateInRange(E.date);
+        if (!inRange) return false;
+
+        if (propParam) {
+          if (E.propertyId) {
+            const prop = properties.find(p => p.id === E.propertyId);
+            if (!prop?.name.toLowerCase().includes(propParam.toLowerCase())) return false;
+          } else {
+            // If expense has no propertyId, should we show it when a property is filtered?
+            // Usually no, unless it's a general expense.
+            return false;
+          }
+        }
+        return true;
       });
 
       setIncomes(filteredIncomes.map(L => {
         const tnt = tenants.find(t => t.id === L.tenantId);
         const prop = properties.find(p => p.id === tnt?.propertyId);
         const combined = tnt ? `${tnt.tenantName}${prop ? ` (${prop.name})` : ''}` : '';
-        return { ...L, tenantName: combined, tenantId: L.tenantId };
+        return { 
+          ...L, 
+          tenantName: combined, 
+          tenantId: L.tenantId,
+          propertyId: prop?.id || 'unknown',
+          propertyName: prop?.name || t('unknown_property')
+        };
       }));
       setExpenses(filteredExpenses);
 
@@ -195,6 +252,11 @@ const Reports: React.FC = () => {
 
       allLedgers.forEach(L => {
         if (isDateInRange(L.dueDate || '')) {
+          if (propParam) {
+            const tnt = tenants.find(t => t.id === L.tenantId);
+            const prop = properties.find(p => p.id === tnt?.propertyId);
+            if (!prop?.name.toLowerCase().includes(propParam.toLowerCase())) return;
+          }
           pContracted += L.amount;
           if (L.status === 'Paid') pIncome += L.amount;
           if (L.status === 'Pending') pUnpaid += L.amount;
@@ -203,11 +265,130 @@ const Reports: React.FC = () => {
 
       allExpenses.forEach(E => {
         if (isDateInRange(E.date)) {
+          if (propParam) {
+            if (E.propertyId) {
+              const prop = properties.find(p => p.id === E.propertyId);
+              if (!prop?.name.toLowerCase().includes(propParam.toLowerCase())) return;
+            } else {
+              return;
+            }
+          }
           const isTransfer = E.category.toLowerCase().includes('transfer') && E.category.toLowerCase().includes('owner');
           if (isTransfer) pTransferred += E.amount;
           else pExpense += E.amount;
         }
       });
+
+      // Building Utilization Data
+      const startM = moment(startBoundMs);
+      const endM = moment(endBoundMs);
+      const daysDiff = Math.abs(endM.diff(startM, 'days')) + 1;
+      
+      // Intelligent period factor:
+      // If the range is roughly a multiple of 354 days (Hijri) or 365.25 days (Gregorian),
+      // we should treat it as whole years to avoid floating point drift.
+      let periodFactor = daysDiff / 365.25;
+      
+      if (calendarMode === 'hijri') {
+        const hijriYears = daysDiff / 354.36;
+        if (Math.abs(hijriYears - Math.round(hijriYears)) < 0.05) {
+          periodFactor = Math.round(hijriYears);
+        } else {
+          periodFactor = daysDiff / 354.36;
+        }
+      } else {
+        const gregYears = daysDiff / 365.25;
+        if (Math.abs(gregYears - Math.round(gregYears)) < 0.05) {
+          periodFactor = Math.round(gregYears);
+        }
+      }
+
+      const util: Record<string, any> = {};
+      properties.forEach(p => {
+        util[p.id] = {
+          id: p.id,
+          name: p.name,
+          potential: (p.annualRent || 0) * periodFactor,
+          contracted: 0,
+          collected: 0,
+          unpaid: 0,
+          tenantId: ''
+        };
+      });
+
+      allLedgers.forEach(L => {
+        if (isDateInRange(L.dueDate || '')) {
+          const tnt = tenants.find(t => t.id === L.tenantId);
+          if (tnt && util[tnt.propertyId]) {
+            if (L.status === 'Paid') util[tnt.propertyId].collected += L.amount;
+            else util[tnt.propertyId].unpaid += L.amount;
+            util[tnt.propertyId].tenantId = L.tenantId;
+          }
+        }
+      });
+
+      // Calculate 'Contracted' rent based on occupancy within the period
+      properties.forEach(p => {
+        const pTenants = tenants.filter(t => t.propertyId === p.id);
+        let totalContractedForProp = 0;
+        
+        pTenants.forEach(tnt => {
+          const parseSafeDate = (d: string) => {
+            if (!d) return 0;
+            const cleanD = toEnglishDigits(d).replace(/-/g, '/');
+            if (cleanD.startsWith('14')) return moment(cleanD, 'iYYYY/iMM/iDD').toDate().getTime();
+            return new Date(cleanD).getTime();
+          };
+
+          const tntStart = parseSafeDate(tnt.startDate);
+          const tntEnd = parseSafeDate(tnt.endDate);
+          
+          const overlapStart = Math.max(startBoundMs, tntStart);
+          const overlapEnd = Math.min(endBoundMs, tntEnd);
+          
+          if (overlapEnd > overlapStart) {
+            const overlapDays = Math.ceil((overlapEnd - overlapStart) / (1000 * 60 * 60 * 24)) + 1;
+            const yearDays = calendarMode === 'hijri' ? 354.36 : 365.25;
+            
+            // Refined month-based occupancy for precision
+            // 29.53 days is a mean Hijri month. 
+            // If overlapDays is very close to a multiple of months, use the fraction for better precision
+            const avgMonthDays = calendarMode === 'hijri' ? 29.53 : 30.44;
+            const monthsOverlap = overlapDays / avgMonthDays;
+            let occupancyFactor;
+            
+            if (Math.abs(monthsOverlap - Math.round(monthsOverlap)) < 0.1) {
+               occupancyFactor = Math.round(monthsOverlap) / 12;
+            } else {
+               occupancyFactor = overlapDays / yearDays;
+            }
+            
+            totalContractedForProp += (tnt.annualRent || p.annualRent || 0) * occupancyFactor;
+            
+            // Adjust potential for the property to include this contract's value if it's higher
+            if (tnt.annualRent && tnt.annualRent > p.annualRent) {
+               util[p.id].potential += (tnt.annualRent - p.annualRent) * occupancyFactor;
+            }
+          }
+        });
+        
+        if (util[p.id]) {
+          util[p.id].contracted = totalContractedForProp;
+          util[p.id].unpaid = Math.max(0, util[p.id].contracted - util[p.id].collected);
+        }
+      });
+
+      const filteredUtil = Object.values(util).filter((u: any) => {
+        if (!propParam) return true;
+        return u.name.toLowerCase().includes(propParam.toLowerCase());
+      });
+      setUtilizationData(filteredUtil);
+
+      const filteredProps = properties.filter(p => {
+        if (!propParam) return true;
+        return p.name === propParam;
+      });
+      setPropertiesData(filteredProps);
 
       setPeriodTotals({
         contracted: pContracted,
@@ -278,6 +459,28 @@ const Reports: React.FC = () => {
     return { ...txn, balance: runningBalance };
   });
 
+  const summarizedIncomes = React.useMemo(() => {
+    if (qFilter !== 'contracted' && qFilter !== 'unpaid' && qFilter !== 'income') return [];
+    
+    const summary: Record<string, { displayName: string, amount: number, propertyId: string, tenantId: string }> = {};
+    
+    incomes.forEach((inc: any) => {
+      const key = inc.propertyId;
+      if (!summary[key]) {
+        summary[key] = { 
+          displayName: translateName(inc.propertyName || inc.tenantName || '', language), 
+          amount: 0, 
+          propertyId: inc.propertyId,
+          tenantId: inc.tenantId
+        };
+      }
+      summary[key].amount += inc.amount;
+      summary[key].tenantId = inc.tenantId;
+    });
+    
+    return Object.values(summary).sort((a, b) => b.amount - a.amount);
+  }, [incomes, qFilter, language]);
+
   const handleExportLedger = () => {
     if (qFilter === 'projected') {
       exportCSV(propertiesData.map(p => ({
@@ -285,6 +488,25 @@ const Reports: React.FC = () => {
         Address: p.address || '',
         'Expected Rent': p.annualRent || 0
       })), 'Expected_Rent_Report.csv');
+      return;
+    }
+
+    if (qFilter === 'contracted' || qFilter === 'income' || qFilter === 'unpaid') {
+      exportCSV(summarizedIncomes.map(s => ({
+        'Property / Apartment': s.displayName,
+        'Amount': s.amount
+      })), `Summarized_${qFilter}_Report.csv`);
+      return;
+    }
+
+    if (qFilter === 'utilization') {
+      exportCSV(utilizationData.map(u => ({
+        'Property / Apartment': u.name,
+        'Potential Rent': Math.round(u.potential),
+        'Contracted Rent': Math.round(u.contracted),
+        'Collected Rent': Math.round(u.collected),
+        'Unpaid Rent': Math.round(u.unpaid)
+      })), 'Building_Utilization_Report.csv');
       return;
     }
 
@@ -399,7 +621,29 @@ const Reports: React.FC = () => {
             <option value="unpaid">{t('unpaid_rent') || 'Unpaid / Overdue Rent'}</option>
             <option value="expense">{t('total_expenses') || 'Total Expenses'}</option>
             <option value="transfer">{t('transferred_amount') || 'Amount Transferred'}</option>
+            <option value="utilization">{t('building_utilization') || 'Building Utilization'}</option>
           </select>
+        </div>
+        <div style={{ flex: 1, minWidth: '200px' }}>
+          <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.25rem', display: 'block' }}>{t('property') || 'Property'}</label>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <input
+              type="text"
+              className="input-field"
+              style={{ flex: 1 }}
+              placeholder={t('search_property') || 'Search Apartment...'}
+              value={qProperty || ''}
+              onChange={(e) => {
+                const params = new URLSearchParams(location.search);
+                if (e.target.value) {
+                  params.set('property', e.target.value);
+                } else {
+                  params.delete('property');
+                }
+                navigate(`/dashboard/report?${params.toString()}`);
+              }}
+            />
+          </div>
         </div>
       </div>
 
@@ -487,6 +731,27 @@ const Reports: React.FC = () => {
             </div>
           </div>
         )}
+        
+        {qFilter === 'utilization' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', width: '100%' }}>
+            <div className="glass-panel" style={{ padding: '1.25rem', borderLeft: '4px solid var(--text-muted)' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('potential') || 'Potential'}</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{Math.round(utilizationData.reduce((acc, curr) => acc + curr.potential, 0)).toLocaleString()}</div>
+            </div>
+            <div className="glass-panel" style={{ padding: '1.25rem', borderLeft: '4px solid var(--secondary)' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--secondary)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('contracted') || 'Contracted'}</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{Math.round(utilizationData.reduce((acc, curr) => acc + curr.contracted, 0)).toLocaleString()}</div>
+            </div>
+            <div className="glass-panel" style={{ padding: '1.25rem', borderLeft: '4px solid var(--success)' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--success)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('collected') || 'Collected'}</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{Math.round(utilizationData.reduce((acc, curr) => acc + curr.collected, 0)).toLocaleString()}</div>
+            </div>
+            <div className="glass-panel" style={{ padding: '1.25rem', borderLeft: '4px solid var(--danger)' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--danger)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.25rem' }}>{t('unpaid') || 'Unpaid'}</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{Math.round(utilizationData.reduce((acc, curr) => acc + curr.unpaid, 0)).toLocaleString()}</div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div style={{ width: '100%' }}>
@@ -519,6 +784,66 @@ const Reports: React.FC = () => {
                       <td style={{ padding: '0.75rem 0.5rem', fontWeight: 500, textAlign: 'start' }}>{p.name}</td>
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start' }}>{p.address || t('no_address_provided')}</td>
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', fontWeight: 700 }}>{(p.annualRent || 0).toLocaleString()} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{currency}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (qFilter === 'contracted' || qFilter === 'income' || qFilter === 'unpaid') ? (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid var(--glass-border)', color: 'var(--text-muted)' }}>
+                    <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('property_name') || 'Apartment / Property'}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'end' }}>
+                      {qFilter === 'contracted' ? (t('actual_contracted_rent') || 'Contracted') : 
+                       qFilter === 'income' ? (t('paid_rent') || 'Paid') : 
+                       (t('unpaid_rent') || 'Unpaid')}
+                    </th>
+                    <th style={{ padding: '0.5rem', textAlign: 'center' }}>{t('actions') || 'Actions'}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {summarizedIncomes.map((s, idx) => (
+                    <tr key={s.propertyId + idx} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                      <td style={{ padding: '0.75rem 0.5rem', fontWeight: 500, textAlign: 'start' }}>{s.displayName}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', fontWeight: 700 }}>
+                        {s.amount.toLocaleString()} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{currency}</span>
+                      </td>
+                      <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                        <button className="btn print-hide" onClick={() => navigate(`/dashboard/ledger/${s.tenantId}`)} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', background: 'var(--primary)', border: '1px solid var(--glass-border)', color: 'white', display: 'flex', alignItems: 'center', gap: '0.3rem', margin: '0 auto' }}>
+                          {t('transaction_detail') || 'Tenant Detail'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : qFilter === 'utilization' ? (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid var(--glass-border)', color: 'var(--text-muted)' }}>
+                    <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('property_name') || 'Apartment / Property'}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('potential') || 'Potential'}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('contracted') || 'Contracted'}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('collected') || 'Collected'}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'end' }}>{t('unpaid') || 'Unpaid'}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'center' }}>{t('actions') || 'Actions'}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {utilizationData.map((u, idx) => (
+                    <tr key={u.id + idx} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                      <td style={{ padding: '0.75rem 0.5rem', fontWeight: 600, textAlign: 'start' }}>{u.name}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', color: 'var(--text-muted)' }}>{Math.round(u.potential).toLocaleString()}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', color: 'var(--secondary)', fontWeight: 600 }}>{Math.round(u.contracted).toLocaleString()}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', color: 'var(--success)', fontWeight: 600 }}>{Math.round(u.collected).toLocaleString()}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', color: 'var(--danger)', fontWeight: 600 }}>{Math.round(u.unpaid).toLocaleString()}</td>
+                      <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                        {u.tenantId && (
+                          <button className="btn print-hide" onClick={() => navigate(`/dashboard/ledger/${u.tenantId}`)} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', background: 'var(--primary)', border: '1px solid var(--glass-border)', color: 'white', display: 'flex', alignItems: 'center', gap: '0.3rem', margin: '0 auto' }}>
+                            {t('transaction_detail') || 'Tenant Detail'}
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

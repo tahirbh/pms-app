@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Receipt, Edit, Trash2, Download, Upload } from 'lucide-react';
-import { getExpenses, saveExpense, updateExpense, deleteExpense, importExpenses } from '../utils/store';
+import { getExpenses, saveExpense, updateExpense, deleteExpense, importExpenses, getProperties } from '../utils/store';
 import type { Expense } from '../utils/store';
 import { useAppContext } from '../context/AppContext';
 import { exportCSV, parseCSV, readFileAsText } from '../utils/exportUtils';
@@ -29,6 +29,8 @@ const Expenses: React.FC = () => {
   const [paymentMode, setPaymentMode] = useState<'Cash' | 'Bank' | 'Online'>('Cash');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
+  const [expensePropertyId, setExpensePropertyId] = useState('');
+  const [allProperties, setAllProperties] = useState<any[]>([]);
 
   const loadData = async () => {
     setExpenses(await getExpenses());
@@ -36,6 +38,7 @@ const Expenses: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    getProperties().then(setAllProperties);
   }, []);
 
   const handleOpenForm = (exp?: Expense) => {
@@ -46,6 +49,7 @@ const Expenses: React.FC = () => {
       setPaymentMode(exp.paymentMode);
       setDescription(exp.description);
       setDate(exp.date);
+      setExpensePropertyId(exp.propertyId || '');
     } else {
       setEditingId(null);
       setCategory('');
@@ -53,6 +57,7 @@ const Expenses: React.FC = () => {
       setPaymentMode('Cash');
       setDescription('');
       setDate('');
+      setExpensePropertyId('');
     }
     setShowForm(true);
   };
@@ -70,7 +75,8 @@ const Expenses: React.FC = () => {
           amount: parseFloat(amount),
           paymentMode,
           description,
-          date
+          date,
+          propertyId: expensePropertyId || undefined
         };
         await updateExpense(updated);
       }
@@ -80,7 +86,8 @@ const Expenses: React.FC = () => {
         amount: parseFloat(amount),
         paymentMode,
         description,
-        date
+        date,
+        propertyId: expensePropertyId || undefined
       });
     }
     
@@ -181,6 +188,12 @@ const Expenses: React.FC = () => {
                 portal
               />
             </div>
+            <select className="input-field" value={expensePropertyId} onChange={e => setExpensePropertyId(e.target.value)}>
+              <option value="">{t('select_property') || 'Select Property'}</option>
+              {allProperties.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
           </div>
           <input className="input-field" placeholder={t('description_optional')} value={description} onChange={e => setDescription(e.target.value)} />
           <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
@@ -219,6 +232,11 @@ const Expenses: React.FC = () => {
                 <div style={{ fontSize: '0.875rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                   <span><strong style={{ opacity: 0.8 }}>{t('payment_mode')}:</strong> {exp.paymentMode}</span>
                   <span><strong style={{ opacity: 0.8 }}>{t('date_label')}:</strong> {exp.date}</span>
+                  {exp.propertyId && (
+                    <span>
+                      <strong style={{ opacity: 0.8 }}>{t('property')}:</strong> {allProperties.find(p => p.id === exp.propertyId)?.name}
+                    </span>
+                  )}
                 </div>
                 <div style={{ fontWeight: 600, fontSize: '1.25rem', color: 'var(--danger)', marginTop: '0.5rem' }}>
                   - {Math.round(exp.amount).toLocaleString()} {currency}
