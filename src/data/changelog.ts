@@ -7,6 +7,14 @@ export interface ChangeLogEntry {
 
 export const changelog: ChangeLogEntry[] = [
   {
+    version: "1.0.35",
+    date: "2026-05-04",
+    features: [],
+    fixes: [
+      "fix_ledger_active_only"
+    ]
+  },
+  {
     version: "1.0.34",
     date: "2026-05-03",
     features: [],

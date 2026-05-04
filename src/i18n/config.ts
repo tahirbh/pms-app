@@ -236,7 +236,8 @@ const resources = {
       "feat_tenant_detail_btn": "Tenant Contract Detail fast-navigation button in reports",
       "fix_hijri_date_bounds": "Fixed Hijri current year date boundaries and Arabic numeral parsing",
       "fix_historical_card_order": "Reordered and aligned Historical Data Dashboard metrics",
-      "feat_dashboard_redirect": "Projected Rent card redirects to Properties"
+      "feat_dashboard_redirect": "Projected Rent card redirects to Properties",
+      "fix_ledger_active_only": "Corrected contracted rent metrics to focus on the active portfolio, eliminating \"ghost\" ledger entries from previous tenants who left during the year."
     }
   },
   ar: {
@@ -447,7 +448,8 @@ const resources = {
       "feat_tenant_detail_btn": "زر التنقل السريع لتفاصيل عقد المستأجر في التقارير",
       "fix_hijri_date_bounds": "إصلاح حدود السنة الهجرية الحالية وتحليل الأرقام العربية",
       "fix_historical_card_order": "إعادة ترتيب ومحاذاة مقاييس البيانات التاريخية في لوحة القيادة",
-      "feat_dashboard_redirect": "بطاقة الإيجار المتوقع تعيد التوجيه إلى العقارات"
+      "feat_dashboard_redirect": "بطاقة الإيجار المتوقع تعيد التوجيه إلى العقارات",
+      "fix_ledger_active_only": "تصحيح حساب الإيجار المتعاقد عليه ليشمل العقود النشطة فقط، مما يمنع القيود الوهمية للمستأجرين السابقين من تضخيم الإجماليات."
     }
   },
   ur: {
@@ -658,7 +660,8 @@ const resources = {
       "feat_tenant_detail_btn": "رپورٹس میں کرایہ دار کے معاہدے کی تفصیل کا بٹن",
       "fix_hijri_date_bounds": "ہجری تاریخ کی حدود اور عربی ہندسوں کی خرابی کو درست کیا گیا",
       "fix_historical_card_order": "تاریخی ڈیٹا ڈیش بورڈ میٹرکس کی ترتیب درست کی گئی",
-      "feat_dashboard_redirect": "متوقع کرایہ کارڈ پراپرٹیز کی طرف ری ڈائریکٹ کرتا ہے"
+      "feat_dashboard_redirect": "متوقع کرایہ کارڈ پراپرٹیز کی طرف ری ڈائریکٹ کرتا ہے",
+      "fix_ledger_active_only": "معاہدہ شدہ کرایے کے حساب کتاب کو درست کیا گیا تاکہ صرف فعال معاہدوں کو شامل کیا جائے، جس سے ایک ہی سال میں سابقہ ​​کرایہ داروں کی وجہ سے ہونے والی زیادتی کو روکا جا سکے۔"
     }
   }
 };
