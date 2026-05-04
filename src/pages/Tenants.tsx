@@ -261,7 +261,21 @@ const Tenants: React.FC = () => {
           <UserCircle /> {t('tenants')}
         </h2>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <button className="btn action-btn" onClick={() => exportCSV(tenants, 'tenants.csv')} style={{ background: 'var(--glass-border)' }} title={t('export_csv_btn')}>
+          <button className="btn action-btn" onClick={() => exportCSV(tenants.map(tnt => {
+            const p = properties.find(prop => prop.id === tnt.propertyId);
+            const rent = tnt.annualRent || p?.annualRent || 0;
+            return {
+              'Tenant Name': tnt.tenantName,
+              'Property': p?.name || 'N/A',
+              'Start Date': tnt.startDate,
+              'End Date': tnt.endDate,
+              'Monthly Rent': Math.round(rent / 12),
+              'Annual Rent': rent,
+              'Status': tnt.isActive ? 'Active' : 'Inactive',
+              'Mobile': tnt.mobileNumber || '',
+              'Iqama': tnt.iqamaNumber || '',
+            };
+          }), 'tenants.csv')} style={{ background: 'var(--glass-border)' }} title={t('export_csv_btn')}>
             <Download size={18} />
             <span className="btn-text">{t('export')}</span>
           </button>
@@ -416,6 +430,9 @@ const Tenants: React.FC = () => {
                     {tnt.sponsorName && <p style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}><strong>{t('sponsor_name')}:</strong> {tnt.sponsorName}</p>}
                     {tnt.mobileNumber && <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}><strong>{t('mobile_number', 'Mobile Number')}:</strong> {tnt.mobileNumber}</p>}
                     <p style={{ fontSize: '0.875rem' }}>{t('contract_prefix')} {tnt.startDate} {t('to_date')} {tnt.endDate} ({tnt.calendarMode})</p>
+                    <p style={{ fontSize: '1rem', marginTop: '0.5rem', color: 'var(--primary)', fontWeight: 700 }}>
+                      {t('monthly_rent')}: {Math.round(contractRentAmount / 12).toLocaleString()} {currency}
+                    </p>
                     {!tnt.isActive && <span style={{ display: 'inline-block', marginTop: '0.5rem', padding: '0.25rem 0.5rem', background: 'var(--text-muted)', color: 'white', borderRadius: '4px', fontSize: '0.75rem' }}>{t('ended_status')}</span>}
                   </div>
                   

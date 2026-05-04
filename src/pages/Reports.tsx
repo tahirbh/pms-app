@@ -195,10 +195,11 @@ const Reports: React.FC = () => {
         const inRange = isDateInRange(L.dueDate || '');
         if (!inRange) return false;
 
-        if (propParam) {
-          const tnt = tenants.find(t => t.id === L.tenantId);
-          const prop = properties.find(p => p.id === tnt?.propertyId);
-          if (!prop?.name.toLowerCase().includes(propParam.toLowerCase())) return false;
+        const tnt = tenants.find(t => t.id === L.tenantId);
+
+        // Filter for active tenants only if showing contracted or unpaid reports
+        if ((qFilter === 'contracted' || qFilter === 'unpaid') && tnt && !tnt.isActive) {
+           return false;
         }
 
         if (qFilter === 'unpaid') {
@@ -246,20 +247,28 @@ const Reports: React.FC = () => {
       // Compute raw overall totals for the selected period
       let pContracted = 0;
       let pIncome = 0;
+      let pIncomeActive = 0; // Only income from active tenants
       let pUnpaid = 0;
       let pExpense = 0;
       let pTransferred = 0;
 
       allLedgers.forEach(L => {
         if (isDateInRange(L.dueDate || '')) {
+          const tnt = tenants.find(t => t.id === L.tenantId);
           if (propParam) {
-            const tnt = tenants.find(t => t.id === L.tenantId);
             const prop = properties.find(p => p.id === tnt?.propertyId);
             if (!prop?.name.toLowerCase().includes(propParam.toLowerCase())) return;
           }
-          pContracted += L.amount;
+
+          // Active Portfolio Filter for Contracted/Unpaid
+          if (tnt?.isActive) {
+            pContracted += L.amount;
+            if (L.status === 'Paid') pIncomeActive += L.amount;
+            if (L.status === 'Pending') pUnpaid += L.amount;
+          }
+
+          // Total Income includes everyone for cash flow
           if (L.status === 'Paid') pIncome += L.amount;
-          if (L.status === 'Pending') pUnpaid += L.amount;
         }
       });
 
@@ -327,54 +336,27 @@ const Reports: React.FC = () => {
         }
       });
 
-      // Calculate 'Contracted' rent based on occupancy within the period
+      // Calculate 'Contracted' rent based on LEDGERS for active tenants
+      // This ensures report consistency with dashboard cards.
       properties.forEach(p => {
-        const pTenants = tenants.filter(t => t.propertyId === p.id);
+        const pTenants = tenants.filter(t => t.propertyId === p.id && t.isActive);
         let totalContractedForProp = 0;
+        let totalCollectedForPropActive = 0;
         
         pTenants.forEach(tnt => {
-          const parseSafeDate = (d: string) => {
-            if (!d) return 0;
-            const cleanD = toEnglishDigits(d).replace(/-/g, '/');
-            if (cleanD.startsWith('14')) return moment(cleanD, 'iYYYY/iMM/iDD').toDate().getTime();
-            return new Date(cleanD).getTime();
-          };
-
-          const tntStart = parseSafeDate(tnt.startDate);
-          const tntEnd = parseSafeDate(tnt.endDate);
-          
-          const overlapStart = Math.max(startBoundMs, tntStart);
-          const overlapEnd = Math.min(endBoundMs, tntEnd);
-          
-          if (overlapEnd > overlapStart) {
-            const overlapDays = Math.ceil((overlapEnd - overlapStart) / (1000 * 60 * 60 * 24)) + 1;
-            const yearDays = calendarMode === 'hijri' ? 354.36 : 365.25;
-            
-            // Refined month-based occupancy for precision
-            // 29.53 days is a mean Hijri month. 
-            // If overlapDays is very close to a multiple of months, use the fraction for better precision
-            const avgMonthDays = calendarMode === 'hijri' ? 29.53 : 30.44;
-            const monthsOverlap = overlapDays / avgMonthDays;
-            let occupancyFactor;
-            
-            if (Math.abs(monthsOverlap - Math.round(monthsOverlap)) < 0.1) {
-               occupancyFactor = Math.round(monthsOverlap) / 12;
-            } else {
-               occupancyFactor = overlapDays / yearDays;
+          const tenantLedgers = allLedgers.filter(l => l.tenantId === tnt.id);
+          tenantLedgers.forEach(L => {
+            if (isDateInRange(L.dueDate || '')) {
+              totalContractedForProp += L.amount;
+              if (L.status === 'Paid') totalCollectedForPropActive += L.amount;
             }
-            
-            totalContractedForProp += (tnt.annualRent || p.annualRent || 0) * occupancyFactor;
-            
-            // Adjust potential for the property to include this contract's value if it's higher
-            if (tnt.annualRent && tnt.annualRent > p.annualRent) {
-               util[p.id].potential += (tnt.annualRent - p.annualRent) * occupancyFactor;
-            }
-          }
+          });
         });
         
         if (util[p.id]) {
           util[p.id].contracted = totalContractedForProp;
-          util[p.id].unpaid = Math.max(0, util[p.id].contracted - util[p.id].collected);
+          // Unpaid for the property visualization only counts what active tenants owe
+          util[p.id].unpaid = Math.max(0, totalContractedForProp - totalCollectedForPropActive);
         }
       });
 
@@ -393,7 +375,7 @@ const Reports: React.FC = () => {
       setPeriodTotals({
         contracted: pContracted,
         income: pIncome,
-        unpaid: pUnpaid,
+        unpaid: Math.max(0, pContracted - pIncomeActive),
         expense: pExpense,
         transferred: pTransferred,
         netRevenue: pIncome - pExpense - pTransferred

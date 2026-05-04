@@ -87,7 +87,25 @@ const getCurrentYearKey = (calMode: 'gregorian' | 'hijri'): string => {
 /** Checks if `yearStr` is strictly before `currentYearStr` in a sortable sense. */
 const isBeforeCurrentYear = (yearStr: string, currentYearStr: string): boolean => {
   if (yearStr === 'N/A' || currentYearStr === 'N/A') return false;
+  // Handle mixed year formats if necessary, but with getYearString they should match
   return yearStr.localeCompare(currentYearStr) < 0;
+};
+
+/** Get a year grouping string for any date based on the target calendar mode. */
+const getYearString = (dateStr: string, targetMode: 'gregorian' | 'hijri'): string => {
+  if (!dateStr) return 'N/A';
+  const normDate = normalizeYear(dateStr).replace(/-/g, '/');
+  const parts = normDate.split('/');
+  const yearNum = parseInt(parts[0]);
+  const isInputHijri = yearNum > 1300 && yearNum < 1600; // Robust enough for our use case
+
+  if (targetMode === 'hijri') {
+    if (isInputHijri) return yearNum + ' (H)';
+    return normalizeYear(moment(normDate, 'YYYY/MM/DD').format('iYYYY')) + ' (H)';
+  } else {
+    if (!isInputHijri) return parts[0];
+    return moment(normDate, 'iYYYY/iMM/iDD').format('YYYY');
+  }
 };
 
 const DashboardHome = () => {
@@ -150,28 +168,7 @@ const DashboardHome = () => {
 
       // ── Process expenses ──
       expenses.forEach(exp => {
-        let yearStr = '';
-        const rawYear = normalizeYear(exp.date.split(/[\/-]/)[0]);
-        const isGregorianString = parseInt(rawYear) > 1900 && parseInt(rawYear) < 2100;
-
-        if (calendarMode === 'hijri') {
-          if (isGregorianString) {
-            // Convert Gregorian to Hijri
-            yearStr = normalizeYear(moment(exp.date, ['YYYY/MM/DD', 'YYYY-MM-DD']).format('iYYYY')) + ' (H)';
-          } else {
-            // Already Hijri
-            yearStr = rawYear + ' (H)';
-          }
-        } else {
-          if (!isGregorianString) {
-            // Convert Hijri to Gregorian
-            yearStr = moment(exp.date, ['iYYYY/iMM/iDD', 'iYYYY-iMM-iDD']).format('YYYY');
-          } else {
-            // Already Gregorian
-            yearStr = rawYear;
-          }
-        }
-
+        const yearStr = getYearString(exp.date, calendarMode);
         ensureYear(yearStr);
 
         const cat = exp.category.toLowerCase();
@@ -199,22 +196,41 @@ const DashboardHome = () => {
         const tnt = tenants.find(t => t.id === L.tenantId);
         if (!tnt) return;
 
-        let ledgerDate: Date;
-        let yearStr: string;
-        if (tnt.calendarMode === 'hijri') {
-          // Normalize the input just in case
-          const normDueDate = normalizeYear(L.dueDate);
-          const m = moment(normDueDate, 'iYYYY/iMM/iDD');
-          ledgerDate = m.toDate();
-          yearStr = normalizeYear(m.format('iYYYY')) + ' (H)';
-        } else {
-          ledgerDate = new Date(L.dueDate);
-          yearStr = ledgerDate.getFullYear().toString();
-        }
+        const yearStr = getYearString(L.dueDate, calendarMode);
+        const ledgerDate = L.dueDate.includes('14') || (parseInt(normalizeYear(L.dueDate).split(/[\/-]/)[0]) < 1900)
+          ? moment(normalizeYear(L.dueDate).replace(/-/g, '/'), 'iYYYY/iMM/iDD').toDate()
+          : new Date(L.dueDate);
+
+        // ── Security & Data Integrity Check ──
+        // Only sum ledger entries that actually fall within the tenant's contract period.
+        // This prevents "ghost" entries (e.g., from old edits or ended contracts) from skewing the year's total.
+        const parseDateSafe = (d: string) => {
+          if (!d) return 0;
+          const clean = normalizeYear(d).replace(/-/g, '/');
+          return clean.startsWith('14') 
+            ? moment(clean, 'iYYYY/iMM/iDD').toDate().getTime() 
+            : new Date(clean).getTime();
+        };
+
+        const lDateMs = ledgerDate.getTime();
+        const tStartMs = parseDateSafe(tnt.startDate);
+        const tEndMs = parseDateSafe(tnt.endDate);
+
+        if (lDateMs < tStartMs || lDateMs > tEndMs) return;
 
         ensureYear(yearStr);
-        // All ledger amounts count as "contracted"
-        yearData[yearStr].contractedRent += L.amount;
+        
+        // ── Active Portfolio Filter ──
+        // The user expects "Contracted Rent" to reflect the active portfolio's obligations.
+        // Historical contracts from the same year (tenants who left) are tracked for "Collected" 
+        // but excluded from "Contracted" and "Unpaid" cards to prevent inflation.
+        if (tnt.isActive) {
+           yearData[yearStr].contractedRent += L.amount;
+           if (! (yearData[yearStr] as any).collectedRentActive) (yearData[yearStr] as any).collectedRentActive = 0;
+           if (L.status === 'Paid') {
+             (yearData[yearStr] as any).collectedRentActive += L.amount;
+           }
+        }
 
         if (L.status === 'Paid') {
           yearData[yearStr].collectedRent += L.amount;
@@ -238,7 +254,7 @@ const DashboardHome = () => {
       });
 
       // ── Separate current-year vs historical ──
-      let cyContracted = 0, cyCollected = 0, cyExpenses = 0, cyTransferred = 0;
+      let cyContracted = 0, cyCollectedTotal = 0, cyCollectedActive = 0, cyExpenses = 0, cyTransferred = 0;
       let hContracted = 0, hCollected = 0, hExpenses = 0, hTransferred = 0;
       const histPerYear: typeof yearData = {};
       const allYearsSet = new Set<string>();
@@ -248,7 +264,8 @@ const DashboardHome = () => {
         if (yk === cyKey) {
           // Current year: top cards
           cyContracted += vals.contractedRent;
-          cyCollected += vals.collectedRent;
+          cyCollectedTotal += vals.collectedRent;
+          cyCollectedActive += (vals as any).collectedRentActive || 0;
           cyExpenses += vals.totalExpenses;
           cyTransferred += vals.transferredAmount;
         } else if (isBeforeCurrentYear(yk, cyKey)) {
@@ -266,17 +283,18 @@ const DashboardHome = () => {
       let projectedRent = 0;
       props.forEach(p => { projectedRent += p.annualRent; });
 
-      // Unpaid rent = max(0, contracted - collected)
-      const cyUnpaid = Math.max(0, cyContracted - cyCollected);
+      // Unpaid rent = max(0, contracted - collected_active)
+      // This ensures we show what CURRENT tenants still owe.
+      const cyUnpaid = Math.max(0, cyContracted - cyCollectedActive);
 
       setCurrentYearMetrics({
         projectedRent,
         contractedRent: cyContracted,
-        collectedRent: cyCollected,
+        collectedRent: cyCollectedTotal,
         totalExpenses: cyExpenses,
         transferredAmount: cyTransferred,
         unpaidRent: cyUnpaid,
-        cashInHand: cyCollected - cyExpenses - cyTransferred,
+        cashInHand: cyCollectedTotal - cyExpenses - cyTransferred,
       });
 
 
@@ -300,57 +318,32 @@ const DashboardHome = () => {
         let contracted = 0;
         let collected = 0;
 
-        // Sync with Reports logic: calculate contracted by occupancy
-        const today = new Date();
-        const startOfYear = calendarMode === 'hijri' ? moment().startOf('iYear').toDate().getTime() : new Date(today.getFullYear(), 0, 1).getTime();
-        const endOfYear = calendarMode === 'hijri' ? moment().endOf('iYear').toDate().getTime() : new Date(today.getFullYear(), 11, 31).getTime();
-
-        pTenants.forEach(tnt => {
+        // Only count ACTIVE tenants for the chart's contracted/unpaid logic
+        // to match the user's expectations for current portfolio reporting.
+        pTenants.filter(t => t.isActive).forEach(tnt => {
           const tenantLedgers = allLedgers.filter(l => l.tenantId === tnt.id);
           tenantLedgers.forEach(L => {
-            let yearStr: string;
-            if (tnt.calendarMode === 'hijri') {
-              yearStr = moment(L.dueDate, 'iYYYY/iMM/iDD').format('iYYYY') + ' (H)';
-            } else {
-              yearStr = new Date(L.dueDate).getFullYear().toString();
-            }
-
+            const yearStr = getYearString(L.dueDate, calendarMode);
             if (yearStr === cyKey) {
-              if (L.status === 'Paid') collected += L.amount;
+              // ── Contract Date Integrity Check for Chart ──
+              const lDate = L.dueDate.includes('14') || (parseInt(normalizeYear(L.dueDate).split(/[\/-]/)[0]) < 1900)
+                ? moment(normalizeYear(L.dueDate).replace(/-/g, '/'), 'iYYYY/iMM/iDD').toDate().getTime()
+                : new Date(L.dueDate).getTime();
+              
+              const parseDateSafe = (d: string) => {
+                const clean = normalizeYear(d).replace(/-/g, '/');
+                return clean.startsWith('14') ? moment(clean, 'iYYYY/iMM/iDD').toDate().getTime() : new Date(clean).getTime();
+              };
+              
+              const tStart = parseDateSafe(tnt.startDate);
+              const tEnd = parseDateSafe(tnt.endDate);
+
+              if (lDate >= tStart && lDate <= tEnd) {
+                contracted += L.amount;
+                if (L.status === 'Paid') collected += L.amount;
+              }
             }
           });
-
-          // Pro-rate contracted rent based on active contract in this year
-          const parseSafeDate = (d: string) => {
-            if (!d) return 0;
-            const cleanD = normalizeYear(d).replace(/-/g, '/');
-            if (cleanD.startsWith('14')) return moment(cleanD, 'iYYYY/iMM/iDD').toDate().getTime();
-            return new Date(cleanD).getTime();
-          };
-
-          const tntStart = parseSafeDate(tnt.startDate);
-          const tntEnd = parseSafeDate(tnt.endDate);
-          
-          const overlapStart = Math.max(startOfYear, tntStart);
-          const overlapEnd = Math.min(endOfYear, tntEnd);
-          
-          if (overlapEnd > overlapStart) {
-            const overlapDays = Math.ceil((overlapEnd - overlapStart) / (1000 * 60 * 60 * 24)) + 1;
-            const yearDays = calendarMode === 'hijri' ? 354.36 : 365.25;
-            
-            // Refined month-based occupancy for precision
-            const avgMonthDays = calendarMode === 'hijri' ? 29.53 : 30.44;
-            const monthsOverlap = overlapDays / avgMonthDays;
-            let occupancyFactor;
-            
-            if (Math.abs(monthsOverlap - Math.round(monthsOverlap)) < 0.1) {
-               occupancyFactor = Math.round(monthsOverlap) / 12;
-            } else {
-               occupancyFactor = overlapDays / yearDays;
-            }
-            
-            contracted += (tnt.annualRent || p.annualRent || 0) * occupancyFactor;
-          }
         });
 
         return {
@@ -705,7 +698,7 @@ const DashboardHome = () => {
           { key: 'transferred_amount', label: t('transferred_amount'), value: currentYearMetrics.transferredAmount, color: 'var(--accent)', icon: '🏦' },
           { key: 'unpaid_rent', label: t('unpaid_rent') || 'Unpaid Rent', value: currentYearMetrics.unpaidRent, color: currentYearMetrics.unpaidRent > 0 ? 'var(--danger)' : 'var(--success)', icon: '⚠️' },
           { key: 'cash_in_hand', label: t('cash_in_hand') || 'Cash in Hand', value: currentYearMetrics.cashInHand, color: 'var(--success)', icon: '💰' },
-        ].map((card) => (
+        ].map((card: any) => (
           <div
             key={card.key}
             className="glass-panel"
@@ -727,6 +720,11 @@ const DashboardHome = () => {
             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: card.color }}>
               {Math.round(card.value || 0).toLocaleString()} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-muted)' }}>{currency}</span>
             </div>
+            {card.subValue > 0 && (
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500, opacity: 0.8 }}>
+                ≈ {Math.round(card.subValue).toLocaleString()} {currency} / {t('monthly') || 'mo'}
+              </div>
+            )}
           </div>
         ))}
       </div>
