@@ -19,7 +19,8 @@ export const calculateRent = (
   annualRent: number,
   startDate: string,
   endDate: string,
-  calendarMode: 'gregorian' | 'hijri' = 'gregorian'
+  calendarMode: 'gregorian' | 'hijri' = 'gregorian',
+  inclusive: boolean = true
 ): RentCalculationResult => {
   if (!annualRent || !startDate || !endDate) {
     return {
@@ -35,24 +36,31 @@ export const calculateRent = (
 
   const isHijri = calendarMode === 'hijri' || startDate.includes('144');
   
-  let activeDays = 0;
   const daysInBillingCycle = 30; // Strict Equal Period Division
-  let totalContractDays = 0;
-  
   const monthlyRent = annualRent / 12;
   const dailyRate = monthlyRent / daysInBillingCycle;
 
   let expectedContractRent = 0;
+  let totalContractDays = 0;
+  let activeDays = 0;
 
   if (isHijri) {
     const startM = moment(toEnglishDigits(startDate.replace(/-/g, '/')), 'iYYYY/iMM/iDD');
     const leaveMOrg = moment(toEnglishDigits(endDate.replace(/-/g, '/')), 'iYYYY/iMM/iDD');
     
     activeDays = leaveMOrg.iDate();
-    totalContractDays = Math.max(0, Math.ceil(leaveMOrg.diff(startM, 'days')));
+    totalContractDays = Math.max(0, Math.ceil(leaveMOrg.diff(startM, 'days'))) + (inclusive ? 1 : 0);
 
     // Equal period division: Exact months + 30-day fraction
-    const leaveM = leaveMOrg.clone().add(1, 'days');
+    let leaveM = inclusive ? leaveMOrg.clone().add(1, 'days') : leaveMOrg.clone();
+    
+    // Hijri overflow protection: If the user picked 30th but it overflowed to 1st of next month,
+    // we should treat the 1st as the already-exclusive end date for inclusive requests.
+    const originalEndDay = parseInt(toEnglishDigits(endDate.split(/[/-]/).pop() || '0'), 10);
+    if (inclusive && leaveMOrg.iDate() === 1 && originalEndDay >= 29) {
+        leaveM = leaveMOrg.clone();
+    }
+
     let mDiff = (leaveM.iYear() - startM.iYear()) * 12 + (leaveM.iMonth() - startM.iMonth());
     let dDiff = leaveM.iDate() - startM.iDate();
 
@@ -68,11 +76,11 @@ export const calculateRent = (
     const leaveDOrg = new Date(endDate);
     
     activeDays = leaveDOrg.getDate();
-    totalContractDays = Math.max(0, Math.ceil((leaveDOrg.getTime() - startD.getTime()) / (1000 * 3600 * 24)));
+    totalContractDays = Math.max(0, Math.ceil((leaveDOrg.getTime() - startD.getTime()) / (1000 * 3600 * 24))) + (inclusive ? 1 : 0);
 
     // Equal period division
-    const leaveD = new Date(endDate);
-    leaveD.setDate(leaveD.getDate() + 1);
+    const leaveD = inclusive ? new Date(endDate) : new Date(endDate);
+    if (inclusive) leaveD.setDate(leaveD.getDate() + 1);
 
     let mDiff = (leaveD.getFullYear() - startD.getFullYear()) * 12 + (leaveD.getMonth() - startD.getMonth());
     let dDiff = leaveD.getDate() - startD.getDate();

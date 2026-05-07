@@ -55,7 +55,7 @@ export const generateLedgerSchedules = (
     
     // Standardize rent to perfectly equal divisions (fixes variance confusion)
     const standardChunk = annualRent / (12 / intervalMonths);
-    const actualProrated = calculateRent(annualRent, currentStr, nextDateStr, calendarMode).expectedContractRent;
+    const actualProrated = calculateRent(annualRent, currentStr, nextDateStr, calendarMode, nextDateStr === eDate).expectedContractRent;
     
     let chunkRent = standardChunk;
     
