@@ -335,14 +335,20 @@ export const getExpenses = async (): Promise<Expense[]> => {
 export const saveExpense = async (expense: Omit<Expense, 'id' | 'created_at' | 'user_id'>): Promise<Expense | null> => {
   if (isGuest()) return localDB.add('expenses', expense);
   const userId = await getCurrentUserId();
-  const { data, error } = await supabase.from('expenses').insert([{ ...expense, user_id: userId }]).select().single();
+  
+  // Omit propertyId for now as it's missing in the Supabase schema
+  const { propertyId, ...cleanExpense } = expense as any;
+  const { data, error } = await supabase.from('expenses').insert([{ ...cleanExpense, user_id: userId }]).select().single();
   if (error) { console.error('Error saving expense', error); return null; }
   return data;
 };
 
 export const updateExpense = async (updated: Expense): Promise<Expense | null> => {
   if (isGuest()) return localDB.update('expenses', updated);
-  const { data, error } = await supabase.from('expenses').update(updated).eq('id', updated.id).select().single();
+  
+  // Omit propertyId for now as it's missing in the Supabase schema
+  const { propertyId, ...cleanExpense } = updated as any;
+  const { data, error } = await supabase.from('expenses').update(cleanExpense).eq('id', updated.id).select().single();
   if (error) { console.error('Error updating expense', error); return null; }
   return data;
 };

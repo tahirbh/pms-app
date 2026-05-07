@@ -197,10 +197,8 @@ const Reports: React.FC = () => {
 
         const tnt = tenants.find(t => t.id === L.tenantId);
 
-        // Filter for active tenants only if showing contracted or unpaid reports
-        if ((qFilter === 'contracted' || qFilter === 'unpaid') && tnt && !tnt.isActive) {
-           return false;
-        }
+        // We include all tenants in the report for historical integrity, 
+        // regardless of whether they are still active today.
 
         if (qFilter === 'unpaid') {
           return L.status === 'Pending';
@@ -260,15 +258,14 @@ const Reports: React.FC = () => {
             if (!prop?.name.toLowerCase().includes(propParam.toLowerCase())) return;
           }
 
-          // Active Portfolio Filter for Contracted/Unpaid
-          if (tnt?.isActive) {
-            pContracted += L.amount;
-            if (L.status === 'Paid') pIncomeActive += L.amount;
-            if (L.status === 'Pending') pUnpaid += L.amount;
+          // Period Accumulation for Contracted/Unpaid/Income
+          // We include all valid ledger entries in the selected period.
+          pContracted += L.amount;
+          if (L.status === 'Paid') {
+            pIncomeActive += L.amount; // Used for net unpaid calculation
+            pIncome += L.amount;      // Total cash flow
           }
-
-          // Total Income includes everyone for cash flow
-          if (L.status === 'Paid') pIncome += L.amount;
+          if (L.status === 'Pending') pUnpaid += L.amount;
         }
       });
 
@@ -339,7 +336,7 @@ const Reports: React.FC = () => {
       // Calculate 'Contracted' rent based on LEDGERS for active tenants
       // This ensures report consistency with dashboard cards.
       properties.forEach(p => {
-        const pTenants = tenants.filter(t => t.propertyId === p.id && t.isActive);
+        const pTenants = tenants.filter(t => t.propertyId === p.id);
         let totalContractedForProp = 0;
         let totalCollectedForPropActive = 0;
         

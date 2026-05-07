@@ -220,12 +220,12 @@ const DashboardHome = () => {
 
         ensureYear(yearStr);
         
-        // ── Active Portfolio Filter ──
-        // The user expects "Contracted Rent" to reflect the active portfolio's obligations.
-        // Historical contracts from the same year (tenants who left) are tracked for "Collected" 
-        // but excluded from "Contracted" and "Unpaid" cards to prevent inflation.
+        // ── Portfolio Accumulation ──
+        // We now sum contracted rent for ALL tenants to ensure historical integrity.
+        // This fixes the "0" values in historical reports.
+        yearData[yearStr].contractedRent += L.amount;
+        
         if (tnt.isActive) {
-           yearData[yearStr].contractedRent += L.amount;
            if (! (yearData[yearStr] as any).collectedRentActive) (yearData[yearStr] as any).collectedRentActive = 0;
            if (L.status === 'Paid') {
              (yearData[yearStr] as any).collectedRentActive += L.amount;
@@ -261,14 +261,14 @@ const DashboardHome = () => {
 
       Object.entries(yearData).forEach(([yk, vals]) => {
         allYearsSet.add(yk);
-        if (yk === cyKey) {
-          // Current year: top cards
+        if (!isBeforeCurrentYear(yk, cyKey)) {
+          // Current year and Future years: top cards
           cyContracted += vals.contractedRent;
           cyCollectedTotal += vals.collectedRent;
           cyCollectedActive += (vals as any).collectedRentActive || 0;
           cyExpenses += vals.totalExpenses;
           cyTransferred += vals.transferredAmount;
-        } else if (isBeforeCurrentYear(yk, cyKey)) {
+        } else {
           // Historical: previous years only
           hContracted += vals.contractedRent;
           hCollected += vals.collectedRent;
@@ -276,7 +276,6 @@ const DashboardHome = () => {
           hTransferred += vals.transferredAmount;
           histPerYear[yk] = vals;
         }
-        // Years AFTER current are ignored in both sections
       });
 
       // Projected/potential rent from properties
