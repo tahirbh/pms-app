@@ -195,8 +195,6 @@ const Reports: React.FC = () => {
         const inRange = isDateInRange(L.dueDate || '');
         if (!inRange) return false;
 
-        const tnt = tenants.find(t => t.id === L.tenantId);
-
         // We include all tenants in the report for historical integrity, 
         // regardless of whether they are still active today.
 
