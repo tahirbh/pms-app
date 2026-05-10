@@ -36,9 +36,10 @@ const AllTenantsLedger: React.FC = () => {
   });
   const [endDate, setEndDate] = useState(() => {
     if (qEnd) return qEnd;
-    return calendarMode === 'hijri' 
-      ? moment().format('iYYYY/12/30') 
-      : new Date(new Date().getFullYear(), 11, 31).toISOString().split('T')[0];
+    if (calendarMode === 'hijri') {
+      return moment().endOf('iYear').format('iYYYY/iMM/iDD');
+    }
+    return new Date(new Date().getFullYear(), 11, 31).toISOString().split('T')[0];
   });
   
   const [searchTerm, setSearchTerm] = useState('');

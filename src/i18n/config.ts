@@ -237,7 +237,11 @@ const resources = {
       "fix_hijri_date_bounds": "Fixed Hijri current year date boundaries and Arabic numeral parsing",
       "fix_historical_card_order": "Reordered and aligned Historical Data Dashboard metrics",
       "feat_dashboard_redirect": "Projected Rent card redirects to Properties",
-      "fix_ledger_active_only": "Corrected contracted rent metrics to focus on the active portfolio, eliminating \"ghost\" ledger entries from previous tenants who left during the year."
+      "fix_ledger_active_only": "Corrected contracted rent metrics to focus on the active portfolio, eliminating \"ghost\" ledger entries from previous tenants who left during the year.",
+      "feat_tenant_column_report": "Added Tenant column to summarized report tables for better transaction clarity",
+      "feat_dynamic_hijri_year": "Implemented dynamic Hijri year-end logic using moment-hijri for automatic annual transitions",
+      "fix_unpaid_rent_card": "Fixed Unpaid Rent card to strictly sum pending installments instead of using contract subtraction",
+      "fix_utilization_chart_current_year": "Fixed Current Year Utilization chart to include all transactions regardless of current tenant status"
     }
   },
   ar: {
@@ -449,7 +453,11 @@ const resources = {
       "fix_hijri_date_bounds": "إصلاح حدود السنة الهجرية الحالية وتحليل الأرقام العربية",
       "fix_historical_card_order": "إعادة ترتيب ومحاذاة مقاييس البيانات التاريخية في لوحة القيادة",
       "feat_dashboard_redirect": "بطاقة الإيجار المتوقع تعيد التوجيه إلى العقارات",
-      "fix_ledger_active_only": "تصحيح حساب الإيجار المتعاقد عليه ليشمل العقود النشطة فقط، مما يمنع القيود الوهمية للمستأجرين السابقين من تضخيم الإجماليات."
+      "fix_ledger_active_only": "تصحيح حساب الإيجار المتعاقد عليه ليشمل العقود النشطة فقط، مما يمنع القيود الوهمية للمستأجرين السابقين من تضخيم الإجماليات.",
+      "feat_tenant_column_report": "إضافة عمود المستأجر إلى جداول التقارير الملخصة لمزيد من الوضوح في المعاملات",
+      "feat_dynamic_hijri_year": "تنفيذ منطق نهاية السنة الهجرية الديناميكي باستخدام moment-hijri للتحولات السنوية التلقائية",
+      "fix_unpaid_rent_card": "إصلاح بطاقة الإيجار غير المدفوع لجمع الأقساط المعلقة بدقة بدلاً من طرح العقود",
+      "fix_utilization_chart_current_year": "إصلاح مخطط استخدام العام الحالي ليشمل جميع المعاملات بغض النظر عن حالة المستأجر الحالية"
     }
   },
   ur: {
@@ -661,7 +669,11 @@ const resources = {
       "fix_hijri_date_bounds": "ہجری تاریخ کی حدود اور عربی ہندسوں کی خرابی کو درست کیا گیا",
       "fix_historical_card_order": "تاریخی ڈیٹا ڈیش بورڈ میٹرکس کی ترتیب درست کی گئی",
       "feat_dashboard_redirect": "متوقع کرایہ کارڈ پراپرٹیز کی طرف ری ڈائریکٹ کرتا ہے",
-      "fix_ledger_active_only": "معاہدہ شدہ کرایے کے حساب کتاب کو درست کیا گیا تاکہ صرف فعال معاہدوں کو شامل کیا جائے، جس سے ایک ہی سال میں سابقہ ​​کرایہ داروں کی وجہ سے ہونے والی زیادتی کو روکا جا سکے۔"
+      "fix_ledger_active_only": "معاہدہ شدہ کرایے کے حساب کتاب کو درست کیا گیا تاکہ صرف فعال معاہدوں کو شامل کیا جائے، جس سے ایک ہی سال میں سابقہ ​​کرایہ داروں کی وجہ سے ہونے والی زیادتی کو روکا جا سکے۔",
+      "feat_tenant_column_report": "بہتر لین دین کی وضاحت کے لیے خلاصہ رپورٹ ٹیبلز میں کرایہ دار کا کالم شامل کیا گیا",
+      "feat_dynamic_hijri_year": "خودکار سالانہ تبدیلیوں کے لیے moment-hijri کا استعمال کرتے ہوئے متحرک ہجری سال کے آخر کی منطق نافذ کی گئی",
+      "fix_unpaid_rent_card": "غیر ادا شدہ کرایہ کارڈ کو درست کیا گیا تاکہ معاہدہ کی تفریق کے بجائے زیر التواء اقساط کو جمع کیا جا سکے",
+      "fix_utilization_chart_current_year": "موجودہ سال کے استعمال کے چارٹ کو درست کیا گیا تاکہ کرایہ دار کی موجودہ حیثیت سے قطع نظر تمام لین دین شامل ہوں"
     }
   }
 };

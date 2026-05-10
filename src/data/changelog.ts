@@ -7,6 +7,18 @@ export interface ChangeLogEntry {
 
 export const changelog: ChangeLogEntry[] = [
   {
+    version: "1.0.39",
+    date: "2026-05-10",
+    features: [
+      "feat_tenant_column_report",
+      "feat_dynamic_hijri_year"
+    ],
+    fixes: [
+      "fix_unpaid_rent_card",
+      "fix_utilization_chart_current_year"
+    ]
+  },
+  {
     version: "1.0.35",
     date: "2026-05-04",
     features: [],

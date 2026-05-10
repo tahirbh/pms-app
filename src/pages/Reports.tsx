@@ -229,13 +229,12 @@ const Reports: React.FC = () => {
       setIncomes(filteredIncomes.map(L => {
         const tnt = tenants.find(t => t.id === L.tenantId);
         const prop = properties.find(p => p.id === tnt?.propertyId);
-        const combined = tnt ? `${tnt.tenantName}${prop ? ` (${prop.name})` : ''}` : '';
         return { 
           ...L, 
-          tenantName: combined, 
+          tenantName: tnt?.tenantName || t('unknown_tenant'),
+          propertyName: prop?.name || t('unknown_property'),
           tenantId: L.tenantId,
-          propertyId: prop?.id || 'unknown',
-          propertyName: prop?.name || t('unknown_property')
+          propertyId: prop?.id || 'unknown'
         };
       }));
       setExpenses(filteredExpenses);
@@ -370,7 +369,7 @@ const Reports: React.FC = () => {
       setPeriodTotals({
         contracted: pContracted,
         income: pIncome,
-        unpaid: Math.max(0, pContracted - pIncomeActive),
+        unpaid: pUnpaid,
         expense: pExpense,
         transferred: pTransferred,
         netRevenue: pIncome - pExpense - pTransferred
@@ -439,20 +438,20 @@ const Reports: React.FC = () => {
   const summarizedIncomes = React.useMemo(() => {
     if (qFilter !== 'contracted' && qFilter !== 'unpaid' && qFilter !== 'income') return [];
     
-    const summary: Record<string, { displayName: string, amount: number, propertyId: string, tenantId: string }> = {};
+    const summary: Record<string, { propertyName: string, tenantName: string, amount: number, propertyId: string, tenantId: string }> = {};
     
     incomes.forEach((inc: any) => {
-      const key = inc.propertyId;
+      const key = `${inc.propertyId}-${inc.tenantId}`;
       if (!summary[key]) {
         summary[key] = { 
-          displayName: translateName(inc.propertyName || inc.tenantName || '', language), 
+          propertyName: translateName(inc.propertyName || '', language),
+          tenantName: inc.tenantName || '', 
           amount: 0, 
           propertyId: inc.propertyId,
           tenantId: inc.tenantId
         };
       }
       summary[key].amount += inc.amount;
-      summary[key].tenantId = inc.tenantId;
     });
     
     return Object.values(summary).sort((a, b) => b.amount - a.amount);
@@ -470,7 +469,8 @@ const Reports: React.FC = () => {
 
     if (qFilter === 'contracted' || qFilter === 'income' || qFilter === 'unpaid') {
       exportCSV(summarizedIncomes.map(s => ({
-        'Property / Apartment': s.displayName,
+        'Property / Apartment': s.propertyName,
+        'Tenant': s.tenantName,
         'Amount': s.amount
       })), `Summarized_${qFilter}_Report.csv`);
       return;
@@ -770,6 +770,7 @@ const Reports: React.FC = () => {
                 <thead>
                   <tr style={{ borderBottom: '2px solid var(--glass-border)', color: 'var(--text-muted)' }}>
                     <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('property_name') || 'Apartment / Property'}</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'start' }}>{t('tenant_name') || 'Tenant'}</th>
                     <th style={{ padding: '0.5rem', textAlign: 'end' }}>
                       {qFilter === 'contracted' ? (t('actual_contracted_rent') || 'Contracted') : 
                        qFilter === 'income' ? (t('paid_rent') || 'Paid') : 
@@ -780,8 +781,9 @@ const Reports: React.FC = () => {
                 </thead>
                 <tbody>
                   {summarizedIncomes.map((s, idx) => (
-                    <tr key={s.propertyId + idx} style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                      <td style={{ padding: '0.75rem 0.5rem', fontWeight: 500, textAlign: 'start' }}>{s.displayName}</td>
+                    <tr key={s.propertyId + s.tenantId + idx} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                      <td style={{ padding: '0.75rem 0.5rem', fontWeight: 500, textAlign: 'start' }}>{s.propertyName}</td>
+                      <td style={{ padding: '0.75rem 0.5rem', textAlign: 'start' }}>{s.tenantName}</td>
                       <td style={{ padding: '0.75rem 0.5rem', textAlign: 'end', fontWeight: 700 }}>
                         {s.amount.toLocaleString()} <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{currency}</span>
                       </td>

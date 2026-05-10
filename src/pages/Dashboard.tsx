@@ -161,9 +161,9 @@ const DashboardHome = () => {
       const cyKey = getCurrentYearKey(calendarMode);
 
       // ── Per-year accumulation (for both current + historical) ──
-      const yearData: Record<string, { contractedRent: number, collectedRent: number, totalExpenses: number, transferredAmount: number }> = {};
+      const yearData: Record<string, { contractedRent: number, collectedRent: number, unpaidRent: number, totalExpenses: number, transferredAmount: number }> = {};
       const ensureYear = (yk: string) => {
-        if (!yearData[yk]) yearData[yk] = { contractedRent: 0, collectedRent: 0, totalExpenses: 0, transferredAmount: 0 };
+        if (!yearData[yk]) yearData[yk] = { contractedRent: 0, collectedRent: 0, unpaidRent: 0, totalExpenses: 0, transferredAmount: 0 };
       };
 
       // ── Process expenses ──
@@ -240,6 +240,8 @@ const DashboardHome = () => {
             currentMonthPaid += L.amount;
           }
         } else {
+          yearData[yearStr].unpaidRent += L.amount;
+          
           // Overdue / upcoming notifications
           if (ledgerDate < today) {
             totalOverdue += L.amount;
@@ -254,26 +256,29 @@ const DashboardHome = () => {
       });
 
       // ── Separate current-year vs historical ──
-      let cyContracted = 0, cyCollectedTotal = 0, cyCollectedActive = 0, cyExpenses = 0, cyTransferred = 0;
+      let cyContracted = 0, cyCollectedTotal = 0, cyCollectedActive = 0, cyUnpaid = 0, cyExpenses = 0, cyTransferred = 0;
       let hContracted = 0, hCollected = 0, hExpenses = 0, hTransferred = 0;
       const histPerYear: typeof yearData = {};
       const allYearsSet = new Set<string>();
 
       Object.entries(yearData).forEach(([yk, vals]) => {
         allYearsSet.add(yk);
-        if (!isBeforeCurrentYear(yk, cyKey)) {
-          // Current year and Future years: top cards
+        if (yk === cyKey) {
+          // Strictly Current year: top cards
           cyContracted += vals.contractedRent;
           cyCollectedTotal += vals.collectedRent;
           cyCollectedActive += (vals as any).collectedRentActive || 0;
+          cyUnpaid += vals.unpaidRent;
           cyExpenses += vals.totalExpenses;
           cyTransferred += vals.transferredAmount;
         } else {
-          // Historical: previous years only
-          hContracted += vals.contractedRent;
-          hCollected += vals.collectedRent;
-          hExpenses += vals.totalExpenses;
-          hTransferred += vals.transferredAmount;
+          // Previous and Future years: dropdown metrics
+          if (isBeforeCurrentYear(yk, cyKey)) {
+             hContracted += vals.contractedRent;
+             hCollected += vals.collectedRent;
+             hExpenses += vals.totalExpenses;
+             hTransferred += vals.transferredAmount;
+          }
           histPerYear[yk] = vals;
         }
       });
@@ -282,9 +287,8 @@ const DashboardHome = () => {
       let projectedRent = 0;
       props.forEach(p => { projectedRent += p.annualRent; });
 
-      // Unpaid rent = max(0, contracted - collected_active)
-      // This ensures we show what CURRENT tenants still owe.
-      const cyUnpaid = Math.max(0, cyContracted - cyCollectedActive);
+      // Unpaid rent is now accumulated directly from Pending ledgers
+      // cyUnpaid is already calculated in the loop above
 
       setCurrentYearMetrics({
         projectedRent,
@@ -297,12 +301,14 @@ const DashboardHome = () => {
       });
 
 
-      // ── Historical year dropdown setup (exclude current year and future) ──
+      // ── Historical year dropdown setup (exclude current year) ──
       const sortedHistYears = Object.keys(histPerYear).sort((a, b) => a.localeCompare(b));
       setAvailableHistYears(sortedHistYears);
       if (sortedHistYears.length > 0) {
         setStartYear(sortedHistYears[0]);
-        setEndYear(sortedHistYears[sortedHistYears.length - 1]);
+        // Default end year to the latest year BEFORE current year if possible
+        const prevYears = sortedHistYears.filter(y => isBeforeCurrentYear(y, cyKey));
+        setEndYear(prevYears.length > 0 ? prevYears[prevYears.length - 1] : sortedHistYears[sortedHistYears.length - 1]);
       }
       setHistoricalDataPerYear(histPerYear);
 
@@ -319,7 +325,7 @@ const DashboardHome = () => {
 
         // Only count ACTIVE tenants for the chart's contracted/unpaid logic
         // to match the user's expectations for current portfolio reporting.
-        pTenants.filter(t => t.isActive).forEach(tnt => {
+        pTenants.forEach(tnt => {
           const tenantLedgers = allLedgers.filter(l => l.tenantId === tnt.id);
           tenantLedgers.forEach(L => {
             const yearStr = getYearString(L.dueDate, calendarMode);
@@ -505,7 +511,8 @@ const DashboardHome = () => {
       if (calendarMode === 'hijri') {
         const cyMoment = moment();
         qStart = `${cyMoment.iYear()}/01/01`;
-        qEnd = `${cyMoment.iYear()}/12/30`;
+        const mEnd = cyMoment.clone().endOf('iYear');
+        qEnd = `${mEnd.iYear()}/${String(mEnd.iMonth() + 1).padStart(2, '0')}/${String(mEnd.iDate()).padStart(2, '0')}`;
       } else {
         const cy = new Date().getFullYear();
         qStart = `${cy}/01/01`;
@@ -728,9 +735,9 @@ const DashboardHome = () => {
         ))}
       </div>
 
-      {/* ═══════ HISTORICAL CARDS — PREVIOUS YEARS ONLY ═══════ */}
+      {/* ═══════ HISTORICAL & FUTURE CARDS ═══════ */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>📅 {t('historical_metrics') || 'Historical Metrics'}</h3>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>📅 {t('historical_metrics') || 'Other Years Metrics'}</h3>
         {availableHistYears.length > 0 && (
           <div style={{ display: 'flex', gap: '1rem' }}>
             <div>
