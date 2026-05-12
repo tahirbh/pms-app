@@ -1,7 +1,17 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Info, CheckCircle2, Cloud, Calendar, Layout, ShieldCheck } from 'lucide-react';
 
 const About: React.FC = () => {
+  const { t } = useTranslation();
+
+  const lifecycleSteps = [
+    { id: '01', titleKey: 'about_step1_title', descKey: 'about_step1_desc', icon: Layout },
+    { id: '02', titleKey: 'about_step2_title', descKey: 'about_step2_desc', icon: Calendar },
+    { id: '03', titleKey: 'about_step3_title', descKey: 'about_step3_desc', icon: CheckCircle2 },
+    { id: '04', titleKey: 'about_step4_title', descKey: 'about_step4_desc', icon: Cloud },
+    { id: '05', titleKey: 'about_step5_title', descKey: 'about_step5_desc', icon: Info },
+  ];
 
   return (
     <div className="glass-panel p-8 animate-slide-in">
@@ -15,10 +25,10 @@ const About: React.FC = () => {
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent'
         }}>
-          Global PMS Lifecycle
+          {t('about_title')}
         </h1>
         <p style={{ fontSize: '1.25rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-          Complete Application Workflow & Technical Scope
+          {t('about_subtitle')}
         </p>
       </div>
 
@@ -41,13 +51,7 @@ const About: React.FC = () => {
           zIndex: 0 
         }} />
 
-        {[
-          { id: '01', title: 'Onboarding', desc: 'Property Registration & Portfolio Setup', icon: Layout },
-          { id: '02', title: 'Contracting', desc: 'Tenant Registration & Hijri/Gregorian Lease', icon: Calendar },
-          { id: '03', title: 'Automation', desc: 'Digital Ledger & Installment Generation', icon: CheckCircle2 },
-          { id: '04', title: 'Operations', desc: 'Payment Collection & Expense Tracking', icon: Cloud },
-          { id: '05', title: 'Analytics', desc: 'Drill-down Dashboard & Pivot Reporting', icon: Info },
-        ].map((step, idx) => (
+        {lifecycleSteps.map((step, idx) => (
           <div key={step.id} style={{ 
             position: 'relative', 
             zIndex: 1, 
@@ -76,10 +80,10 @@ const About: React.FC = () => {
               {step.id}
             </div>
             <div style={{ fontWeight: 800, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-main)', marginBottom: '0.5rem' }}>
-              {step.title}
+              {t(step.titleKey)}
             </div>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              {step.desc}
+              {t(step.descKey)}
             </div>
           </div>
         ))}
@@ -90,40 +94,40 @@ const About: React.FC = () => {
         <div className="glass-panel" style={{ padding: '2rem', borderLeft: '4px solid var(--primary)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
             <Calendar size={24} color="var(--primary)" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)' }}>Dual-Calendar Engine</h3>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)' }}>{t('about_tech1_title')}</h3>
           </div>
           <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--text-muted)' }}>
-            Native Hijri (Islamic) and Gregorian support with high-precision pro-rata calculations for dynamic lease settlements.
+            {t('about_tech1_desc')}
           </p>
         </div>
 
         <div className="glass-panel" style={{ padding: '2rem', borderLeft: '4px solid var(--secondary)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
             <ShieldCheck size={24} color="var(--secondary)" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)' }}>Cloud Orchestration</h3>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)' }}>{t('about_tech2_title')}</h3>
           </div>
           <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--text-muted)' }}>
-            Secure Supabase architecture with Row-Level Security (RLS) ensuring total data isolation and real-time syncing.
+            {t('about_tech2_desc')}
           </p>
         </div>
 
         <div className="glass-panel" style={{ padding: '2rem', borderLeft: '4px solid var(--success)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
             <Layout size={24} color="var(--success)" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)' }}>Glassmorphism UI</h3>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)' }}>{t('about_tech3_title')}</h3>
           </div>
           <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--text-muted)' }}>
-            Modern, premium UI built for high-end professional users with full RTL support and mobile responsiveness.
+            {t('about_tech3_desc')}
           </p>
         </div>
 
         <div className="glass-panel" style={{ padding: '2rem', borderLeft: '4px solid var(--accent)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
             <Info size={24} color="var(--accent)" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)' }}>Administrative Intelligence</h3>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-main)' }}>{t('about_tech4_title')}</h3>
           </div>
           <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--text-muted)' }}>
-            Integrated Support Mode for remote troubleshooting and consolidated year-over-year financial comparisons.
+            {t('about_tech4_desc')}
           </p>
         </div>
       </div>

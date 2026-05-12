@@ -247,7 +247,29 @@ const resources = {
       "feat_parallel_fetches": "Parallelized all Supabase data fetches with Promise.all — reduces load time from 4× to 1× network latency",
       "feat_landing_about_section": "Added About section with lifecycle steps and technical matrix to the Landing page",
       "fix_remove_pg_driver": "Removed pg (Node-only Postgres driver) from browser bundle — eliminates dead weight and potential runtime errors",
-      "fix_about_unused_import": "Fixed unused import/variable in About page that blocked production builds"
+      "fix_about_unused_import": "Fixed unused import/variable in About page that blocked production builds",
+
+      // About page
+      "about_title": "Global PMS Lifecycle",
+      "about_subtitle": "Complete Application Workflow & Technical Scope",
+      "about_step1_title": "Onboarding",
+      "about_step1_desc": "Property Registration & Portfolio Setup",
+      "about_step2_title": "Contracting",
+      "about_step2_desc": "Tenant Registration & Hijri/Gregorian Lease",
+      "about_step3_title": "Automation",
+      "about_step3_desc": "Digital Ledger & Installment Generation",
+      "about_step4_title": "Operations",
+      "about_step4_desc": "Payment Collection & Expense Tracking",
+      "about_step5_title": "Analytics",
+      "about_step5_desc": "Drill-down Dashboard & Pivot Reporting",
+      "about_tech1_title": "Dual-Calendar Engine",
+      "about_tech1_desc": "Native Hijri (Islamic) and Gregorian support with high-precision pro-rata calculations for dynamic lease settlements.",
+      "about_tech2_title": "Cloud Orchestration",
+      "about_tech2_desc": "Secure Supabase architecture with Row-Level Security (RLS) ensuring total data isolation and real-time syncing.",
+      "about_tech3_title": "Glassmorphism UI",
+      "about_tech3_desc": "Modern, premium UI built for high-end professional users with full RTL support and mobile responsiveness.",
+      "about_tech4_title": "Administrative Intelligence",
+      "about_tech4_desc": "Integrated Support Mode for remote troubleshooting and consolidated year-over-year financial comparisons."
     }
   },
   ar: {
@@ -469,7 +491,29 @@ const resources = {
       "feat_parallel_fetches": "تنفيذ متوازي لجميع استعلامات Supabase باستخدام Promise.all — تقليل وقت التحميل من ٤ أضعاف إلى ضعف واحد",
       "feat_landing_about_section": "إضافة قسم 'حول النظام' مع خطوات دورة الحياة والمصفوفة التقنية إلى صفحة الهبوط",
       "fix_remove_pg_driver": "إزالة pg (برنامج تشغيل Postgres لـ Node فقط) من حزمة المتصفح — يزيل الوزن الزائد وأخطاء التشغيل المحتملة",
-      "fix_about_unused_import": "إصلاح الاستيراد/المتغير غير المستخدم في صفحة 'حول' الذي كان يعيق بناء الإنتاج"
+      "fix_about_unused_import": "إصلاح الاستيراد/المتغير غير المستخدم في صفحة 'حول' الذي كان يعيق بناء الإنتاج",
+
+      // About page
+      "about_title": "دورة حياة نظام إدارة العقارات",
+      "about_subtitle": "سير العمل الكامل للتطبيق والنطاق التقني",
+      "about_step1_title": "التسجيل",
+      "about_step1_desc": "تسجيل العقارات وإعداد المحفظة",
+      "about_step2_title": "التعاقد",
+      "about_step2_desc": "تسجيل المستأجر وعقد هجري/ميلادي",
+      "about_step3_title": "الأتمتة",
+      "about_step3_desc": "الدفتر الرقمي وتوليد الأقساط",
+      "about_step4_title": "العمليات",
+      "about_step4_desc": "تحصيل المدفوعات وتتبع المصروفات",
+      "about_step5_title": "التحليلات",
+      "about_step5_desc": "لوحة قيادة تفصيلية وتقارير محورية",
+      "about_tech1_title": "محرك التقويم المزدوج",
+      "about_tech1_desc": "دعم التقويم الهجري (الإسلامي) والميلادي مع حسابات نسبية عالية الدقة لتسويات الإيجار الديناميكية.",
+      "about_tech2_title": "التنسيق السحابي",
+      "about_tech2_desc": "بنية Supabase آمنة مع أمان على مستوى الصف (RLS) تضمن عزل البيانات الكامل والمزامنة الفورية.",
+      "about_tech3_title": "واجهة Glassmorphism",
+      "about_tech3_desc": "واجهة مستخدم حديثة وفاخرة مصممة للمستخدمين المحترفين مع دعم RTL كامل واستجابة للجوال.",
+      "about_tech4_title": "الذكاء الإداري",
+      "about_tech4_desc": "وضع دعم متكامل للاستكشاف عن بُعد ومقارنات مالية موحدة عبر السنوات."
     }
   },
   ur: {
@@ -691,7 +735,29 @@ const resources = {
       "feat_parallel_fetches": "Promise.all کے ذریعے تمام Supabase ڈیٹا فیچز متوازی — لوڈ ٹائم ۴ گنا سے ۱ گنا نیٹ ورک لیٹنسی",
       "feat_landing_about_section": "لینڈنگ پیج پر لائف سائیکل اسٹیپس اور ٹیکنیکل میٹرکس کے ساتھ 'بارے میں' سیکشن شامل کیا گیا",
       "fix_remove_pg_driver": "براؤزر بنڈل سے pg (صرف Node کا Postgres ڈرائیور) ہٹایا گیا — غیر ضروری وزن اور ممکنہ رن ٹائم ایررز ختم",
-      "fix_about_unused_import": "'بارے میں' صفحے میں غیر استعمال شدہ امپورٹ/متغیر کو ٹھیک کیا گیا جو پروڈکشن بلڈ روک رہا تھا"
+      "fix_about_unused_import": "'بارے میں' صفحے میں غیر استعمال شدہ امپورٹ/متغیر کو ٹھیک کیا گیا جو پروڈکشن بلڈ روک رہا تھا",
+
+      // About page
+      "about_title": "عالمی پی ایم ایس لائف سائیکل",
+      "about_subtitle": "مکمل ایپلیکیشن ورک فلو اور ٹیکنیکل دائرہ کار",
+      "about_step1_title": "آن بورڈنگ",
+      "about_step1_desc": "جائیداد کی رجسٹریشن اور پورٹ فولیو سیٹ اپ",
+      "about_step2_title": "معاہدہ",
+      "about_step2_desc": "کرایہ دار کی رجسٹریشن اور ہجری/عیسوی لیز",
+      "about_step3_title": "آٹومیشن",
+      "about_step3_desc": "ڈجیٹل کھاتہ اور قسطوں کی خودکار تیاری",
+      "about_step4_title": "آپریشنز",
+      "about_step4_desc": "ادائیگی کی وصولی اور اخراجات کی ٹریکنگ",
+      "about_step5_title": "تجزیات",
+      "about_step5_desc": "تفصیلی ڈیش بورڈ اور محوری رپورٹنگ",
+      "about_tech1_title": "دوہرا کیلنڈر انجن",
+      "about_tech1_desc": "ہجری (اسلامی) اور عیسوی تقویم کی مقامی معاونت کے ساتھ اعلیٰ درجے کے متناسب حسابات۔",
+      "about_tech2_title": "کلاؤڈ آرکیسٹریشن",
+      "about_tech2_desc": "Supabase کی محفوظ بنیاد جس میں Row-Level Security (RLS) سے مکمل ڈیٹا تنہائی اور فوری مطابقت یقینی ہے۔",
+      "about_tech3_title": "Glassmorphism واجہة",
+      "about_tech3_desc": "جدید اور پریمیم UI جو پیشہ ور صارفین کے لیے بنایا گیا ہے مکمل RTL سپورٹ اور موبائل ریسپانسونیس کے ساتھ۔",
+      "about_tech4_title": "انتظامی ذہانت",
+      "about_tech4_desc": "ریموٹ ٹربل شوٹنگ کے لیے مربوط سپورٹ موڈ اور سال بہ سال مالی موازنہ جات۔"
     }
   }
 };
