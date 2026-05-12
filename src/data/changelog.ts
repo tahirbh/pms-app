@@ -7,6 +7,19 @@ export interface ChangeLogEntry {
 
 export const changelog: ChangeLogEntry[] = [
   {
+    version: "1.0.40",
+    date: "2026-05-12",
+    features: [
+      "feat_code_splitting",
+      "feat_parallel_fetches",
+      "feat_landing_about_section"
+    ],
+    fixes: [
+      "fix_remove_pg_driver",
+      "fix_about_unused_import"
+    ]
+  },
+  {
     version: "1.0.39",
     date: "2026-05-10",
     features: [

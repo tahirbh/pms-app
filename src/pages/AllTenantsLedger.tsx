@@ -102,9 +102,11 @@ const AllTenantsLedger: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const allLedgers = await getAllLedgers();
-      const tenants = await getTenants();
-      const properties = await getProperties();
+      const [allLedgers, tenants, properties] = await Promise.all([
+        getAllLedgers(),
+        getTenants(),
+        getProperties(),
+      ]);
 
       const safeStartDate = toEnglishDigits(startDate);
       const safeEndDate = toEnglishDigits(endDate);

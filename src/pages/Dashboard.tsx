@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Home, Users, Settings as SettingsIcon, LogOut, Receipt, Bell, AlertCircle, FileText, Sparkles, History } from 'lucide-react';
+import { LayoutDashboard, Home, Users, Settings as SettingsIcon, LogOut, Receipt, Bell, AlertCircle, FileText, Sparkles, History, Info } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import moment from 'moment-hijri';
 
-// Force TS server to re-resolve the module if it was cached as missing
-import Properties from './Properties';
-import Tenants from './Tenants';
-import Settings from './Settings';
-import Expenses from './Expenses';
-import TenantContractPage from './TenantContract';
-import TenantLedger from './TenantLedger';
-import Reports from './Reports';
-import Pivot from './Pivot';
+// Lazy-loaded route components — each becomes its own chunk for code splitting
+const Properties = React.lazy(() => import('./Properties'));
+const Tenants = React.lazy(() => import('./Tenants'));
+const Settings = React.lazy(() => import('./Settings'));
+const Expenses = React.lazy(() => import('./Expenses'));
+const TenantContractPage = React.lazy(() => import('./TenantContract'));
+const TenantLedger = React.lazy(() => import('./TenantLedger'));
+const Reports = React.lazy(() => import('./Reports'));
+const Pivot = React.lazy(() => import('./Pivot'));
 import { getProperties, getTenants, getExpenses, getAllLedgers, getImpersonatedId, setImpersonation } from '../utils/store';
 import { ShieldAlert, X } from 'lucide-react';
 import WhatsNewModal from '../components/WhatsNewModal';
@@ -148,10 +148,12 @@ const DashboardHome = () => {
 
   useEffect(() => {
     const loadAll = async () => {
-      const props = await getProperties();
-      const tenants = await getTenants();
-      const expenses = await getExpenses();
-      const allLedgers = await getAllLedgers();
+      const [props, tenants, expenses, allLedgers] = await Promise.all([
+        getProperties(),
+        getTenants(),
+        getExpenses(),
+        getAllLedgers(),
+      ]);
 
       setAllProperties(props);
       setAllTenants(tenants);
@@ -942,8 +944,9 @@ const DashboardHome = () => {
   );
 };
 
-import AllTenantsLedger from './AllTenantsLedger';
-import Changes from './Changes';
+const AllTenantsLedger = React.lazy(() => import('./AllTenantsLedger'));
+const Changes = React.lazy(() => import('./Changes'));
+const About = React.lazy(() => import('./About'));
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
@@ -977,6 +980,7 @@ const Dashboard: React.FC = () => {
     { path: '/dashboard/all-ledgers', label: t('ledgers'), icon: Users },
     { path: '/dashboard/report', label: t('reports'), icon: FileText },
     { path: '/dashboard/changes', label: t('version_history') || 'Changes', icon: History },
+    { path: '/dashboard/about', label: t('about') || 'About', icon: Info },
     { path: '/dashboard/settings', label: t('settings'), icon: SettingsIcon },
   ];
 
@@ -1037,19 +1041,29 @@ const Dashboard: React.FC = () => {
       {/* Main Content Area */}
       <div className="main-content" style={{ overflowY: 'auto' }}>
         <ErrorBoundary>
-          <Routes>
-            <Route path="/" element={<DashboardHome />} />
-            <Route path="properties" element={<Properties />} />
-            <Route path="tenants" element={<Tenants />} />
-            <Route path="expenses" element={<Expenses />} />
-            <Route path="contract/:id" element={<TenantContractPage />} />
-            <Route path="ledger/:id" element={<TenantLedger />} />
-            <Route path="all-ledgers" element={<AllTenantsLedger />} />
-            <Route path="report" element={<Reports />} />
-            <Route path="changes" element={<Changes />} />
-            <Route path="pivot" element={<Pivot />} />
-            <Route path="settings" element={<Settings />} />
-          </Routes>
+          <Suspense fallback={
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '40vh', color: 'var(--text-muted)' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ width: 40, height: 40, border: '3px solid var(--glass-border)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem' }} />
+                <p>{t('loading')}...</p>
+              </div>
+            </div>
+          }>
+            <Routes>
+              <Route path="/" element={<DashboardHome />} />
+              <Route path="properties" element={<Properties />} />
+              <Route path="tenants" element={<Tenants />} />
+              <Route path="expenses" element={<Expenses />} />
+              <Route path="contract/:id" element={<TenantContractPage />} />
+              <Route path="ledger/:id" element={<TenantLedger />} />
+              <Route path="all-ledgers" element={<AllTenantsLedger />} />
+              <Route path="report" element={<Reports />} />
+              <Route path="changes" element={<Changes />} />
+              <Route path="pivot" element={<Pivot />} />
+              <Route path="about" element={<About />} />
+              <Route path="settings" element={<Settings />} />
+            </Routes>
+          </Suspense>
         </ErrorBoundary>
       </div>
       <WhatsNewModal 

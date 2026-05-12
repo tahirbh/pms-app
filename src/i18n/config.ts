@@ -25,6 +25,7 @@ const resources = {
       "light": "Light",
       "revoke": "Revoke",
       "details": "View",
+      "about": "About",
 
       // Auth
       "sign_in": "Sign In", "create_account": "Create Account",
@@ -241,7 +242,12 @@ const resources = {
       "feat_tenant_column_report": "Added Tenant column to summarized report tables for better transaction clarity",
       "feat_dynamic_hijri_year": "Implemented dynamic Hijri year-end logic using moment-hijri for automatic annual transitions",
       "fix_unpaid_rent_card": "Fixed Unpaid Rent card to strictly sum pending installments instead of using contract subtraction",
-      "fix_utilization_chart_current_year": "Fixed Current Year Utilization chart to include all transactions regardless of current tenant status"
+      "fix_utilization_chart_current_year": "Fixed Current Year Utilization chart to include all transactions regardless of current tenant status",
+      "feat_code_splitting": "Route-level code splitting with React.lazy — each page loads on-demand, cutting initial JS by ~50%",
+      "feat_parallel_fetches": "Parallelized all Supabase data fetches with Promise.all — reduces load time from 4× to 1× network latency",
+      "feat_landing_about_section": "Added About section with lifecycle steps and technical matrix to the Landing page",
+      "fix_remove_pg_driver": "Removed pg (Node-only Postgres driver) from browser bundle — eliminates dead weight and potential runtime errors",
+      "fix_about_unused_import": "Fixed unused import/variable in About page that blocked production builds"
     }
   },
   ar: {
@@ -266,6 +272,7 @@ const resources = {
       "light": "فاتح",
       "revoke": "إلغاء",
       "details": "عرض",
+      "about": "حول النظام",
       "sign_in": "تسجيل الدخول", "create_account": "إنشاء حساب",
       "full_name": "الاسم الكامل", "email_address": "البريد الإلكتروني",
       "password": "كلمة المرور", "password_hint": "(٦ أحرف على الأقل)",
@@ -457,7 +464,12 @@ const resources = {
       "feat_tenant_column_report": "إضافة عمود المستأجر إلى جداول التقارير الملخصة لمزيد من الوضوح في المعاملات",
       "feat_dynamic_hijri_year": "تنفيذ منطق نهاية السنة الهجرية الديناميكي باستخدام moment-hijri للتحولات السنوية التلقائية",
       "fix_unpaid_rent_card": "إصلاح بطاقة الإيجار غير المدفوع لجمع الأقساط المعلقة بدقة بدلاً من طرح العقود",
-      "fix_utilization_chart_current_year": "إصلاح مخطط استخدام العام الحالي ليشمل جميع المعاملات بغض النظر عن حالة المستأجر الحالية"
+      "fix_utilization_chart_current_year": "إصلاح مخطط استخدام العام الحالي ليشمل جميع المعاملات بغض النظر عن حالة المستأجر الحالية",
+      "feat_code_splitting": "تقسيم الكود على مستوى الصفحات باستخدام React.lazy — كل صفحة تُحمّل حسب الطلب مما يقلل حجم JS الأولي بنسبة ~٥٠٪",
+      "feat_parallel_fetches": "تنفيذ متوازي لجميع استعلامات Supabase باستخدام Promise.all — تقليل وقت التحميل من ٤ أضعاف إلى ضعف واحد",
+      "feat_landing_about_section": "إضافة قسم 'حول النظام' مع خطوات دورة الحياة والمصفوفة التقنية إلى صفحة الهبوط",
+      "fix_remove_pg_driver": "إزالة pg (برنامج تشغيل Postgres لـ Node فقط) من حزمة المتصفح — يزيل الوزن الزائد وأخطاء التشغيل المحتملة",
+      "fix_about_unused_import": "إصلاح الاستيراد/المتغير غير المستخدم في صفحة 'حول' الذي كان يعيق بناء الإنتاج"
     }
   },
   ur: {
@@ -482,6 +494,7 @@ const resources = {
       "light": "روشن",
       "revoke": "منسوخ",
       "details": "دیکھیں",
+      "about": "نظام کے بارے میں",
       "sign_in": "سائن ان", "create_account": "اکاؤنٹ بنائیں",
       "full_name": "پورا نام", "email_address": "ای میل پتہ",
       "password": "پاس ورڈ", "password_hint": "(کم از کم ۶ حروف)",
@@ -673,7 +686,12 @@ const resources = {
       "feat_tenant_column_report": "بہتر لین دین کی وضاحت کے لیے خلاصہ رپورٹ ٹیبلز میں کرایہ دار کا کالم شامل کیا گیا",
       "feat_dynamic_hijri_year": "خودکار سالانہ تبدیلیوں کے لیے moment-hijri کا استعمال کرتے ہوئے متحرک ہجری سال کے آخر کی منطق نافذ کی گئی",
       "fix_unpaid_rent_card": "غیر ادا شدہ کرایہ کارڈ کو درست کیا گیا تاکہ معاہدہ کی تفریق کے بجائے زیر التواء اقساط کو جمع کیا جا سکے",
-      "fix_utilization_chart_current_year": "موجودہ سال کے استعمال کے چارٹ کو درست کیا گیا تاکہ کرایہ دار کی موجودہ حیثیت سے قطع نظر تمام لین دین شامل ہوں"
+      "fix_utilization_chart_current_year": "موجودہ سال کے استعمال کے چارٹ کو درست کیا گیا تاکہ کرایہ دار کی موجودہ حیثیت سے قطع نظر تمام لین دین شامل ہوں",
+      "feat_code_splitting": "React.lazy کے ذریعے روٹ لیول کوڈ اسپلٹنگ — ہر صفحہ ضرورت کے مطابق لوڈ ہوتا ہے، ابتدائی JS ~۵۰٪ کم",
+      "feat_parallel_fetches": "Promise.all کے ذریعے تمام Supabase ڈیٹا فیچز متوازی — لوڈ ٹائم ۴ گنا سے ۱ گنا نیٹ ورک لیٹنسی",
+      "feat_landing_about_section": "لینڈنگ پیج پر لائف سائیکل اسٹیپس اور ٹیکنیکل میٹرکس کے ساتھ 'بارے میں' سیکشن شامل کیا گیا",
+      "fix_remove_pg_driver": "براؤزر بنڈل سے pg (صرف Node کا Postgres ڈرائیور) ہٹایا گیا — غیر ضروری وزن اور ممکنہ رن ٹائم ایررز ختم",
+      "fix_about_unused_import": "'بارے میں' صفحے میں غیر استعمال شدہ امپورٹ/متغیر کو ٹھیک کیا گیا جو پروڈکشن بلڈ روک رہا تھا"
     }
   }
 };

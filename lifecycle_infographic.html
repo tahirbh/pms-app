@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global PMS Lifecycle Infographic</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --glass: rgba(255, 255, 255, 0.8);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: white;
+            padding: 60px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            font-size: 1.25rem;
+            color: #64748b;
+            margin-top: 10px;
+        }
+        .lifecycle {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 100px;
+        }
+        .lifecycle::before {
+            content: '';
+            position: absolute;
+            top: 40px;
+            left: 50px;
+            right: 50px;
+            height: 4px;
+            background: #e2e8f0;
+            z-index: 0;
+        }
+        .step {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 18%;
+            text-align: center;
+        }
+        .circle {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border: 4px solid var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .step:nth-child(even) .circle { border-color: var(--secondary); color: var(--secondary); }
+        .step:nth-child(odd) .circle { border-color: var(--primary); color: var(--primary); }
+        
+        .step-name {
+            font-weight: 800;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .step-desc {
+            font-size: 0.85rem;
+            color: #64748b;
+            line-height: 1.5;
+        }
+        .matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 60px;
+        }
+        .card {
+            padding: 30px;
+            border-radius: 16px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+        }
+        .card h3 {
+            margin: 0 0 15px 0;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+        .card p {
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #475569;
+        }
+        @media print {
+            body { padding: 0; background: white; }
+            .container { box-shadow: none; border: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Global PMS Lifecycle</h1>
+            <p class="subtitle">Complete Application Workflow & Technical Scope (v1.0.39)</p>
+        </header>
+
+        <div class="lifecycle">
+            <div class="step">
+                <div class="circle">01</div>
+                <div class="step-name">Onboarding</div>
+                <div class="step-desc">Property Registration & Portfolio Setup</div>
+            </div>
+            <div class="step">
+                <div class="circle">02</div>
+                <div class="step-name">Contracting</div>
+                <div class="step-desc">Tenant Registration & Hijri/Gregorian Lease</div>
+            </div>
+            <div class="step">
+                <div class="circle">03</div>
+                <div class="step-name">Automation</div>
+                <div class="step-desc">Digital Ledger & Installment Generation</div>
+            </div>
+            <div class="step">
+                <div class="circle">04</div>
+                <div class="step-name">Operations</div>
+                <div class="step-desc">Payment Collection & Expense Tracking</div>
+            </div>
+            <div class="step">
+                <div class="circle">05</div>
+                <div class="step-name">Analytics</div>
+                <div class="step-desc">Drill-down Dashboard & Pivot Reporting</div>
+            </div>
+        </div>
+
+        <div class="matrix">
+            <div class="card">
+                <h3>Dual-Calendar Engine</h3>
+                <p>Native Hijri (Islamic) and Gregorian support with high-precision pro-rata calculations for dynamic lease settlements.</p>
+            </div>
+            <div class="card">
+                <h3>Cloud Orchestration</h3>
+                <p>Secure Supabase architecture with Row-Level Security (RLS) ensuring total data isolation and real-time syncing.</p>
+            </div>
+            <div class="card">
+                <h3>Glassmorphism Design</h3>
+                <p>Modern, premium UI built for high-end professional users with full RTL (Arabic/Urdu) support and mobile responsiveness.</p>
+            </div>
+            <div class="card">
+                <h3>Administrative Intelligence</h3>
+                <p>Integrated Support Mode for remote troubleshooting and consolidated year-over-year financial comparisons.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

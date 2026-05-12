@@ -15,10 +15,12 @@ const Pivot = () => {
 
   useEffect(() => {
     const loadAll = async () => {
-      const props = await getProperties();
-      const tenants = await getTenants();
-      const expenses = await getExpenses();
-      const ledgers = await getAllLedgers();
+      const [props, tenants, expenses, ledgers] = await Promise.all([
+        getProperties(),
+        getTenants(),
+        getExpenses(),
+        getAllLedgers(),
+      ]);
 
       setProperties(props);
 

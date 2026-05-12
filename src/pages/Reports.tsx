@@ -122,10 +122,12 @@ const Reports: React.FC = () => {
 
   useEffect(() => {
     const fetchReport = async () => {
-      const allLedgers = await getAllLedgers();
-      const allExpenses = await getExpenses();
-      const tenants = await getTenants();
-      const properties = await getProperties();
+      const [allLedgers, allExpenses, tenants, properties] = await Promise.all([
+        getAllLedgers(),
+        getExpenses(),
+        getTenants(),
+        getProperties(),
+      ]);
       setPropertiesData(properties);
 
       const urlParams = new URLSearchParams(window.location.search);
