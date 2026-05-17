@@ -32,3 +32,4 @@ dist-ssr
 # Temp scripts
 *.mjs
 test_*.js
+.vercel
