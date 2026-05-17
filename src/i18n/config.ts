@@ -182,6 +182,10 @@ const resources = {
       "team_access_title": "Team Access", "team_invite_desc": "Invite others by email. Once they sign up, they can view and manage your properties, tenants, and expenses.",
       "revoke_access_title": "Revoke access", "invite_tip_text": "💡 Invites are accepted automatically when the person signs up with the same email address.",
       "rtl_note_text": "Selecting Arabic or Urdu will automatically shift the layout to RTL (Right-to-Left).",
+      "export_data": "Export Database",
+      "export_data_desc": "Generate and download a single Excel spreadsheet containing separate worksheets for all your database tables (Properties, Tenants, Ledgers, and Expenses).",
+      "download_backup": "Download Excel Backup",
+      "exporting": "Exporting...",
 
       // Landing
       "nav_features": "Features", "nav_impact": "Impact", "hero_badge": "✨ The Next Generation of Property Management", "hero_title": "Elevate Your Real Estate Portfolio",
@@ -248,6 +252,8 @@ const resources = {
       "feat_landing_about_section": "Added About section with lifecycle steps and technical matrix to the Landing page",
       "fix_remove_pg_driver": "Removed pg (Node-only Postgres driver) from browser bundle — eliminates dead weight and potential runtime errors",
       "fix_about_unused_import": "Fixed unused import/variable in About page that blocked production builds",
+      "feat_excel_export": "Full database Excel export with separate worksheets for all tables (Properties, Tenants, Ledgers, Expenses, and Invitations)",
+      "fix_admin_export_isolation": "Enforce strict tenant data isolation for administrative troubleshooting in exports",
 
       // About page
       "about_title": "Global PMS Lifecycle",
@@ -428,6 +434,10 @@ const resources = {
       "invite_tip": "💡 تُقبل الدعوات تلقائياً عند تسجيل الشخص بنفس البريد الإلكتروني.",
       "team_access_title": "الوصول للفريق", "team_invite_desc": "ادعُ الآخرين للوصول إلى بياناتك.", "revoke_access_title": "إلغاء الوصول",
       "invite_tip_text": "💡 تُقبل الدعوات تلقائياً.", "rtl_note_text": "اختيار العربية سيحوّل التخطيط إلى اليمين لليسار.",
+      "export_data": "تصدير قاعدة البيانات",
+      "export_data_desc": "إنشاء وتنزيل ملف Excel واحد يحتوي على أوراق عمل منفصلة لجميع جداول قاعدة البيانات الخاصة بك (العقارات، المستأجرين، السجلات، والمصروفات).",
+      "download_backup": "تحميل نسخة Excel الاحتياطية",
+      "exporting": "جاري التصدير...",
       "nav_features": "الميزات", "nav_impact": "التأثير", "hero_badge": "✨ الجيل القادم من إدارة العقارات",
       "hero_title": "ارتقِ بمحفظتك العقارية", "hero_subtitle": "نظام متكامل يدعم كل شيء. ابدأ التوسع اليوم.",
       "btn_get_started": "ابدأ مجاناً", "btn_learn_more": "اعرف المزيد",
@@ -492,6 +502,8 @@ const resources = {
       "feat_landing_about_section": "إضافة قسم 'حول النظام' مع خطوات دورة الحياة والمصفوفة التقنية إلى صفحة الهبوط",
       "fix_remove_pg_driver": "إزالة pg (برنامج تشغيل Postgres لـ Node فقط) من حزمة المتصفح — يزيل الوزن الزائد وأخطاء التشغيل المحتملة",
       "fix_about_unused_import": "إصلاح الاستيراد/المتغير غير المستخدم في صفحة 'حول' الذي كان يعيق بناء الإنتاج",
+      "feat_excel_export": "تصدير قاعدة البيانات بالكامل إلى ملف Excel يحتوي على أوراق عمل منفصلة لجميع الجداول",
+      "fix_admin_export_isolation": "فرض عزل بيانات المستأجر الصارم لأغراض استكشاف أخطاء الدعم الإداري وإصلاحها",
 
       // About page
       "about_title": "دورة حياة نظام إدارة العقارات",
@@ -672,6 +684,10 @@ const resources = {
       "invite_tip": "💡 دعوتیں خودبخود قبول ہو جاتی ہیں۔",
       "team_access_title": "ٹیم تک رسائی", "team_invite_desc": "دعوتیں خودبخود قبول ہو جاتی ہیں۔", "revoke_access_title": "رسائی منسوخ کریں",
       "invite_tip_text": "💡 دعوتیں خودبخود قبول ہو جاتی ہیں۔", "rtl_note_text": "اردو منتخب کرنے سے لے آؤٹ دائیں سے بائیں ہو جائے گا۔",
+      "export_data": "ڈیٹا بیس ایکسپورٹ کریں",
+      "export_data_desc": "ایک ہی ایکسل فائل بنائیں اور ڈاؤن لوڈ کریں جس میں آپ کے تمام ڈیٹا بیس ٹیبلز (جائیدادیں، کرایہ دار، کھاتے، اور اخراجات) کے لیے الگ الگ شیٹس موجود ہوں۔",
+      "download_backup": "ایكسل بیک اپ ڈاؤن لوڈ کریں",
+      "exporting": "ایكسپورٹ ہو رہا ہے...",
       "nav_features": "خصوصیات", "nav_impact": "اثر", "hero_badge": "✨ پراپرٹی مینجمنٹ کی اگلی نسل",
       "hero_title": "اپنے رئیل اسٹیٹ پورٹ فولیو کو بلند کریں", "hero_subtitle": "عالمی صارفین کی مدد کرنے والا ایک طاقتور سسٹم۔ آج ہی سے شروع کریں۔",
       "btn_get_started": "مفت شروع کریں", "btn_learn_more": "مزید جانیں",
@@ -736,6 +752,8 @@ const resources = {
       "feat_landing_about_section": "لینڈنگ پیج پر لائف سائیکل اسٹیپس اور ٹیکنیکل میٹرکس کے ساتھ 'بارے میں' سیکشن شامل کیا گیا",
       "fix_remove_pg_driver": "براؤزر بنڈل سے pg (صرف Node کا Postgres ڈرائیور) ہٹایا گیا — غیر ضروری وزن اور ممکنہ رن ٹائم ایررز ختم",
       "fix_about_unused_import": "'بارے میں' صفحے میں غیر استعمال شدہ امپورٹ/متغیر کو ٹھیک کیا گیا جو پروڈکشن بلڈ روک رہا تھا",
+      "feat_excel_export": "تمام ڈیٹا بیس ٹیبلز کا الگ الگ شیٹس کے ساتھ ایکسل فائل میں مکمل بیک اپ",
+      "fix_admin_export_isolation": "ایڈمن سپورٹ موڈ میں کلائنٹ کا ڈیٹا الگ رکھنے اور مکسنگ کے مسائل کو حل کیا گیا",
 
       // About page
       "about_title": "عالمی پی ایم ایس لائف سائیکل",

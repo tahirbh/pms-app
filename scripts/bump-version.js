@@ -5,6 +5,11 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+if (process.env.VERCEL || process.env.CI) {
+  console.log('Skipping version bump in CI/Vercel build environment.');
+  process.exit(0);
+}
+
 const packageJsonPath = path.resolve(__dirname, '../package.json');
 const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 

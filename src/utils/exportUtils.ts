@@ -1,6 +1,10 @@
 // ============================================================
-// Export Utilities — CSV export and import
+// Export Utilities — Excel and CSV export/import
 // ============================================================
+import * as XLSX from 'xlsx';
+import moment from 'moment';
+import { getProperties, getTenants, getAllLedgers, getExpenses, getMyInvitations } from './store';
+
 
 /** Convert an array of objects to CSV and trigger a browser download */
 export const exportCSV = (data: Record<string, any>[], filename: string): void => {
@@ -56,3 +60,67 @@ export const readFileAsText = (file: File): Promise<string> =>
     reader.onerror = reject;
     reader.readAsText(file);
   });
+
+// Helper to safely convert JSON array to Sheet, even if empty, by providing default headers
+const safeJsonToSheet = (data: any[], fallbackHeaders: string[]) => {
+  if (!data || data.length === 0) {
+    return XLSX.utils.aoa_to_sheet([fallbackHeaders]);
+  }
+  return XLSX.utils.json_to_sheet(data);
+};
+
+/** Fetch all database tables and export to a single Excel file with multiple sheets */
+export const exportEntireDatabaseToExcel = async (): Promise<void> => {
+  // Fetch all data sets concurrently using parallel promises
+  const [properties, tenants, ledgers, expenses, invitations] = await Promise.all([
+    getProperties(),
+    getTenants(),
+    getAllLedgers(),
+    getExpenses(),
+    getMyInvitations()
+  ]);
+
+  // Clean data helper (remove user_id which is a system internal UUID)
+  const cleanData = (rows: any[]) => {
+    return rows.map(({ user_id, ...rest }) => rest);
+  };
+
+  // Create workbook
+  const wb = XLSX.utils.book_new();
+
+  // Create safe worksheets
+  const propertiesSheet = safeJsonToSheet(
+    cleanData(properties),
+    ['id', 'name', 'address', 'annualRent', 'imageUrl', 'created_at']
+  );
+  const tenantsSheet = safeJsonToSheet(
+    cleanData(tenants),
+    ['id', 'tenantName', 'propertyId', 'startDate', 'endDate', 'calendarMode', 'paymentPlan', 'isActive', 'iqamaNumber', 'sponsorName', 'mobileNumber', 'annualRent', 'created_at']
+  );
+  const ledgersSheet = safeJsonToSheet(
+    cleanData(ledgers),
+    ['id', 'tenantId', 'dueDate', 'amount', 'status', 'paymentMode', 'paidDate', 'created_at']
+  );
+  const expensesSheet = safeJsonToSheet(
+    cleanData(expenses),
+    ['id', 'category', 'amount', 'paymentMode', 'date', 'description', 'propertyId', 'created_at']
+  );
+  const invitationsSheet = safeJsonToSheet(
+    cleanData(invitations),
+    ['id', 'invitee_email', 'status', 'created_at']
+  );
+
+  // Append worksheets
+  XLSX.utils.book_append_sheet(wb, propertiesSheet, 'Properties');
+  XLSX.utils.book_append_sheet(wb, tenantsSheet, 'Tenants');
+  XLSX.utils.book_append_sheet(wb, ledgersSheet, 'Contract Ledgers');
+  XLSX.utils.book_append_sheet(wb, expensesSheet, 'Expenses');
+  XLSX.utils.book_append_sheet(wb, invitationsSheet, 'Invitations');
+
+  // Format filename PMS-current date & time
+  const timestamp = moment().format('YYYY-MM-DD_HH-mm-ss');
+  const filename = `PMS-${timestamp}.xlsx`;
+
+  // Write and trigger download
+  XLSX.writeFile(wb, filename);
+};

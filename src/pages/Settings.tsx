@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { Users, Mail, Trash2, Loader2, CheckCircle2, Clock, XCircle, Languages, Calendar, LogOut, Sun, Moon } from 'lucide-react';
+import { Users, Mail, Trash2, Loader2, CheckCircle2, Clock, XCircle, Languages, Calendar, LogOut, Sun, Moon, Download } from 'lucide-react';
 import { getMyInvitations, sendInvitation, revokeInvitation, isAuthorizedAdmin, setImpersonation, getActualUserId } from '../utils/store';
 import type { Invitation } from '../utils/store';
+import { exportEntireDatabaseToExcel } from '../utils/exportUtils';
 import ConfirmModal from '../components/ConfirmModal';
 
 const Settings: React.FC = () => {
@@ -20,6 +21,7 @@ const Settings: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [impersonateId, setImpersonateId] = useState(localStorage.getItem('impersonated_user_id') || '');
   const [actualUser, setActualUser] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const loadInvitations = async () => {
     const data = await getMyInvitations();
@@ -58,6 +60,18 @@ const Settings: React.FC = () => {
     setConfirmModal(null);
     await revokeInvitation(id);
     await loadInvitations();
+  };
+
+  const handleExportExcel = async () => {
+    setExporting(true);
+    try {
+      await exportEntireDatabaseToExcel();
+    } catch (err: any) {
+      console.error('Failed to export Excel backup', err);
+      alert(`Export Failed: ${err.message || JSON.stringify(err)}`);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const statusIcon = (status: Invitation['status']) => {
@@ -256,6 +270,29 @@ const Settings: React.FC = () => {
           <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '2rem', display: 'flex', gap: '0.5rem' }}>
             {t('invite_tip')}
           </p>
+        </div>
+
+        {/* Data Export / Backup */}
+        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1rem' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Download size={20} color="var(--primary)" /> {t('export_data')}
+          </h2>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
+            {t('export_data_desc')}
+          </p>
+          <button 
+            className="btn btn-primary" 
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 2rem' }}
+            onClick={handleExportExcel}
+            disabled={exporting}
+          >
+            {exporting ? (
+              <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+            ) : (
+              <Download size={18} />
+            )}
+            {exporting ? t('exporting') : t('download_backup')}
+          </button>
         </div>
 
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1rem', marginBottom: '2rem' }}>

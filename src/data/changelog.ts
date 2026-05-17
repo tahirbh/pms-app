@@ -7,6 +7,16 @@ export interface ChangeLogEntry {
 
 export const changelog: ChangeLogEntry[] = [
   {
+    version: "1.0.42",
+    date: "2026-05-17",
+    features: [
+      "feat_excel_export"
+    ],
+    fixes: [
+      "fix_admin_export_isolation"
+    ]
+  },
+  {
     version: "1.0.40",
     date: "2026-05-12",
     features: [
