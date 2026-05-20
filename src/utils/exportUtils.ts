@@ -2,7 +2,7 @@
 // Export Utilities — Excel and CSV export/import
 // ============================================================
 import * as XLSX from 'xlsx';
-import moment from 'moment';
+import moment from 'moment-hijri';
 import { getProperties, getTenants, getAllLedgers, getExpenses } from './store';
 
 
@@ -70,6 +70,35 @@ const safeJsonToSheet = (data: any[], fallbackHeaders: string[]) => {
 };
 
 /** Fetch all database tables and export to a single Excel file with multiple sheets (resolved and anonymized UUIDs) */
+/** Normalize Arabic numerals to English numerals for robust year comparison */
+const normalizeYear = (yearStr: string): string => {
+  const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  return yearStr.replace(/[٠-٩]/g, w => arabicNumbers.indexOf(w).toString());
+};
+
+/** Get the current year key dynamically. */
+const getCurrentYearKey = (calMode: 'gregorian' | 'hijri'): string => {
+  if (calMode === 'hijri') return normalizeYear(moment().format('iYYYY')) + ' (H)';
+  return new Date().getFullYear().toString();
+};
+
+/** Get a year grouping string for any date based on the target calendar mode. */
+const getYearString = (dateStr: string, targetMode: 'gregorian' | 'hijri'): string => {
+  if (!dateStr) return 'N/A';
+  const normDate = normalizeYear(dateStr).replace(/-/g, '/');
+  const parts = normDate.split('/');
+  const yearNum = parseInt(parts[0]);
+  const isInputHijri = yearNum > 1300 && yearNum < 1600;
+
+  if (targetMode === 'hijri') {
+    if (isInputHijri) return yearNum + ' (H)';
+    return normalizeYear(moment(normDate, 'YYYY/MM/DD').format('iYYYY')) + ' (H)';
+  } else {
+    if (!isInputHijri) return parts[0];
+    return normalizeYear(moment(normDate, 'iYYYY/iMM/iDD').format('YYYY'));
+  }
+};
+
 export const exportEntireDatabaseToExcel = async (): Promise<void> => {
   // Fetch only the properties, tenants, ledgers, and expenses (omitting invitations)
   const [properties, tenants, ledgers, expenses] = await Promise.all([
@@ -78,6 +107,9 @@ export const exportEntireDatabaseToExcel = async (): Promise<void> => {
     getAllLedgers(),
     getExpenses()
   ]);
+
+  const calendarMode = (localStorage.getItem('calendarMode') as 'gregorian' | 'hijri') || 'gregorian';
+  const currency = localStorage.getItem('currency') || 'SAR';
 
   // Create lookup maps for resolving IDs to human-readable names
   const propertyMap = new Map<string, string>();
@@ -134,6 +166,93 @@ export const exportEntireDatabaseToExcel = async (): Promise<void> => {
     'Created At': e.created_at ? moment(e.created_at).format('YYYY-MM-DD HH:mm:ss') : ''
   }));
 
+  // --- STATS & HISTORICAL CALCULATION ---
+  const cyKey = getCurrentYearKey(calendarMode);
+  
+  const yearData: Record<string, { contractedRent: number, collectedRent: number, unpaidRent: number, totalExpenses: number, transferredAmount: number }> = {};
+  const ensureYear = (yk: string) => {
+    if (!yearData[yk]) yearData[yk] = { contractedRent: 0, collectedRent: 0, unpaidRent: 0, totalExpenses: 0, transferredAmount: 0 };
+  };
+
+  expenses.forEach(exp => {
+    const yearStr = getYearString(exp.date, calendarMode);
+    ensureYear(yearStr);
+
+    const cat = exp.category.toLowerCase();
+    const isTransfer = cat.includes('transfer') && cat.includes('owner');
+    if (isTransfer) {
+      yearData[yearStr].transferredAmount += exp.amount;
+    } else {
+      yearData[yearStr].totalExpenses += exp.amount;
+    }
+  });
+
+  ledgers.forEach(L => {
+    const tnt = tenants.find(t => t.id === L.tenantId);
+    if (!tnt) return;
+
+    const yearStr = getYearString(L.dueDate, calendarMode);
+    
+    const parseDateSafe = (d: string) => {
+      if (!d) return 0;
+      const clean = normalizeYear(d).replace(/-/g, '/');
+      return clean.startsWith('14') 
+        ? moment(clean, 'iYYYY/iMM/iDD').toDate().getTime() 
+        : new Date(clean).getTime();
+    };
+
+    const ledgerDate = L.dueDate.includes('14') || (parseInt(normalizeYear(L.dueDate).split(/[\/-]/)[0]) < 1900)
+      ? moment(normalizeYear(L.dueDate).replace(/-/g, '/'), 'iYYYY/iMM/iDD').toDate()
+      : new Date(L.dueDate);
+    const lDateMs = ledgerDate.getTime();
+    const tStartMs = parseDateSafe(tnt.startDate);
+    const tEndMs = parseDateSafe(tnt.endDate);
+
+    if (lDateMs < tStartMs || lDateMs > tEndMs) return;
+
+    ensureYear(yearStr);
+    
+    yearData[yearStr].contractedRent += L.amount;
+    
+    if (L.status === 'Paid') {
+      yearData[yearStr].collectedRent += L.amount;
+    } else {
+      yearData[yearStr].unpaidRent += L.amount;
+    }
+  });
+
+  // Calculate current year metrics
+  ensureYear(cyKey);
+  const cyData = yearData[cyKey];
+  let projectedRent = 0;
+  properties.forEach(p => { projectedRent += p.annualRent; });
+
+  const currentStatsData = [
+    { 'Metric': 'Projected Rent', 'Value': projectedRent, 'Currency': currency, 'Year': cyKey },
+    { 'Metric': 'Actual Contracted Rent', 'Value': cyData.contractedRent, 'Currency': currency, 'Year': cyKey },
+    { 'Metric': 'Collected Rent', 'Value': cyData.collectedRent, 'Currency': currency, 'Year': cyKey },
+    { 'Metric': 'Total Expenses', 'Value': cyData.totalExpenses, 'Currency': currency, 'Year': cyKey },
+    { 'Metric': 'Transferred Amount', 'Value': cyData.transferredAmount, 'Currency': currency, 'Year': cyKey },
+    { 'Metric': 'Unpaid Rent', 'Value': cyData.unpaidRent, 'Currency': currency, 'Year': cyKey },
+    { 'Metric': 'Cash in Hand', 'Value': cyData.collectedRent - cyData.totalExpenses - cyData.transferredAmount, 'Currency': currency, 'Year': cyKey }
+  ];
+
+  // Calculate historical per year data
+  const sortedYears = Object.keys(yearData).sort((a, b) => a.localeCompare(b));
+  const historicalData = sortedYears.map(yk => {
+    const vals = yearData[yk];
+    return {
+      'Year': yk,
+      'Actual Contracted Rent': vals.contractedRent,
+      'Collected Rent': vals.collectedRent,
+      'Total Expenses': vals.totalExpenses,
+      'Transferred Amount': vals.transferredAmount,
+      'Unpaid Rent': vals.unpaidRent,
+      'Net Revenue': vals.collectedRent - vals.totalExpenses - vals.transferredAmount,
+      'Currency': currency
+    };
+  });
+
   // Create workbook
   const wb = XLSX.utils.book_new();
 
@@ -154,12 +273,22 @@ export const exportEntireDatabaseToExcel = async (): Promise<void> => {
     expensesData,
     ['Category', 'Amount', 'Payment Mode', 'Date', 'Description', 'Property', 'Created At']
   );
+  const currentStatsSheet = safeJsonToSheet(
+    currentStatsData,
+    ['Metric', 'Value', 'Currency', 'Year']
+  );
+  const historicalSheet = safeJsonToSheet(
+    historicalData,
+    ['Year', 'Actual Contracted Rent', 'Collected Rent', 'Total Expenses', 'Transferred Amount', 'Unpaid Rent', 'Net Revenue', 'Currency']
+  );
 
   // Append worksheets (excluding Invitations)
   XLSX.utils.book_append_sheet(wb, propertiesSheet, 'Properties');
   XLSX.utils.book_append_sheet(wb, tenantsSheet, 'Tenants');
   XLSX.utils.book_append_sheet(wb, ledgersSheet, 'Contract Ledgers');
   XLSX.utils.book_append_sheet(wb, expensesSheet, 'Expenses');
+  XLSX.utils.book_append_sheet(wb, currentStatsSheet, 'current stats');
+  XLSX.utils.book_append_sheet(wb, historicalSheet, 'historical');
 
   // Format filename PMS-current date & time
   const timestamp = moment().format('YYYY-MM-DD_HH-mm-ss');

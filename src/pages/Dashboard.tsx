@@ -104,7 +104,7 @@ const getYearString = (dateStr: string, targetMode: 'gregorian' | 'hijri'): stri
     return normalizeYear(moment(normDate, 'YYYY/MM/DD').format('iYYYY')) + ' (H)';
   } else {
     if (!isInputHijri) return parts[0];
-    return moment(normDate, 'iYYYY/iMM/iDD').format('YYYY');
+    return normalizeYear(moment(normDate, 'iYYYY/iMM/iDD').format('YYYY'));
   }
 };
 

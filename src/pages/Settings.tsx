@@ -19,7 +19,7 @@ const Settings: React.FC = () => {
   const [inviteMsg, setInviteMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; id: string; email: string } | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [impersonateId, setImpersonateId] = useState(localStorage.getItem('impersonated_user_id') || '');
+  const [impersonateId, setImpersonateId] = useState(localStorage.getItem('impersonated_user_id') || '8d1b1f4f-26e3-49b6-8591-e8de763d1a6d');
   const [actualUser, setActualUser] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
 
