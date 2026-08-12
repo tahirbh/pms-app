@@ -3,7 +3,7 @@ import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Home, Users, Settings as SettingsIcon, LogOut, Receipt, Bell, AlertCircle, FileText, Sparkles, History, Info } from 'lucide-react';
+import { LayoutDashboard, Home, Users, Settings as SettingsIcon, LogOut, Receipt, Bell, FileText, Sparkles, History, Info } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import moment from 'moment-hijri';
 
@@ -19,6 +19,13 @@ const Pivot = React.lazy(() => import('./Pivot'));
 import { getProperties, getTenants, getExpenses, getAllLedgers, getImpersonatedId, setImpersonation } from '../utils/store';
 import { ShieldAlert, X } from 'lucide-react';
 import WhatsNewModal from '../components/WhatsNewModal';
+import NotificationModal from '../components/NotificationModal';
+import { 
+  processAndRescheduleNotifications, 
+  markNotificationAsRead, 
+  markNotificationAsDeleted, 
+  deleteReadNotifications 
+} from '../utils/notificationsState';
 
 declare const __APP_VERSION__: string;
 
@@ -140,8 +147,10 @@ const DashboardHome = () => {
   const [allTenants, setAllTenants] = useState<any[]>([]);
   const [allLedgersData, setAllLedgersData] = useState<any[]>([]);
   const [ledgerStats, setLedgerStats] = useState({ paid: 0, overdue: 0, upcoming: 0 });
-  const [notifications, setNotifications] = useState<{ id: string, tenantId: string, name: string, type: 'overdue' | 'upcoming', amount: number, date: string }[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [rawNotifications, setRawNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const { user } = useAuth();
 
   // Current year key (computed once)
   const currentYearKey = getCurrentYearKey(calendarMode);
@@ -316,7 +325,11 @@ const DashboardHome = () => {
 
       // ── Ledger stats (donut chart) ──
       setLedgerStats({ paid: currentMonthPaid, overdue: totalOverdue, upcoming: upcomingRent });
-      setNotifications(notifs.sort((a: any, b: any) => a.type === 'overdue' ? -1 : (b.type === 'overdue' ? 1 : 0)));
+      const sortedNotifs = notifs.sort((a: any, b: any) => a.type === 'overdue' ? -1 : (b.type === 'overdue' ? 1 : 0));
+      setRawNotifications(sortedNotifs);
+      const activeId = impersonatedId || user?.id || 'guest-user';
+      const processed = processAndRescheduleNotifications(sortedNotifs, activeId);
+      setNotifications(processed);
 
       // ── Current Year Building utilization chart ──
       const currentBuildUtil = props.map(p => {
@@ -367,6 +380,36 @@ const DashboardHome = () => {
 
     loadAll();
   }, [calendarMode]);
+
+  const handleMarkAsRead = (id: string) => {
+    const activeId = impersonatedId || user?.id || 'guest-user';
+    markNotificationAsRead(id, activeId);
+    setNotifications(processAndRescheduleNotifications(rawNotifications, activeId));
+  };
+
+  const handleMarkAsUnread = (id: string) => {
+    const activeId = impersonatedId || user?.id || 'guest-user';
+    const states = JSON.parse(localStorage.getItem(`pms_notifications_state_${activeId}`) || '{}');
+    if (states[id]) {
+      states[id].status = 'unread';
+      delete states[id].lastReadAt;
+      localStorage.setItem(`pms_notifications_state_${activeId}`, JSON.stringify(states));
+    }
+    setNotifications(processAndRescheduleNotifications(rawNotifications, activeId));
+  };
+
+  const handleMarkAsDeleted = (id: string) => {
+    const activeId = impersonatedId || user?.id || 'guest-user';
+    markNotificationAsDeleted(id, activeId);
+    setNotifications(processAndRescheduleNotifications(rawNotifications, activeId));
+  };
+
+  const handleDeleteRead = () => {
+    const activeId = impersonatedId || user?.id || 'guest-user';
+    const activeIds = notifications.map(n => n.id);
+    deleteReadNotifications(activeId, activeIds);
+    setNotifications(processAndRescheduleNotifications(rawNotifications, activeId));
+  };
 
   // ── Filtered historical metrics based on year dropdown ──
   const filteredHistMetrics = React.useMemo(() => {
@@ -605,6 +648,7 @@ const DashboardHome = () => {
     { name: t('upcoming_rent') || 'Upcoming (30 Days)', value: ledgerStats.upcoming }
   ];
   const LEDGER_COLORS = ['#10b981', '#ef4444', '#f59e0b'];
+  const unreadCount = notifications.filter(n => n.status === 'unread').length;
 
   return (
     <div className="glass-panel p-6 animate-slide-in relative">
@@ -651,45 +695,28 @@ const DashboardHome = () => {
         <button
           className="btn"
           style={{ position: 'relative', padding: '0.5rem', background: 'var(--surface-color)', border: '1px solid var(--glass-border)' }}
-          onClick={() => setShowNotifications(!showNotifications)}
+          onClick={() => setShowNotifications(true)}
         >
           <Bell size={24} color="var(--primary)" />
           <span className="btn-text">{t('notifications')}</span>
 
-          {notifications.length > 0 && (
+          {unreadCount > 0 && (
             <span style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'var(--danger)', color: 'white', borderRadius: '50%', width: '20px', height: '20px', fontSize: '0.75rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              {notifications.length}
+              {unreadCount}
             </span>
           )}
         </button>
 
-        {showNotifications && (
-          <div className="glass-panel animate-fade-in" style={{ position: 'absolute', top: '3rem', right: 0, width: '350px', zIndex: 50, padding: 0, maxHeight: '400px', overflowY: 'auto' }}>
-            <h4 style={{ padding: '1rem', borderBottom: '1px solid var(--glass-border)', margin: 0, fontWeight: 600 }}>{t('notifications')}</h4>
-            {notifications.length === 0 ? (
-              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>{t('no_notifications')}</div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {notifications.map((n: any) => (
-                  <div key={n.id} style={{ padding: '1rem', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'flex-start', gap: '1rem', cursor: 'pointer', transition: 'background 0.2s', background: 'transparent' }} onClick={() => navigate(`/dashboard/ledger/${n.tenantId}`)}>
-                    <AlertCircle size={20} color={n.type === 'overdue' ? 'var(--danger)' : 'var(--accent)'} style={{ flexShrink: 0, marginTop: '2px' }} />
-                    <div style={{ flex: 1 }}>
-                      <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)' }}>
-                        {n.name}
-                      </p>
-                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: n.type === 'overdue' ? 'var(--danger)' : 'var(--accent)' }}>
-                        {n.type === 'overdue' ? t('overdue_alert') : t('upcoming_alert')}: {Math.round(n.amount).toLocaleString()} {currency}
-                      </p>
-                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        {t('due_date')}: {n.date}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        <NotificationModal
+          isOpen={showNotifications}
+          onClose={() => setShowNotifications(false)}
+          notifications={notifications}
+          onMarkAsRead={handleMarkAsRead}
+          onMarkAsUnread={handleMarkAsUnread}
+          onMarkAsDeleted={handleMarkAsDeleted}
+          onDeleteRead={handleDeleteRead}
+          currency={currency}
+        />
       </div>
 
       <h2 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '0.4rem', paddingRight: '3rem' }}>{t('welcome_title')}</h2>
